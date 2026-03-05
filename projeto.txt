@@ -1,0 +1,174 @@
+Create a modern professional business software platform called **Bexly**.
+
+Bexly is a serious technology platform designed to help entrepreneurs, professionals and companies manage clients, organize leads and grow their business. The product must look like a real professional business software, not a simple tool.
+
+BRAND IDENTITY
+
+Brand name: Bexly
+
+Primary color: Blue
+
+Color palette:
+Primary Blue: #2563EB
+Dark Blue: #1E3A8A
+Accent Blue: #3B82F6
+Background: #F3F4F6
+White: #FFFFFF
+Text Gray: #374151
+
+Design style must be:
+
+* modern
+* clean
+* professional
+* technology focused
+* minimal interface
+* soft shadows
+* rounded elements
+* modern typography
+
+The interface must look like a professional platform used by companies.
+
+PLATFORM STRUCTURE
+
+1. HOME PAGE
+
+The first page should be the official Bexly website.
+
+Top navigation bar:
+
+* Bexly logo
+* Login button
+* Create Account button
+
+Hero section:
+
+Headline:
+"Manage your clients and grow your business with Bexly."
+
+Subheadline:
+"Bexly is a professional business platform that helps companies organize clients, manage leads and improve sales performance."
+
+Primary button:
+"Create Your Account"
+
+Below the hero section include:
+
+* platform features
+* benefits for businesses
+* explanation of how Bexly helps companies grow
+
+2. ACCOUNT CREATION
+
+Users must be able to create an account with:
+
+* Email
+* Password
+* Confirm Password
+
+Button:
+Create Account
+
+After account creation, the user should automatically enter the platform dashboard.
+
+3. LOGIN PAGE
+
+Login fields:
+
+* Email
+* Password
+
+Include:
+
+* Login button
+* Forgot password option
+
+4. MAIN PLATFORM DASHBOARD
+
+After login the user enters the Bexly dashboard.
+
+Layout structure:
+
+Left sidebar navigation with dark blue background.
+
+Sidebar sections:
+
+* Dashboard
+* Clients
+* Leads
+* Sales
+* AI Mentor
+* Settings
+
+Main dashboard area should be white with modern cards and soft shadows.
+
+5. DASHBOARD OVERVIEW
+
+Show business metrics:
+
+* number of leads
+* number of clients
+* recent activity
+* sales performance
+
+Use simple charts and metric cards.
+
+6. CLIENT MANAGEMENT
+
+Users must be able to:
+
+* add new clients
+* store contact information
+* add notes
+* track interactions
+
+Each client should have its own profile page.
+
+7. LEAD MANAGEMENT
+
+Create a visual pipeline system with stages:
+
+* New Lead
+* Contacted
+* Negotiation
+* Closed Deal
+
+Users must be able to move leads between stages.
+
+8. AI BUSINESS MENTOR
+
+Inside the platform create an AI assistant called **Bexly AI Mentor**.
+
+The AI should appear as a chat inside the dashboard and help users by:
+
+* analyzing business activity
+* suggesting ways to get more clients
+* giving marketing suggestions
+* improving sales performance
+
+The AI mentor must behave like a professional business advisor.
+
+DESIGN REQUIREMENTS
+
+Interface must include:
+
+* dark blue sidebar
+* white dashboard area
+* blue action buttons
+* clean layout
+* modern icons
+* responsive design
+
+TECH STRUCTURE
+
+Include:
+
+* secure authentication system
+* user accounts database
+* clients database
+* leads database
+* scalable architecture
+
+GOAL
+
+Create a serious modern business platform called **Bexly** that helps professionals and companies organize clients, manage leads and grow their business efficiently.
