@@ -20,7 +20,7 @@ const Leads = () => {
     const [columns] = useState<Column[]>([
         {
             id: 'new',
-            title: 'New Lead',
+            title: 'Novo Lead',
             leads: [
                 { id: 'L1', title: 'ERP Implementation', company: 'Global Corp', value: '$5,000', date: 'Mar 10' },
                 { id: 'L2', title: 'UI/UX Redesign', company: 'Startup Inc', value: '$3,200', date: 'Mar 12' },
@@ -28,14 +28,14 @@ const Leads = () => {
         },
         {
             id: 'contacted',
-            title: 'Contacted',
+            title: 'Contatado',
             leads: [
                 { id: 'L3', title: 'Cloud Migration', company: 'Tech Hub', value: '$12,000', date: 'Mar 08' },
             ]
         },
         {
             id: 'negotiation',
-            title: 'Negotiation',
+            title: 'Negociação',
             leads: [
                 { id: 'L4', title: 'Consultancy Retainer', company: 'Blue Chip', value: '$2,500/mo', date: 'Mar 05' },
                 { id: 'L5', title: 'Mobile App Dev', company: 'Innovate LLC', value: '$8,500', date: 'Mar 01' },
@@ -43,7 +43,7 @@ const Leads = () => {
         },
         {
             id: 'closed',
-            title: 'Closed Deal',
+            title: 'Negócio Fechado',
             leads: [
                 { id: 'L6', title: 'Web Platform', company: 'Omega Group', value: '$15,000', date: 'Feb 25' },
             ]
@@ -54,11 +54,11 @@ const Leads = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.75rem', marginBottom: '8px' }}>Sales Pipeline</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>Track and manage your leads through the sales funnel.</p>
+                    <h1 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Pipeline de Vendas</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>Acompanhe e gerencie seus leads através do funil de vendas.</p>
                 </div>
                 <Button>
-                    <Plus size={20} /> Create New Lead
+                    <Plus size={20} /> Criar Novo Lead
                 </Button>
             </div>
 
@@ -73,13 +73,13 @@ const Leads = () => {
                     <div key={column.id} style={{
                         minWidth: '300px',
                         width: '300px',
-                        backgroundColor: '#F3F4F6', // Lighter background for the column
+                        backgroundColor: 'var(--nav-hover)', // Adaptive background for the column
                         borderRadius: 'var(--radius-lg)',
                         display: 'flex',
                         flexDirection: 'column'
                     }}>
                         <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-gray)' }}>
+                            <h3 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-gray)' }}>
                                 {column.title} <span style={{ marginLeft: '8px', color: 'var(--text-secondary)', fontWeight: 400 }}>{column.leads.length}</span>
                             </h3>
                             <button style={{ background: 'none', color: 'var(--text-secondary)' }}><Plus size={16} /></button>
@@ -96,11 +96,11 @@ const Leads = () => {
                                         <button style={{ background: 'none', color: 'var(--text-secondary)' }}><MoreHorizontal size={16} /></button>
                                     </div>
 
-                                    <h4 style={{ fontSize: '0.925rem', marginBottom: '12px', color: 'var(--dark-blue)' }}>{lead.title}</h4>
+                                    <h4 style={{ fontSize: '0.85rem', marginBottom: '12px', color: 'var(--heading-color)' }}>{lead.title}</h4>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                                        <span style={{ fontWeight: 700, color: 'var(--primary-blue)', fontSize: '0.875rem' }}>{lead.value}</span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                        <span style={{ fontWeight: 600, color: 'var(--primary-blue)', fontSize: '0.8rem' }}>{lead.value}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
                                             <Calendar size={14} /> {lead.date}
                                         </div>
                                     </div>

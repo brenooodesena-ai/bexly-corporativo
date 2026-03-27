@@ -57,7 +57,7 @@ export const Input = ({
     required?: boolean;
 }) => (
     <div style={{ marginBottom: '16px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-gray)' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 400, fontSize: '0.875rem', color: 'var(--text-gray)' }}>
             {label} {required && <span style={{ color: 'var(--error)' }}>*</span>}
         </label>
         <input
