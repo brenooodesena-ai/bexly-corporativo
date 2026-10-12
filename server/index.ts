@@ -22,6 +22,9 @@ import { requestLogger } from './middleware/requestLogger.js';
 
 const app = express();
 
+// Behind Render/Vercel proxy: use X-Forwarded-For for client IP (rate limiting)
+app.set('trust proxy', 1);
+
 // ── Security ──
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },

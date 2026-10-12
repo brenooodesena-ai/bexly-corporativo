@@ -1,0 +1,51 @@
+# ==================================================
+# BEXLY — Render Blueprint (backend Express)
+# Render Dashboard → New → Blueprint → selecione este repositório
+#
+# ATENÇÃO (plano free):
+# - O servidor "dorme" após 15 min sem tráfego (cold start ~30-60s)
+# - O disco é efêmero: o SQLite é apagado a cada deploy/reinício
+# Para produção real: plan: starter + bloco "disk" (veja comentário abaixo)
+# ==================================================
+services:
+  - type: web
+    name: bexly-api
+    runtime: node
+    plan: free
+    region: virginia
+    branch: main
+    buildCommand: npm ci --include=dev
+    startCommand: npx tsx server/index.ts
+    healthCheckPath: /api/health
+    autoDeploy: true
+    # Para dados persistentes (exige plano pago):
+    # disk:
+    #   name: bexly-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    # e troque DATABASE_URL para /var/data/bexly.db
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: ./server/data/bexly.db
+      - key: FRONTEND_URL
+        value: https://bexly-two.vercel.app
+      - key: META_APP_ID
+        value: "1734960207599537"
+      - key: META_REDIRECT_URI
+        value: https://bexly-two.vercel.app/integrations/instagram/callback
+      - key: META_API_VERSION
+        value: v21.0
+      # Gerados automaticamente pelo Render
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      # Preenchidos no painel do Render (não ficam no Git)
+      - key: META_APP_SECRET
+        sync: false
+      - key: META_VERIFY_TOKEN
+        sync: false
