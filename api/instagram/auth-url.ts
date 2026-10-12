@@ -3,7 +3,7 @@ export default function handler(req: any, res: any) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const origin = `${proto}://${host}`;
 
-  const clientId = process.env.META_APP_ID || '28710878855238960';
+  const clientId = process.env.META_APP_ID || '1734960207599537';
   const redirectUri = process.env.META_REDIRECT_URI || `${origin}/integrations/instagram/callback`;
 
   const state = Buffer.from(JSON.stringify({ origin, timestamp: Date.now() })).toString('base64');
