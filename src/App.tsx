@@ -13,16 +13,20 @@ import Marketing from './pages/Marketing';
 import Products from './pages/Products';
 import Checkout from './pages/Checkout';
 import { ThemeProvider } from './context/ThemeContext';
+import { InstagramAutomationProvider } from './context/InstagramAutomationContext';
+import InstagramCallback from './pages/InstagramCallback';
 
 function App() {
   return (
     <ThemeProvider>
+      <InstagramAutomationProvider>
       <Router>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/integrations/instagram/callback" element={<InstagramCallback />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={
@@ -79,6 +83,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </InstagramAutomationProvider>
     </ThemeProvider>
   );
 }

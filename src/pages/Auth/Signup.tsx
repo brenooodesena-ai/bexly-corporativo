@@ -1,5 +1,3 @@
-import logo from '../../logo.png';
-import logoText from '../../logo-text.png';
 import { Button, Input, Card } from '../../components/UI';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -30,17 +28,7 @@ const Signup = () => {
 
             <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '440px' }}>
                 <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                    <div style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '0px', 
-                        marginBottom: '4px', // Reduced from 24px
-                        marginTop: '85px',
-                        transform: 'translateX(20px)'
-                    }}>
-                        <img src={logo} alt="Bexly Logo" style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
-                        <img src={logoText} alt="Bexly Name" style={{ height: '160px', width: 'auto', objectFit: 'contain', marginLeft: '-95px', marginTop: '5px' }} />
-                    </div>
+
                     <h1 style={{ fontSize: '2.5rem', color: 'var(--white)', marginBottom: '8px', fontWeight: 600 }}>Criar conta</h1>
                     <p style={{ color: 'var(--text-secondary)' }}>Lance seu negócio em 48 horas.</p>
                 </div>

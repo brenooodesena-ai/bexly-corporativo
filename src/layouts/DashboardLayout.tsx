@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import logo from '../logo.png';
-import logoText from '../logo-text.png';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
+import logotipo from '../logotipo-5.png';
 import {
     LayoutDashboard,
     Layout as LayoutIcon,
@@ -14,11 +13,8 @@ import {
     Settings,
     LogOut,
     Bell,
-    Search,
-    Sun,
-    Moon
+    Search
 } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
 
 interface SidebarItemProps {
     to: string;
@@ -35,8 +31,8 @@ const SidebarItem = ({ to, icon: Icon, label }: SidebarItemProps) => (
             gap: '12px',
             padding: '12px 16px',
             borderRadius: 'var(--radius)',
-            color: isActive ? 'var(--white)' : 'var(--text-secondary)',
-            backgroundColor: isActive ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+            color: isActive ? '#ffffff' : '#94a3b8',
+            backgroundColor: isActive ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
             marginBottom: '4px',
             fontWeight: isActive ? 600 : 500,
             transition: 'all 0.2s ease'
@@ -49,55 +45,55 @@ const SidebarItem = ({ to, icon: Icon, label }: SidebarItemProps) => (
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate();
-    const { theme, toggleTheme } = useTheme();
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh' }}>
-            {/* Sidebar */}
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
+            {/* Sidebar — Sempre escuro */}
             <aside style={{
                 width: 'var(--sidebar-width)',
-                backgroundColor: 'var(--sidebar-bg)',
-                color: 'var(--text-primary)',
-                padding: '0px 16px 24px', // Removed top padding entirely
+                backgroundColor: '#020617',
+                color: '#f8fafc',
+                padding: '0 0 24px 0',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'fixed',
                 height: '100vh',
                 zIndex: 50,
-                borderRight: '1px solid var(--border-color)'
+                borderRight: '1px solid rgba(255, 255, 255, 0.08)'
             }}>
+                {/* Logo — centralizada exatamente no meio do espaço (horizontal e verticalmente) */}
                 <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    justifyContent: 'center', // Center content
-                    gap: '0px', 
-                    marginBottom: '16px', 
-                    padding: '0 8px', 
-                    marginTop: '-35px',
-                    transform: 'translateX(12px)', // Reduced from 25px to reach true visual center
-                    pointerEvents: 'none' // Prevent transparent parts of the large logo images from blocking clicks on the menu below
+                    justifyContent: 'center',
+                    height: '80px',
+                    minHeight: '80px',
+                    width: '100%',
+                    flexShrink: 0,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
                 }}>
-                    <img
-                        src={logo}
-                        alt="Bexly Logo"
-                        style={{ width: '90px', height: '90px', objectFit: 'contain' }}
-                    />
-                    <img src={logoText} alt="Bexly Name" style={{ height: '160px', width: 'auto', objectFit: 'contain', marginLeft: '-85px', marginTop: '5px' }} />
+                    <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+                        <img
+                            src={logotipo}
+                            alt="Bexly Logo"
+                            style={{ height: '38px', width: 'auto', objectFit: 'contain', display: 'block' }}
+                        />
+                    </Link>
                 </div>
 
-                <nav style={{ flex: 1, marginTop: '-55px' }}>
+                <nav style={{ flex: 1, paddingTop: '36px', paddingLeft: '16px', paddingRight: '16px' }}>
                     <SidebarItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
 
-                    <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '12px 8px', display: 'flex', alignItems: 'center', position: 'relative' }}>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 8px', backgroundColor: 'var(--sidebar-bg)', position: 'absolute', left: '8px' }}>CONSTRUTOR</span>
+                    <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.08)', margin: '12px 8px', display: 'flex', alignItems: 'center', position: 'relative' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 8px', backgroundColor: '#020617', position: 'absolute', left: '8px' }}>CONSTRUTOR</span>
                     </div>
                     <div style={{ marginTop: '24px' }}>
                         <SidebarItem to="/pages" icon={LayoutIcon} label="Minhas Páginas" />
                         <SidebarItem to="/funnels" icon={GitMerge} label="Funis de Venda" />
                     </div>
 
-                    <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '12px 8px', display: 'flex', alignItems: 'center', position: 'relative' }}>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 8px', backgroundColor: 'var(--sidebar-bg)', position: 'absolute', left: '8px' }}>CRM & VENDAS</span>
+                    <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.08)', margin: '12px 8px', display: 'flex', alignItems: 'center', position: 'relative' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 8px', backgroundColor: '#020617', position: 'absolute', left: '8px' }}>CRM & VENDAS</span>
                     </div>
                     <div style={{ marginTop: '24px' }}>
                         <SidebarItem to="/leads" icon={Target} label="Leads" />
@@ -106,14 +102,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         <SidebarItem to="/products" icon={ShoppingCart} label="Produtos" />
                     </div>
 
-                    <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '12px 8px', display: 'flex', alignItems: 'center', position: 'relative' }}>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 8px', backgroundColor: 'var(--sidebar-bg)', position: 'absolute', left: '8px' }}>Inteligência</span>
+                    <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.08)', margin: '12px 8px', display: 'flex', alignItems: 'center', position: 'relative' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 8px', backgroundColor: '#020617', position: 'absolute', left: '8px' }}>Inteligência</span>
                     </div>
                     <div style={{ marginTop: '24px' }}>
                         <SidebarItem to="/ai-mentor" icon={MessageSquare} label="Mentor IA" />
                     </div>
 
-                    <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '20px 0' }} />
+                    <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.08)', margin: '20px 0' }} />
 
                     <SidebarItem to="/settings" icon={Settings} label="Configurações" />
                 </nav>
@@ -125,12 +121,16 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         alignItems: 'center',
                         gap: '12px',
                         padding: '12px 16px',
-                        color: 'var(--text-secondary)',
+                        color: '#94a3b8',
                         background: 'none',
+                        border: 'none',
                         fontSize: '1rem',
                         marginTop: 'auto',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'color 0.2s ease'
                     }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
                 >
                     <LogOut size={20} />
                     <span>Sair</span>
@@ -141,7 +141,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             <main style={{
                 flex: 1,
                 marginLeft: 'var(--sidebar-width)',
-                background: 'var(--background)'
+                background: 'var(--background)',
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column'
             }}>
                 {/* Header */}
                 <header style={{
@@ -152,7 +155,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '15px 32px 0',
+                    padding: '0 32px',
                     position: 'sticky',
                     top: 0,
                     zIndex: 40
@@ -167,13 +170,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        <button
-                            onClick={toggleTheme}
-                            style={{ background: 'none', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-                        >
-                            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                        </button>
                         <button style={{ background: 'none', color: 'var(--text-secondary)', position: 'relative', border: 'none', cursor: 'pointer' }}>
                             <Bell size={20} />
                             <div style={{ position: 'absolute', top: '0px', right: '0px', width: '6px', height: '6px', backgroundColor: 'var(--primary-blue)', borderRadius: '50%' }} />
