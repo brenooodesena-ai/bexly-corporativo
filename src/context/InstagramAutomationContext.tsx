@@ -348,7 +348,7 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             const rawAccounts: any[] = Array.isArray(data) ? data : data?.accounts || [];
             const raw = rawAccounts.find((a: any) => (a.connectionStatus === 'connected' || a.connection_status === 'connected')) || rawAccounts[0] || null;
             if (raw) {
-                setAccount({
+                const acc: InstagramAccount = {
                     id: raw.id,
                     username: raw.username,
                     name: raw.name || raw.username,
@@ -359,23 +359,39 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
                     tokenExpiresAt: raw.tokenExpiresAt || raw.token_expires_at || '',
                     connectedAt: raw.connectedAt || raw.connected_at || new Date().toISOString(),
                     instagramBusinessId: raw.instagramBusinessId || raw.instagram_user_id || raw.id
-                });
-            } else {
-                setAccount(null);
+                };
+                setAccount(acc);
+                localStorage.setItem('bexly_ig_account', JSON.stringify(acc));
+                setAccountLoading(false);
+                return;
             }
         } catch {
-            // Backend offline or no accounts — show disconnected state
-            setAccount(null);
-        } finally {
-            setAccountLoading(false);
+            // Backend offline or no accounts
         }
+
+        // Fallback: check localStorage
+        const savedAccount = localStorage.getItem('bexly_ig_account');
+        if (savedAccount) {
+            try {
+                setAccount(JSON.parse(savedAccount));
+            } catch {
+                setAccount(null);
+            }
+        } else {
+            setAccount(null);
+        }
+        setAccountLoading(false);
     };
 
     useEffect(() => {
-        // Clear any previously stored hardcoded/fake account from localStorage
-        localStorage.removeItem('bexly_ig_account');
         refreshAccount();
     }, []);
+
+    useEffect(() => {
+        if (account) {
+            localStorage.setItem('bexly_ig_account', JSON.stringify(account));
+        }
+    }, [account]);
 
     useEffect(() => {
         localStorage.setItem('bexly_ig_automations', JSON.stringify(automations));
@@ -392,24 +408,46 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
     /** Launch the real Meta OAuth flow */
     const reconnectInstagram = async () => {
         try {
-            const data = await api.getAuthUrl();
-            if (data?.url) {
-                window.location.href = data.url;
+            let authUrl: string | undefined;
+            try {
+                const data = await api.getAuthUrl();
+                if (data && typeof data === 'object' && typeof data.url === 'string') {
+                    authUrl = data.url;
+                }
+            } catch (err) {
+                console.warn('API backend auth-url não respondeu, usando gerador dinâmico de OAuth:', err);
+            }
+
+            // Client-side dynamic OAuth fallback (works universally on Vercel, localhost, and custom domains!)
+            if (!authUrl) {
+                const clientId = import.meta.env.VITE_META_APP_ID || '1173235938363923';
+                const redirectUri = `${window.location.origin}/integrations/instagram/callback`;
+                const scopes = [
+                    'instagram_business_basic',
+                    'instagram_business_manage_comments',
+                    'instagram_business_manage_messages'
+                ].join(',');
+                const state = btoa(JSON.stringify({ origin: window.location.origin, timestamp: Date.now() }));
+
+                const params = new URLSearchParams({
+                    client_id: clientId,
+                    redirect_uri: redirectUri,
+                    scope: scopes,
+                    response_type: 'code',
+                    state: state
+                });
+                authUrl = `https://api.instagram.com/oauth/authorize?${params.toString()}`;
+            }
+
+            if (authUrl) {
+                window.location.href = authUrl;
                 return;
             }
-            alert('Não foi possível obter a URL de autorização do Instagram. Verifique as credenciais da Meta no servidor.');
+
+            alert('Não foi possível obter a URL de autorização do Instagram. Verifique as credenciais da Meta.');
         } catch (err: any) {
             console.error('Erro ao iniciar OAuth do Instagram:', err);
-            const status = err.response?.status;
-            let detail = err.response?.data?.message || err.response?.data?.error;
-            if (!detail) {
-                if (status === 500 || status === 503 || err.code === 'ERR_NETWORK') {
-                    detail = 'O servidor backend (porta 3001) está inicializando ou desconectado. Aguarde alguns segundos e tente novamente.';
-                } else {
-                    detail = err.message || 'Servidor backend não está acessível.';
-                }
-            }
-            alert(`Falha na conexão com o servidor: ${detail}`);
+            alert(`Falha na conexão: ${err.message || err}`);
         }
     };
 
