@@ -420,7 +420,7 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
 
             // Client-side dynamic OAuth fallback (works universally on Vercel, localhost, and custom domains!)
             if (!authUrl) {
-                const clientId = import.meta.env.VITE_META_APP_ID || '1173235938363923';
+                const clientId = import.meta.env.VITE_META_APP_ID || '28710878855238960';
                 const redirectUri = `${window.location.origin}/integrations/instagram/callback`;
                 const scopes = [
                     'instagram_business_basic',

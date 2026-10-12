@@ -1391,7 +1391,9 @@ export default function Marketing() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.82rem' }}>
                             <div style={{ padding: '14px', borderRadius: '12px', backgroundColor: '#020617', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                                 <span style={{ color: '#64748b', fontSize: '0.72rem', display: 'block', marginBottom: '4px' }}>Instagram App ID</span>
-                                <span style={{ color: '#ffffff', fontFamily: 'monospace', fontWeight: 600 }}>1173235938363923</span>
+                                <span style={{ color: '#ffffff', fontFamily: 'monospace', fontWeight: 600 }}>
+                                    {import.meta.env.VITE_META_APP_ID || '28710878855238960'}
+                                </span>
                             </div>
 
                             <div style={{ padding: '14px', borderRadius: '12px', backgroundColor: '#020617', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
