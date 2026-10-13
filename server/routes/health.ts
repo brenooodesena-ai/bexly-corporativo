@@ -17,6 +17,8 @@ healthRouter.get('/', (_req: Request, res: Response) => {
     status: dbStatus === 'ok' ? 'ok' : 'degraded',
     database: dbStatus,
     meta_configured: isMetaConfigured(),
+    uptime: Math.round(process.uptime()),
+    version: '2026.10.13-v3',
   });
 });
 

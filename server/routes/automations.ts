@@ -137,38 +137,52 @@ automationsRouter.post('/', (req: Request, res: Response) => {
     `).run(targetAccountId, orgId, now, now);
   }
 
-  const id = randomUUID();
-  const now = new Date().toISOString();
+  try {
+    // Validate campaign_id exists in campaigns table; if not, store null to prevent foreign key violation
+    let safeCampaignId: string | null = null;
+    if (campaign_id) {
+      const camp = db.prepare(`SELECT id FROM campaigns WHERE id = ? AND organization_id = ?`).get(campaign_id, orgId);
+      if (camp) {
+        safeCampaignId = campaign_id;
+      }
+    }
 
-  db.prepare(`
-    INSERT INTO automations (
-      id, organization_id, instagram_account_id, campaign_id,
-      name, description, status,
-      trigger_config, conditions_config, actions_config,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?)
-  `).run(
-    id,
-    orgId,
-    targetAccountId,
-    campaign_id || null,
-    name,
-    description || null,
-    typeof rawTrigger === 'string' ? rawTrigger : JSON.stringify(rawTrigger),
-    typeof rawConditions === 'string' ? rawConditions : JSON.stringify(rawConditions || []),
-    typeof rawActions === 'string' ? rawActions : JSON.stringify(rawActions),
-    now,
-    now
-  );
+    const id = randomUUID();
+    const now = new Date().toISOString();
 
-  logger.info(`Automation created: "${name}" (${id})`);
+    db.prepare(`
+      INSERT INTO automations (
+        id, organization_id, instagram_account_id, campaign_id,
+        name, description, status,
+        trigger_config, conditions_config, actions_config,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      orgId,
+      targetAccountId,
+      safeCampaignId,
+      name,
+      description || null,
+      typeof rawTrigger === 'string' ? rawTrigger : JSON.stringify(rawTrigger),
+      typeof rawConditions === 'string' ? rawConditions : JSON.stringify(rawConditions || []),
+      typeof rawActions === 'string' ? rawActions : JSON.stringify(rawActions),
+      now,
+      now
+    );
 
-  res.status(201).json({
-    id,
-    name,
-    status: 'active',
-    created_at: now,
-  });
+    logger.info(`Automation created: "${name}" (${id})`);
+
+    res.status(201).json({
+      id,
+      name,
+      status: 'active',
+      created_at: now,
+    });
+  } catch (err: any) {
+    logger.error('Error creating automation:', err);
+    res.status(500).json({ error: 'create_automation_failed', message: err.message });
+  }
 });
 
 /**
@@ -200,31 +214,44 @@ automationsRouter.put('/:id', (req: Request, res: Response) => {
 
   const now = new Date().toISOString();
 
-  db.prepare(`
-    UPDATE automations SET
-      name = COALESCE(?, name),
-      description = COALESCE(?, description),
-      status = COALESCE(?, status),
-      campaign_id = COALESCE(?, campaign_id),
-      trigger_config = COALESCE(?, trigger_config),
-      conditions_config = COALESCE(?, conditions_config),
-      actions_config = COALESCE(?, actions_config),
-      updated_at = ?
-    WHERE id = ? AND organization_id = ?
-  `).run(
-    name || null,
-    description !== undefined ? description : null,
-    status || null,
-    campaign_id !== undefined ? campaign_id : null,
-    trigger_config ? (typeof trigger_config === 'string' ? trigger_config : JSON.stringify(trigger_config)) : null,
-    conditions_config ? (typeof conditions_config === 'string' ? conditions_config : JSON.stringify(conditions_config)) : null,
-    actions_config ? (typeof actions_config === 'string' ? actions_config : JSON.stringify(actions_config)) : null,
-    now,
-    id,
-    orgId
-  );
+  try {
+    let safeCampaignId: string | null = null;
+    if (campaign_id) {
+      const camp = db.prepare(`SELECT id FROM campaigns WHERE id = ? AND organization_id = ?`).get(campaign_id, orgId);
+      if (camp) {
+        safeCampaignId = campaign_id;
+      }
+    }
 
-  res.json({ success: true, updated_at: now });
+    db.prepare(`
+      UPDATE automations SET
+        name = COALESCE(?, name),
+        description = COALESCE(?, description),
+        status = COALESCE(?, status),
+        campaign_id = COALESCE(?, campaign_id),
+        trigger_config = COALESCE(?, trigger_config),
+        conditions_config = COALESCE(?, conditions_config),
+        actions_config = COALESCE(?, actions_config),
+        updated_at = ?
+      WHERE id = ? AND organization_id = ?
+    `).run(
+      name || null,
+      description !== undefined ? description : null,
+      status || null,
+      safeCampaignId,
+      trigger_config ? (typeof trigger_config === 'string' ? trigger_config : JSON.stringify(trigger_config)) : null,
+      conditions_config ? (typeof conditions_config === 'string' ? conditions_config : JSON.stringify(conditions_config)) : null,
+      actions_config ? (typeof actions_config === 'string' ? actions_config : JSON.stringify(actions_config)) : null,
+      now,
+      id,
+      orgId
+    );
+
+    res.json({ success: true, updated_at: now });
+  } catch (err: any) {
+    logger.error('Error updating automation:', err);
+    res.status(500).json({ error: 'update_automation_failed', message: err.message });
+  }
 });
 
 /**
