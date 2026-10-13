@@ -717,6 +717,7 @@ instagramRouter.post('/accounts/:id/test', async (req: Request, res: Response) =
   try {
     const token = decryptToken(account.access_token_encrypted);
     const profile = await getUserProfile(token);
+    const webhooksSubscribed = await subscribePageToWebhooks(profile.id, token).catch(() => false);
 
     db.prepare(`
       UPDATE instagram_accounts SET
@@ -726,7 +727,7 @@ instagramRouter.post('/accounts/:id/test', async (req: Request, res: Response) =
       WHERE id = ?
     `).run(accountId);
 
-    res.json({ success: true, profile });
+    res.json({ success: true, profile, webhooksSubscribed });
   } catch (error: any) {
     db.prepare(`
       UPDATE instagram_accounts SET

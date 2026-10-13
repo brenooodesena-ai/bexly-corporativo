@@ -328,6 +328,23 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
     useEffect(() => {
         if (account) {
             localStorage.setItem('bexly_ig_account', JSON.stringify(account));
+            // Ensure any saved automations in localStorage are immediately pushed to backend database
+            const saved = localStorage.getItem('bexly_ig_automations');
+            if (saved) {
+                try {
+                    const localAutos: Automation[] = JSON.parse(saved);
+                    localAutos.forEach(la => {
+                        api.createAutomation({
+                            name: la.name,
+                            instagram_account_id: account.id,
+                            campaign_id: la.campaignName,
+                            trigger_config: la.trigger,
+                            conditions_config: la.conditions,
+                            actions_config: la.actions
+                        }).catch(() => {});
+                    });
+                } catch {}
+            }
         }
     }, [account]);
 

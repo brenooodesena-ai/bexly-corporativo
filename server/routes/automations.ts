@@ -24,9 +24,9 @@ automationsRouter.get('/', (req: Request, res: Response) => {
   const automations = db.prepare(`
     SELECT
       a.*,
-      ig.username as instagram_username
+      COALESCE(ig.username, 'bexlybr') as instagram_username
     FROM automations a
-    JOIN instagram_accounts ig ON ig.id = a.instagram_account_id
+    LEFT JOIN instagram_accounts ig ON ig.id = a.instagram_account_id
     WHERE a.organization_id = ?
     ORDER BY a.created_at DESC
   `).all(orgId);
@@ -52,9 +52,9 @@ automationsRouter.get('/:id', (req: Request, res: Response) => {
   const automation = db.prepare(`
     SELECT
       a.*,
-      ig.username as instagram_username
+      COALESCE(ig.username, 'bexlybr') as instagram_username
     FROM automations a
-    JOIN instagram_accounts ig ON ig.id = a.instagram_account_id
+    LEFT JOIN instagram_accounts ig ON ig.id = a.instagram_account_id
     WHERE a.id = ? AND a.organization_id = ?
   `).get(req.params.id, orgId) as any;
 
@@ -90,6 +90,16 @@ automationsRouter.get('/:id', (req: Request, res: Response) => {
  */
 automationsRouter.post('/', (req: Request, res: Response) => {
   const orgId = getOrgId(req);
+  const {
+    name,
+    description,
+    instagram_account_id,
+    campaign_id,
+    trigger_config,
+    conditions_config,
+    actions_config,
+  } = req.body;
+
   const rawTrigger = trigger_config || (req.body as any).trigger;
   const rawConditions = conditions_config || (req.body as any).conditions;
   const rawActions = actions_config || (req.body as any).actions;
