@@ -17,6 +17,8 @@ export default function Marketing() {
         accountLoading,
         refreshAccount,
         posts,
+        postsLoading,
+        refreshPosts,
         automations,
         logs,
         reconnectInstagram,
@@ -79,7 +81,7 @@ export default function Marketing() {
     };
 
     // Simulator State (Professional Test Console)
-    const [testPostId, setTestPostId] = useState(posts[0]?.id || 'post_reel_101');
+    const [testPostId, setTestPostId] = useState(posts[0]?.id || 'all');
     const [testUsername, setTestUsername] = useState('breno.sena');
     const [testComment, setTestComment] = useState('QUERO');
     const [testResult, setTestResult] = useState<any | null>(null);
@@ -88,7 +90,9 @@ export default function Marketing() {
     // Modal Form State
     const [formName, setFormName] = useState('');
     const [formCampaign, setFormCampaign] = useState('');
-    const [formPostId, setFormPostId] = useState(posts[0]?.id || 'post_reel_101');
+    const [postSelectionMode, setPostSelectionMode] = useState<'all' | 'specific'>('all');
+    const [formPostId, setFormPostId] = useState(posts[0]?.id || 'all');
+    const [customPostLink, setCustomPostLink] = useState('');
     const [formKeyword, setFormKeyword] = useState('');
     const [formPublicReply, setFormPublicReply] = useState('Acabei de te enviar no Direct! 🚀 Confere lá!');
     const [formMessage, setFormMessage] = useState('Olá, {{nome}}! 👋 Conforme combinado, aqui está o seu acesso prioritário: {{link}}');
@@ -132,17 +136,21 @@ export default function Marketing() {
 
     const handleSaveAutomation = () => {
         if (!formName.trim() || !formKeyword.trim() || !formMessage.trim()) return;
-        const selectedPost = posts.find(p => p.id === formPostId);
+        const isAll = postSelectionMode === 'all';
+        const targetPostId = isAll ? 'all' : (formPostId || customPostLink || 'all');
+        const selectedPost = posts.find(p => p.id === targetPostId);
 
         createAutomation({
-            organizationId: account?.id || 'local',
+            organizationId: account?.id || 'org_default',
             name: formName.trim(),
             campaignName: formCampaign.trim() || formName.trim(),
             status: 'active',
             trigger: {
                 type: 'instagram_comment',
-                postId: formPostId,
-                postTitle: selectedPost?.caption?.substring(0, 60) || 'Post selecionado'
+                postId: targetPostId,
+                postTitle: isAll
+                    ? 'Todas as publicações e reels'
+                    : (selectedPost?.caption?.substring(0, 60) || customPostLink || 'Publicação Selecionada')
             },
             conditions: [{
                 field: 'comment_text',
@@ -168,6 +176,7 @@ export default function Marketing() {
         setFormName('');
         setFormCampaign('');
         setFormKeyword('');
+        setCustomPostLink('');
     };
 
     // Global Metrics Calculation
@@ -1166,143 +1175,220 @@ export default function Marketing() {
             {/* ── TAB 2: POSTS & REELS MONITORADOS ── */}
             {activeTab === 'posts' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <p style={{ color: '#94a3b8', fontSize: '0.84rem', margin: 0 }}>
-                            Publicações oficiais sincronizadas via Instagram Graph API. Vincule regras de resposta e Directs automáticos aos seus melhores posts.
-                        </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                        <div>
+                            <p style={{ color: '#94a3b8', fontSize: '0.84rem', margin: 0 }}>
+                                Publicações oficiais sincronizadas via Instagram Graph API da conta @{account.username}.
+                            </p>
+                            <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                                Selecione qualquer post para anexar regras de resposta automática e disparo de Direct.
+                            </span>
+                        </div>
                         <button
-                            onClick={reconnectInstagram}
+                            onClick={() => refreshPosts()}
+                            disabled={postsLoading}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                                padding: '8px 14px',
+                                padding: '8px 16px',
                                 borderRadius: '10px',
                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                                 color: '#e2e8f0',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 fontSize: '0.8rem',
                                 fontWeight: 500,
-                                cursor: 'pointer'
+                                cursor: postsLoading ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            <RefreshCw size={13} /> Sincronizar Feed
+                            {postsLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} />}
+                            {postsLoading ? 'Sincronizando...' : 'Sincronizar Feed'}
                         </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                        {posts.map(post => {
-                            const isAutomated = automations.some(a => a.trigger.postId === post.id);
-
-                            return (
-                                <div
-                                    key={post.id}
+                    {posts.length === 0 ? (
+                        <div style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                            border: '1px dashed rgba(255, 255, 255, 0.12)',
+                            borderRadius: '20px',
+                            padding: '60px 24px',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '12px'
+                        }}>
+                            <div style={{ width: '56px', height: '56px', borderRadius: '16px', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                                <Instagram size={28} color="#60a5fa" />
+                            </div>
+                            <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: '#ffffff' }}>
+                                Nenhuma publicação encontrada no @{account.username}
+                            </h3>
+                            <p style={{ color: '#94a3b8', fontSize: '0.85rem', maxWidth: '520px', margin: 0, lineHeight: 1.5 }}>
+                                O feed oficial da sua conta está conectado. Assim que você publicar novos posts ou reels no Instagram, clique em "Sincronizar Feed" para visualizá-los aqui e aplicar regras exclusivas por post.
+                            </p>
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => refreshPosts()}
+                                    disabled={postsLoading}
                                     style={{
-                                        backgroundColor: 'rgba(15, 23, 42, 0.75)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        borderRadius: '20px',
-                                        overflow: 'hidden',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'space-between',
-                                        backdropFilter: 'blur(16px)'
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '10px 20px',
+                                        borderRadius: '12px',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                        color: '#ffffff',
+                                        fontWeight: 600,
+                                        fontSize: '0.84rem',
+                                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                                        cursor: postsLoading ? 'not-allowed' : 'pointer'
                                     }}
                                 >
-                                    <div>
-                                        <div style={{ position: 'relative', height: '190px', backgroundColor: '#020617', overflow: 'hidden' }}>
-                                            <img
-                                                src={post.mediaUrl}
-                                                alt="Post media"
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            />
-                                            <span style={{
-                                                position: 'absolute',
-                                                top: '12px',
-                                                left: '12px',
-                                                padding: '3px 8px',
-                                                borderRadius: '6px',
-                                                fontSize: '0.68rem',
-                                                fontWeight: 700,
-                                                backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                                                color: '#ffffff'
-                                            }}>
-                                                {post.mediaType}
-                                            </span>
-                                            {isAutomated ? (
+                                    {postsLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
+                                    {postsLoading ? 'Sincronizando...' : 'Sincronizar Feed Agora'}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setPostSelectionMode('all');
+                                        setFormPostId('all');
+                                        setShowCreateModal(true);
+                                    }}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '10px 20px',
+                                        borderRadius: '12px',
+                                        backgroundColor: '#3b82f6',
+                                        color: '#ffffff',
+                                        fontWeight: 600,
+                                        fontSize: '0.84rem',
+                                        border: 'none',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <Zap size={14} />
+                                    Criar Automação Global
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                            {posts.map(post => {
+                                const isAutomated = automations.some(a => a.trigger.postId === post.id);
+
+                                return (
+                                    <div
+                                        key={post.id}
+                                        style={{
+                                            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                            borderRadius: '20px',
+                                            overflow: 'hidden',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            backdropFilter: 'blur(16px)'
+                                        }}
+                                    >
+                                        <div>
+                                            <div style={{ position: 'relative', height: '190px', backgroundColor: '#020617', overflow: 'hidden' }}>
+                                                <img
+                                                    src={post.mediaUrl}
+                                                    alt="Post media"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
                                                 <span style={{
                                                     position: 'absolute',
                                                     top: '12px',
-                                                    right: '12px',
-                                                    padding: '4px 10px',
-                                                    borderRadius: '8px',
-                                                    fontSize: '0.72rem',
-                                                    fontWeight: 600,
-                                                    backgroundColor: 'rgba(16, 185, 129, 0.9)',
-                                                    color: '#ffffff',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '5px'
+                                                    left: '12px',
+                                                    padding: '3px 8px',
+                                                    borderRadius: '6px',
+                                                    fontSize: '0.68rem',
+                                                    fontWeight: 700,
+                                                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                                                    color: '#ffffff'
                                                 }}>
-                                                    <Zap size={11} /> Automação Ativa
+                                                    {post.mediaType}
                                                 </span>
-                                            ) : (
-                                                <span style={{
-                                                    position: 'absolute',
-                                                    top: '12px',
-                                                    right: '12px',
-                                                    padding: '4px 10px',
-                                                    borderRadius: '8px',
-                                                    fontSize: '0.72rem',
-                                                    fontWeight: 500,
-                                                    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-                                                    color: '#94a3b8'
-                                                }}>
-                                                    Sem Automação
-                                                </span>
-                                            )}
-                                        </div>
+                                                {isAutomated ? (
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        top: '12px',
+                                                        right: '12px',
+                                                        padding: '4px 10px',
+                                                        borderRadius: '8px',
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 600,
+                                                        backgroundColor: 'rgba(16, 185, 129, 0.9)',
+                                                        color: '#ffffff',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '5px'
+                                                    }}>
+                                                        <Zap size={11} /> Automação Ativa
+                                                    </span>
+                                                ) : (
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        top: '12px',
+                                                        right: '12px',
+                                                        padding: '4px 10px',
+                                                        borderRadius: '8px',
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 500,
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                                                        color: '#94a3b8'
+                                                    }}>
+                                                        Sem Automação
+                                                    </span>
+                                                )}
+                                            </div>
 
-                                        <div style={{ padding: '18px' }}>
-                                            <p style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.5, margin: 0, minHeight: '44px' }}>
-                                                {post.caption}
-                                            </p>
+                                            <div style={{ padding: '18px' }}>
+                                                <p style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.5, margin: 0, minHeight: '44px' }}>
+                                                    {post.caption || 'Sem legenda'}
+                                                </p>
 
-                                            <div style={{ display: 'flex', gap: '16px', marginTop: '12px', fontSize: '0.76rem', color: '#64748b' }}>
-                                                <span>💬 {post.commentsCount} comentários</span>
-                                                <span>❤️ {post.likeCount} curtidas</span>
+                                                <div style={{ display: 'flex', gap: '16px', marginTop: '12px', fontSize: '0.76rem', color: '#64748b' }}>
+                                                    <span>💬 {post.commentsCount} comentários</span>
+                                                    <span>❤️ {post.likeCount} curtidas</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div style={{ padding: '0 18px 18px 18px' }}>
-                                        <button
-                                            onClick={() => {
-                                                setFormPostId(post.id);
-                                                setShowCreateModal(true);
-                                            }}
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px',
-                                                borderRadius: '12px',
-                                                backgroundColor: 'rgba(59, 130, 246, 0.12)',
-                                                color: '#60a5fa',
-                                                border: '1px solid rgba(59, 130, 246, 0.25)',
-                                                fontWeight: 600,
-                                                fontSize: '0.82rem',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px'
-                                            }}
-                                        >
-                                            <Plus size={14} /> Criar Automação Neste Post
-                                        </button>
+                                        <div style={{ padding: '0 18px 18px 18px' }}>
+                                            <button
+                                                onClick={() => {
+                                                    setPostSelectionMode('specific');
+                                                    setFormPostId(post.id);
+                                                    setShowCreateModal(true);
+                                                }}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px',
+                                                    borderRadius: '12px',
+                                                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                                                    color: '#60a5fa',
+                                                    border: '1px solid rgba(59, 130, 246, 0.25)',
+                                                    fontWeight: 600,
+                                                    fontSize: '0.82rem',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '6px'
+                                                }}
+                                            >
+                                                <Plus size={14} /> Criar Automação Neste Post
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -1335,29 +1421,43 @@ export default function Marketing() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {logs.map(log => (
-                                    <tr key={log.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                                        <td style={{ padding: '16px 24px', fontWeight: 600, color: '#ffffff' }}>
-                                            @{log.instagramUsername}
-                                        </td>
-                                        <td style={{ padding: '16px 18px', color: '#cbd5e1' }}>
-                                            "{log.commentText}"
-                                        </td>
-                                        <td style={{ padding: '16px 18px' }}>
-                                            <span style={{ padding: '3px 8px', borderRadius: '6px', fontFamily: 'monospace', fontWeight: 700, fontSize: '0.78rem', backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
-                                                {log.matchedKeyword}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '16px 18px' }}>
-                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, backgroundColor: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-                                                <CheckCircle2 size={12} /> Entregue (Meta API)
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '16px 24px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>
-                                            {log.timestamp}
+                                {logs.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} style={{ padding: '48px 24px', textAlign: 'center', color: '#94a3b8' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                                <Activity size={28} color="#64748b" />
+                                                <span style={{ fontWeight: 500, color: '#e2e8f0', fontSize: '0.9rem' }}>Nenhum disparo registrado ainda</span>
+                                                <span style={{ fontSize: '0.78rem', color: '#64748b', maxWidth: '420px' }}>
+                                                    Quando seguidores comentarem nos posts monitorados com a palavra-chave configurada, os disparos de DM e logs aparecerão aqui em tempo real.
+                                                </span>
+                                            </div>
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    logs.map(log => (
+                                        <tr key={log.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                                            <td style={{ padding: '16px 24px', fontWeight: 600, color: '#ffffff' }}>
+                                                @{log.instagramUsername}
+                                            </td>
+                                            <td style={{ padding: '16px 18px', color: '#cbd5e1' }}>
+                                                "{log.commentText}"
+                                            </td>
+                                            <td style={{ padding: '16px 18px' }}>
+                                                <span style={{ padding: '3px 8px', borderRadius: '6px', fontFamily: 'monospace', fontWeight: 700, fontSize: '0.78rem', backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
+                                                    {log.matchedKeyword}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '16px 18px' }}>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, backgroundColor: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                                                    <CheckCircle2 size={12} /> Entregue (Meta API)
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '16px 24px', color: '#64748b', textAlign: 'right', fontFamily: 'monospace' }}>
+                                                {log.timestamp}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -1768,52 +1868,237 @@ export default function Marketing() {
                                 />
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-                                <div>
-                                    <label style={{ color: '#cbd5e1', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Publicação Vinculada</label>
-                                    <select
-                                        value={formPostId}
-                                        onChange={(e) => setFormPostId(e.target.value)}
+                            {/* Gatilho: Seletor Visual de Postagem */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <label style={{ color: '#cbd5e1', fontWeight: 500, fontSize: '0.84rem' }}>
+                                    Onde essa regra deve monitorar comentários?
+                                </label>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setPostSelectionMode('all');
+                                            setFormPostId('all');
+                                        }}
                                         style={{
-                                            width: '100%',
-                                            backgroundColor: '#020617',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            borderRadius: '10px',
-                                            padding: '11px 14px',
+                                            padding: '12px 14px',
+                                            borderRadius: '12px',
+                                            backgroundColor: postSelectionMode === 'all' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                            border: postSelectionMode === 'all' ? '1px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.08)',
                                             color: '#ffffff',
-                                            fontSize: '0.82rem',
-                                            outline: 'none'
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '4px'
                                         }}
                                     >
-                                        {posts.map(p => (
-                                            <option key={p.id} value={p.id}>
-                                                [{p.mediaType}] {p.caption.substring(0, 30)}...
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>⚡ Todos os Posts e Reels</span>
+                                            {postSelectionMode === 'all' && <CheckCircle2 size={16} color="#3b82f6" />}
+                                        </div>
+                                        <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Gatilho global em qualquer post ou publicação futura</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setPostSelectionMode('specific');
+                                            if (posts.length > 0 && formPostId === 'all') {
+                                                setFormPostId(posts[0].id);
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '12px 14px',
+                                            borderRadius: '12px',
+                                            backgroundColor: postSelectionMode === 'specific' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                            border: postSelectionMode === 'specific' ? '1px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.08)',
+                                            color: '#ffffff',
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '4px'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>🎯 Post Específico do Perfil</span>
+                                            {postSelectionMode === 'specific' && <CheckCircle2 size={16} color="#3b82f6" />}
+                                        </div>
+                                        <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Selecione uma postagem real do @{account.username}</span>
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label style={{ color: '#cbd5e1', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Palavra-Chave Gatilho</label>
-                                    <input
-                                        type="text"
-                                        value={formKeyword}
-                                        onChange={(e) => setFormKeyword(e.target.value)}
-                                        placeholder="Ex: QUERO ou ABRIR"
-                                        style={{
-                                            width: '100%',
-                                            backgroundColor: '#020617',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            borderRadius: '10px',
-                                            padding: '11px 14px',
-                                            color: '#60a5fa',
-                                            fontFamily: 'monospace',
-                                            fontWeight: 700,
-                                            fontSize: '0.84rem',
-                                            outline: 'none'
-                                        }}
-                                    />
-                                </div>
+                                {/* Post History Picker */}
+                                {postSelectionMode === 'specific' && (
+                                    <div style={{
+                                        backgroundColor: '#020617',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        borderRadius: '14px',
+                                        padding: '14px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '12px'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>
+                                                {posts.length > 0
+                                                    ? `Selecione a publicação (${posts.length} sincronizadas)`
+                                                    : `Nenhuma publicação no feed do @${account.username}`
+                                                }
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => refreshPosts()}
+                                                disabled={postsLoading}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: '#60a5fa',
+                                                    fontSize: '0.74rem',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px'
+                                                }}
+                                            >
+                                                <RefreshCw size={12} className={postsLoading ? 'animate-spin' : ''} />
+                                                {postsLoading ? 'Sincronizando...' : 'Sincronizar Feed'}
+                                            </button>
+                                        </div>
+
+                                        {posts.length > 0 ? (
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                                                gap: '10px',
+                                                maxHeight: '220px',
+                                                overflowY: 'auto',
+                                                paddingRight: '4px'
+                                            }}>
+                                                {posts.map(p => {
+                                                    const isSelected = formPostId === p.id;
+                                                    return (
+                                                        <div
+                                                            key={p.id}
+                                                            onClick={() => setFormPostId(p.id)}
+                                                            style={{
+                                                                position: 'relative',
+                                                                borderRadius: '10px',
+                                                                overflow: 'hidden',
+                                                                cursor: 'pointer',
+                                                                border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.1)',
+                                                                backgroundColor: '#0f172a',
+                                                                display: 'flex',
+                                                                flexDirection: 'column'
+                                                            }}
+                                                        >
+                                                            <div style={{ position: 'relative', height: '90px' }}>
+                                                                <img
+                                                                    src={p.mediaUrl}
+                                                                    alt="Post thumbnail"
+                                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                                />
+                                                                <span style={{
+                                                                    position: 'absolute',
+                                                                    top: '4px',
+                                                                    left: '4px',
+                                                                    padding: '2px 5px',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '0.6rem',
+                                                                    fontWeight: 700,
+                                                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                                                    color: '#ffffff'
+                                                                }}>
+                                                                    {p.mediaType}
+                                                                </span>
+                                                                {isSelected && (
+                                                                    <div style={{
+                                                                        position: 'absolute',
+                                                                        top: '4px',
+                                                                        right: '4px',
+                                                                        width: '18px',
+                                                                        height: '18px',
+                                                                        borderRadius: '50%',
+                                                                        backgroundColor: '#3b82f6',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center'
+                                                                    }}>
+                                                                        <CheckCircle2 size={12} color="#ffffff" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div style={{ padding: '6px 8px', fontSize: '0.7rem', color: '#cbd5e1' }}>
+                                                                <p style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                                    {p.caption || 'Sem legenda'}
+                                                                </p>
+                                                                <span style={{ color: '#64748b', fontSize: '0.65rem' }}>{p.timestamp}</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div style={{
+                                                padding: '16px',
+                                                borderRadius: '10px',
+                                                backgroundColor: 'rgba(255,255,255,0.02)',
+                                                border: '1px dashed rgba(255,255,255,0.1)',
+                                                textAlign: 'center',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '8px'
+                                            }}>
+                                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
+                                                    Nenhum post publicado encontrado no feed do @{account.username} ainda.
+                                                </p>
+                                                <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b' }}>
+                                                    Você pode colar o link direto ou ID de um post abaixo:
+                                                </p>
+                                                <input
+                                                    type="text"
+                                                    value={customPostLink}
+                                                    onChange={(e) => setCustomPostLink(e.target.value)}
+                                                    placeholder="Cole o link do post (ex: https://instagram.com/p/...)"
+                                                    style={{
+                                                        width: '100%',
+                                                        backgroundColor: '#020617',
+                                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                        borderRadius: '8px',
+                                                        padding: '8px 10px',
+                                                        color: '#ffffff',
+                                                        fontSize: '0.76rem',
+                                                        outline: 'none',
+                                                        boxSizing: 'border-box'
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <label style={{ color: '#cbd5e1', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Palavra-Chave Gatilho</label>
+                                <input
+                                    type="text"
+                                    value={formKeyword}
+                                    onChange={(e) => setFormKeyword(e.target.value)}
+                                    placeholder="Ex: QUERO ou ABRIR"
+                                    style={{
+                                        width: '100%',
+                                        backgroundColor: '#020617',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '10px',
+                                        padding: '11px 14px',
+                                        color: '#60a5fa',
+                                        fontFamily: 'monospace',
+                                        fontWeight: 700,
+                                        fontSize: '0.84rem',
+                                        outline: 'none'
+                                    }}
+                                />
                             </div>
 
                             <div>

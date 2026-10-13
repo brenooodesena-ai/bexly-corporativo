@@ -15,6 +15,10 @@ interface InstagramAutomationContextType {
     setAccount: React.Dispatch<React.SetStateAction<InstagramAccount | null>>;
     accountLoading: boolean;
     posts: InstagramPost[];
+    postsLoading: boolean;
+    refreshPosts: (targetAccountId?: string) => Promise<void>;
+    refreshAutomations: () => Promise<void>;
+    refreshLeads: () => Promise<void>;
     automations: Automation[];
     leads: NativeLead[];
     logs: AutomationRunLog[];
@@ -45,272 +49,7 @@ interface InstagramAutomationContextType {
     addLeadNote: (leadId: string, note: string) => void;
 }
 
-// No hardcoded account — real account comes from the backend after OAuth
-
-const initialPosts: InstagramPost[] = [
-    {
-        id: 'post_reel_101',
-        caption: 'Como triplicar seu faturamento com agentes de conversão digital. Comente QUERO para receber o checklist exclusivo no seu Direct! 🚀',
-        mediaType: 'REEL',
-        mediaUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
-        permalink: 'https://instagram.com/p/reel_101',
-        timestamp: 'Há 2 dias',
-        commentsCount: 342,
-        likeCount: 2840
-    },
-    {
-        id: 'post_carrossel_102',
-        caption: '5 Passos infalíveis para qualificar leads no automático antes da ligação. Comente ABRIR para ter acesso à nossa planilha mestra.',
-        mediaType: 'CAROUSEL_ALBUM',
-        mediaUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
-        permalink: 'https://instagram.com/p/carrossel_102',
-        timestamp: 'Há 5 dias',
-        commentsCount: 189,
-        likeCount: 1420
-    },
-    {
-        id: 'post_single_103',
-        caption: 'Novo sistema da Bexly já disponível para membros VIP. Comente LINK para entrar no grupo prioritário com desconto especial.',
-        mediaType: 'IMAGE',
-        mediaUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80',
-        permalink: 'https://instagram.com/p/single_103',
-        timestamp: 'Há 1 semana',
-        commentsCount: 95,
-        likeCount: 980
-    }
-];
-
-const initialAutomations: Automation[] = [
-    {
-        id: 'auto_1',
-        organizationId: 'tenant_org_01',
-        name: 'Material Gratuito — Checklist de Escala',
-        campaignName: 'Reels Escala Q3',
-        status: 'active',
-        trigger: {
-            type: 'instagram_comment',
-            postId: 'post_reel_101',
-            postTitle: 'Como triplicar seu faturamento com agentes de conversão'
-        },
-        conditions: [
-            {
-                field: 'comment_text',
-                operator: 'contains',
-                keyword: 'QUERO',
-                caseSensitive: false
-            }
-        ],
-        actions: [
-            {
-                type: 'send_instagram_dm',
-                messageTemplate: 'Olá, {{nome}}! 👋 Vi que você comentou "{{palavra_chave}}" no nosso Reel. Conforme prometido, aqui está o seu material gratuito de escala: {{link}}',
-                ctaButton: {
-                    text: 'Acessar Checklist Gratuito',
-                    url: 'https://bexly.com.br/materiais/checklist-escala'
-                },
-                publicCommentReply: {
-                    enabled: true,
-                    replyTemplates: [
-                        'Acabei de te enviar o material no Direct! 🚀 Dá uma olhada lá!',
-                        'Enviado no seu privado com sucesso! Qualquer dúvida me chama.',
-                        'Checa seu Direct, {{nome}}! O acesso já está liberado 🔥'
-                    ]
-                }
-            }
-        ],
-        createdAt: '2026-03-20T14:00:00Z',
-        updatedAt: '2026-03-28T09:30:00Z',
-        metrics: {
-            commentsDetected: 342,
-            keywordMatches: 310,
-            dmsSent: 308,
-            leadsGenerated: 295,
-            conversionRate: 95.1,
-            attributedRevenue: 14850
-        }
-    },
-    {
-        id: 'auto_2',
-        organizationId: 'tenant_org_01',
-        name: 'Entrega Isca Digital — Planilha Mestra',
-        campaignName: 'Carrossel Planilha Q3',
-        status: 'active',
-        trigger: {
-            type: 'instagram_comment',
-            postId: 'post_carrossel_102',
-            postTitle: '5 Passos infalíveis para qualificar leads no automático'
-        },
-        conditions: [
-            {
-                field: 'comment_text',
-                operator: 'contains',
-                keyword: 'ABRIR',
-                caseSensitive: false
-            }
-        ],
-        actions: [
-            {
-                type: 'send_instagram_dm',
-                messageTemplate: 'E aí {{nome}}, tudo bem? 🎯 Aqui está a Planilha Mestra de Qualificação que você pediu nos comentários: {{link}} Aproveite!',
-                ctaButton: {
-                    text: 'Baixar Planilha Agora',
-                    url: 'https://bexly.com.br/downloads/planilha-mestra'
-                },
-                publicCommentReply: {
-                    enabled: true,
-                    replyTemplates: [
-                        'Enviado no seu Direct! Confere lá 📊',
-                        'Prontinho! Link enviado no seu privado.'
-                    ]
-                }
-            }
-        ],
-        createdAt: '2026-03-24T11:20:00Z',
-        updatedAt: '2026-03-29T16:45:00Z',
-        metrics: {
-            commentsDetected: 189,
-            keywordMatches: 174,
-            dmsSent: 174,
-            leadsGenerated: 168,
-            conversionRate: 96.5,
-            attributedRevenue: 8400
-        }
-    }
-];
-
-const initialLeads: NativeLead[] = [
-    {
-        id: 'lead_ig_01',
-        organizationId: 'tenant_org_01',
-        name: 'Camila Fernandes',
-        instagramUsername: 'camila.growth',
-        instagramUserId: 'ig_user_891238',
-        profilePicUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-        status: 'Qualificado',
-        tags: ['Instagram Lead', 'Interesse Alto', 'Automação Q3'],
-        originPlatform: 'instagram',
-        sourcePostId: 'post_reel_101',
-        sourcePostTitle: 'Como triplicar seu faturamento com agentes de conversão',
-        campaign: 'Reels Escala Q3',
-        triggerKeyword: 'QUERO',
-        automationId: 'auto_1',
-        firstInteractionAt: '2026-03-28T14:32:00Z',
-        lastInteractionAt: '2026-03-29T18:10:00Z',
-        interactionCount: 3,
-        timeline: [
-            {
-                id: 'int_1',
-                timestamp: '2026-03-28 14:32',
-                type: 'comment_detected',
-                title: 'Comentou no Reel "Como triplicar seu faturamento"',
-                description: 'Comentário recebido: "QUERO muito esse checklist!"'
-            },
-            {
-                id: 'int_2',
-                timestamp: '2026-03-28 14:32',
-                type: 'dm_sent',
-                title: 'DM Oficial da Meta enviada com sucesso',
-                description: 'Mensagem privada disparada com link do checklist.',
-                metadata: {
-                    keyword: 'QUERO',
-                    messageSent: 'Olá, Camila! Vi que você comentou QUERO no nosso Reel...'
-                }
-            },
-            {
-                id: 'int_3',
-                timestamp: '2026-03-29 18:10',
-                type: 'status_change',
-                title: 'Lead qualificado pela equipe',
-                description: 'Interagiu positivamente e clicou no link de demonstração.'
-            }
-        ],
-        notes: 'Cliente em potencial com agência de tráfego pago querendo automatizar DMs de 12 contas.',
-        attributedValue: 2490
-    },
-    {
-        id: 'lead_ig_02',
-        organizationId: 'tenant_org_01',
-        name: 'Rodrigo Siqueira',
-        instagramUsername: 'rodrigo.invest',
-        instagramUserId: 'ig_user_443219',
-        profilePicUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-        status: 'Oportunidade',
-        tags: ['Instagram Lead', 'B2B', 'Planilha Mestra'],
-        originPlatform: 'instagram',
-        sourcePostId: 'post_carrossel_102',
-        sourcePostTitle: '5 Passos infalíveis para qualificar leads no automático',
-        campaign: 'Carrossel Planilha Q3',
-        triggerKeyword: 'ABRIR',
-        automationId: 'auto_2',
-        firstInteractionAt: '2026-03-29T09:15:00Z',
-        lastInteractionAt: '2026-03-30T11:45:00Z',
-        interactionCount: 2,
-        timeline: [
-            {
-                id: 'int_4',
-                timestamp: '2026-03-29 09:15',
-                type: 'comment_detected',
-                title: 'Comentou no Carrossel "5 Passos infalíveis"',
-                description: 'Comentário recebido: "abrir por favor!"'
-            },
-            {
-                id: 'int_5',
-                timestamp: '2026-03-29 09:15',
-                type: 'dm_sent',
-                title: 'DM Oficial da Meta enviada com sucesso',
-                description: 'Link da planilha mestra enviado no Direct.',
-                metadata: {
-                    keyword: 'ABRIR'
-                }
-            }
-        ],
-        notes: 'Demonstrou interesse no plano anual da Bexly.',
-        attributedValue: 4980
-    }
-];
-
-const initialLogs: AutomationRunLog[] = [
-    {
-        id: 'log_01',
-        timestamp: '2026-03-30 18:45:12',
-        automationId: 'auto_1',
-        automationName: 'Material Gratuito — Checklist de Escala',
-        instagramUsername: 'lucas_mkt_digital',
-        commentText: 'Quero esse material agora!!',
-        matchedKeyword: 'QUERO',
-        status: 'Executado',
-        dmMessage: 'Olá, Lucas! 👋 Vi que você comentou "QUERO"...',
-        leadId: 'lead_ig_03',
-        idempotencyKey: 'meta_comment_evt_17849129031'
-    },
-    {
-        id: 'log_02',
-        timestamp: '2026-03-30 18:32:05',
-        automationId: 'auto_2',
-        automationName: 'Entrega Isca Digital — Planilha Mestra',
-        instagramUsername: 'ana.empreendedora',
-        commentText: 'ABRIR!',
-        matchedKeyword: 'ABRIR',
-        status: 'Executado',
-        dmMessage: 'E aí Ana, tudo bem? 🎯 Aqui está a Planilha Mestra...',
-        leadId: 'lead_ig_04',
-        idempotencyKey: 'meta_comment_evt_17849129028'
-    },
-    {
-        id: 'log_03',
-        timestamp: '2026-03-30 17:15:40',
-        automationId: 'auto_1',
-        automationName: 'Material Gratuito — Checklist de Escala',
-        instagramUsername: 'pedro_random',
-        commentText: 'Parabéns pelo vídeo, muito bom!',
-        matchedKeyword: '',
-        status: 'Ignorado',
-        dmMessage: 'Nenhuma ação executada (palavra-chave não encontrada)',
-        leadId: '',
-        idempotencyKey: 'meta_comment_evt_17849128912',
-        errorReason: 'Comentário sem a palavra-chave configurada'
-    }
-];
+// 100% Real data architecture — all accounts, posts, automations, and leads come dynamically from the backend and Meta Graph API.
 
 const InstagramAutomationContext = createContext<InstagramAutomationContextType | undefined>(undefined);
 
@@ -319,25 +58,152 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
     const [account, setAccount] = useState<InstagramAccount | null>(null);
     const [accountLoading, setAccountLoading] = useState(true);
 
-    const [posts] = useState<InstagramPost[]>(initialPosts);
+    const [posts, setPosts] = useState<InstagramPost[]>(() => {
+        const saved = localStorage.getItem('bexly_ig_posts');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [postsLoading, setPostsLoading] = useState(false);
 
     const [automations, setAutomations] = useState<Automation[]>(() => {
         const saved = localStorage.getItem('bexly_ig_automations');
-        return saved ? JSON.parse(saved) : initialAutomations;
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                return parsed.filter((a: any) => a.organizationId !== 'tenant_org_01');
+            } catch {
+                return [];
+            }
+        }
+        return [];
     });
 
     const [leads, setLeads] = useState<NativeLead[]>(() => {
         const saved = localStorage.getItem('bexly_native_leads');
-        return saved ? JSON.parse(saved) : initialLeads;
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                return parsed.filter((l: any) => !l.id?.startsWith('lead_ig_0'));
+            } catch {
+                return [];
+            }
+        }
+        return [];
     });
 
     const [logs, setLogs] = useState<AutomationRunLog[]>(() => {
         const saved = localStorage.getItem('bexly_ig_logs');
-        return saved ? JSON.parse(saved) : initialLogs;
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                return parsed.filter((lg: any) => !lg.id?.startsWith('log_0'));
+            } catch {
+                return [];
+            }
+        }
+        return [];
     });
 
     // Processed comment event idempotency cache
     const [processedEventKeys, setProcessedEventKeys] = useState<Set<string>>(new Set());
+
+    // Fetch real Instagram media from backend / Meta Graph API
+    const refreshPosts = async (targetAccountId?: string) => {
+        const accId = targetAccountId || account?.id;
+        if (!accId) return;
+        setPostsLoading(true);
+        try {
+            const data = await api.getAccountMedia(accId);
+            if (data && Array.isArray(data.media)) {
+                const mapped: InstagramPost[] = data.media.map((m: any) => ({
+                    id: m.id,
+                    caption: m.caption || 'Sem legenda',
+                    mediaType: (m.media_type as any) || 'IMAGE',
+                    mediaUrl: m.media_url || m.thumbnail_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
+                    permalink: m.permalink || `https://instagram.com/p/${m.id}`,
+                    timestamp: m.timestamp ? new Date(m.timestamp).toLocaleDateString('pt-BR') : 'Recente',
+                    commentsCount: m.comments_count || 0,
+                    likeCount: m.like_count || 0,
+                }));
+                setPosts(mapped);
+                localStorage.setItem('bexly_ig_posts', JSON.stringify(mapped));
+            } else {
+                setPosts([]);
+                localStorage.setItem('bexly_ig_posts', JSON.stringify([]));
+            }
+        } catch (err) {
+            console.warn('Erro ao carregar posts reais do Instagram:', err);
+        } finally {
+            setPostsLoading(false);
+        }
+    };
+
+    // Fetch automations from backend
+    const refreshAutomations = async () => {
+        try {
+            const data = await api.getAutomations();
+            if (data && Array.isArray(data.automations)) {
+                const mapped: Automation[] = data.automations.map((a: any) => ({
+                    id: a.id,
+                    organizationId: a.organization_id || 'org_default',
+                    name: a.name,
+                    campaignName: a.campaign_id || a.name,
+                    status: (a.status as 'active' | 'paused') || 'active',
+                    trigger: a.trigger_config || { type: 'instagram_comment', postId: 'all' },
+                    conditions: a.conditions_config || [],
+                    actions: a.actions_config || [],
+                    createdAt: a.created_at,
+                    updatedAt: a.updated_at,
+                    metrics: {
+                        commentsDetected: a.total_runs || 0,
+                        keywordMatches: a.successful_runs || 0,
+                        dmsSent: a.successful_runs || 0,
+                        leadsGenerated: a.leads_generated || 0,
+                        conversionRate: a.total_runs ? Math.round((a.successful_runs / a.total_runs) * 100) : 0,
+                        attributedRevenue: 0
+                    }
+                }));
+                setAutomations(mapped);
+                localStorage.setItem('bexly_ig_automations', JSON.stringify(mapped));
+            }
+        } catch (err) {
+            console.warn('Erro ao carregar automações do backend:', err);
+        }
+    };
+
+    // Fetch leads from backend
+    const refreshLeads = async () => {
+        try {
+            const data = await api.getLeads();
+            if (data && Array.isArray(data.leads)) {
+                const mapped: NativeLead[] = data.leads.map((l: any) => ({
+                    id: l.id,
+                    organizationId: l.organization_id || 'org_default',
+                    name: l.name || l.instagram_username || 'Lead Instagram',
+                    instagramUsername: l.instagram_username || '',
+                    instagramUserId: l.instagram_user_id || '',
+                    profilePicUrl: l.profile_pic_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(l.name || l.instagram_username || 'IG')}&background=833ab4&color=fff`,
+                    status: l.status || 'Novo',
+                    tags: Array.isArray(l.tags) ? l.tags : (l.tags ? JSON.parse(l.tags) : []),
+                    originPlatform: 'instagram',
+                    sourcePostId: l.source_post_id || 'all',
+                    sourcePostTitle: l.source_post_title || 'Publicação do Instagram',
+                    campaign: l.campaign || 'Geral',
+                    triggerKeyword: l.trigger_keyword || '',
+                    automationId: l.automation_id || '',
+                    firstInteractionAt: l.first_interaction_at || l.created_at,
+                    lastInteractionAt: l.last_interaction_at || l.updated_at,
+                    interactionCount: l.interaction_count || 1,
+                    timeline: [],
+                    notes: l.notes || '',
+                    attributedValue: l.attributed_value || 0
+                }));
+                setLeads(mapped);
+                localStorage.setItem('bexly_native_leads', JSON.stringify(mapped));
+            }
+        } catch (err) {
+            console.warn('Erro ao carregar leads do backend:', err);
+        }
+    };
 
     // Fetch connected Instagram account from backend on mount
     const refreshAccount = async () => {
@@ -362,6 +228,11 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
                 };
                 setAccount(acc);
                 localStorage.setItem('bexly_ig_account', JSON.stringify(acc));
+
+                // Load real account media, automations and leads
+                refreshPosts(acc.id);
+                refreshAutomations();
+                refreshLeads();
                 setAccountLoading(false);
                 return;
             }
@@ -373,7 +244,13 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
         const savedAccount = localStorage.getItem('bexly_ig_account');
         if (savedAccount) {
             try {
-                setAccount(JSON.parse(savedAccount));
+                const parsed = JSON.parse(savedAccount);
+                setAccount(parsed);
+                if (parsed?.id) {
+                    refreshPosts(parsed.id);
+                    refreshAutomations();
+                    refreshLeads();
+                }
             } catch {
                 setAccount(null);
             }
@@ -541,24 +418,44 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
         };
 
         setAutomations(prev => [newAuto, ...prev]);
+
+        if (account?.id) {
+            api.createAutomation({
+                name: newAuto.name,
+                instagram_account_id: account.id,
+                campaign_id: newAuto.campaignName,
+                trigger_config: newAuto.trigger,
+                conditions_config: newAuto.conditions,
+                actions_config: newAuto.actions
+            }).then(res => {
+                if (res?.id) {
+                    setAutomations(prev => prev.map(a => a.id === newAuto.id ? { ...a, id: res.id } : a));
+                }
+            }).catch(console.warn);
+        }
+
         return newAuto;
     };
 
     const toggleAutomationStatus = (id: string) => {
+        const current = automations.find(a => a.id === id);
+        const nextStatus = current?.status === 'active' ? 'paused' : 'active';
         setAutomations(prev => prev.map(a => {
             if (a.id === id) {
                 return {
                     ...a,
-                    status: a.status === 'active' ? 'paused' : 'active',
+                    status: nextStatus,
                     updatedAt: new Date().toISOString()
                 };
             }
             return a;
         }));
+        api.toggleAutomationStatus(id, nextStatus).catch(console.warn);
     };
 
     const deleteAutomation = (id: string) => {
         setAutomations(prev => prev.filter(a => a.id !== id));
+        api.deleteAutomation(id).catch(console.warn);
     };
 
     // Idempotent Event Processor: Webhook simulation and evaluation
@@ -829,6 +726,10 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             setAccount,
             accountLoading,
             posts,
+            postsLoading,
+            refreshPosts,
+            refreshAutomations,
+            refreshLeads,
             automations,
             leads,
             logs,

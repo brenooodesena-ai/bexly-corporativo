@@ -309,8 +309,18 @@ export default function Leads() {
                         <tbody>
                             {filteredLeads.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
-                                        Nenhum lead encontrado com os filtros atuais.
+                                    <td colSpan={6} style={{ padding: '60px 24px', textAlign: 'center', color: '#94a3b8' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ width: '48px', height: '48px', borderRadius: '14px', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <Users size={22} color="#60a5fa" />
+                                            </div>
+                                            <span style={{ fontWeight: 600, color: '#e2e8f0', fontSize: '0.95rem' }}>
+                                                Nenhum lead capturado ainda
+                                            </span>
+                                            <span style={{ fontSize: '0.8rem', color: '#64748b', maxWidth: '440px', lineHeight: 1.5 }}>
+                                                Assim que os seguidores comentarem com a palavra-chave configurada nas suas publicações ou Reels, eles serão qualificados e salvos automaticamente neste painel.
+                                            </span>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (

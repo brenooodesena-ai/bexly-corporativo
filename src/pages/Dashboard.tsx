@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-    Users, Target, CheckCircle2, DollarSign, Sparkles,
+    Users, Target, DollarSign, Sparkles,
     ArrowUpRight, Zap, ArrowDownRight, Instagram, MessageSquare,
-    Activity, ShoppingBag, Star, ChevronRight, BarChart2,
+    Activity, ChevronRight, BarChart2,
     Clock, Briefcase, Award
 } from 'lucide-react';
 import { useInstagramAutomation } from '../context/InstagramAutomationContext';
@@ -140,23 +140,23 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
 
 // ── Main Dashboard ───────────────────────────────────────────────────────────
 const Dashboard = () => {
-    const { leads, automations, account } = useInstagramAutomation();
+    const { leads, automations, logs, account } = useInstagramAutomation();
     const [chartPeriod, setChartPeriod] = useState<'7d' | '30d' | '12m'>('12m');
 
-    const totalLeads = leads.length || 67;
-    const activeAutomations = automations.filter(a => a.status === 'active').length || 4;
-    const totalDms = automations.reduce((s, a) => s + a.metrics.dmsSent, 0) || 234;
-    const totalRevenue = leads.filter(l => l.status === 'Cliente').reduce((s, l) => s + (l.attributedValue || 0), 0) || 14800;
+    const totalLeads = leads.length;
+    const activeAutomations = automations.filter(a => a.status === 'active').length;
+    const totalDms = automations.reduce((s, a) => s + a.metrics.dmsSent, 0);
+    const totalRevenue = leads.filter(l => l.status === 'Cliente').reduce((s, l) => s + (l.attributedValue || 0), 0);
 
     const revenueData: Record<string, number[]> = {
-        '12m': [4200, 5800, 7100, 6400, 9200, 11400, 8900, 12100, 15300, 13800, 17200, 21450],
-        '30d': [320, 450, 380, 510, 620, 580, 700, 830, 760, 940, 880, 1020, 1150, 1080, 1200, 980, 1350, 1420, 1300, 1580, 1450, 1700, 1620, 1850, 1780, 2100, 1950, 2250, 2180, 2450],
-        '7d': [1950, 2180, 2350, 2100, 2580, 2420, 2690],
+        '12m': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, totalRevenue],
+        '30d': Array.from({ length: 30 }, (_, i) => i === 29 ? totalRevenue : 0),
+        '7d': [0, 0, 0, 0, 0, 0, totalRevenue],
     };
     const leadsData: Record<string, number[]> = {
-        '12m': [12, 18, 24, 21, 31, 38, 29, 42, 51, 46, 58, 72],
-        '30d': [1, 2, 1, 3, 2, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7, 8, 9, 10, 8, 11, 10, 12, 11, 13, 12, 14, 13, 15, 14, 16],
-        '7d': [8, 11, 9, 14, 12, 16, 14],
+        '12m': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, totalLeads],
+        '30d': Array.from({ length: 30 }, (_, i) => i === 29 ? totalLeads : 0),
+        '7d': [0, 0, 0, 0, 0, 0, totalLeads],
     };
 
     const chartDatasets = [
@@ -165,49 +165,69 @@ const Dashboard = () => {
     ];
 
     const donutSegments = [
-        { label: 'Novos', value: leads.filter(l => l.status === 'Novo').length || 18, color: '#3b82f6' },
-        { label: 'Qualificados', value: leads.filter(l => l.status === 'Qualificado').length || 22, color: '#8b5cf6' },
-        { label: 'Oportunidade', value: leads.filter(l => l.status === 'Oportunidade').length || 14, color: '#f59e0b' },
-        { label: 'Clientes', value: leads.filter(l => l.status === 'Cliente').length || 8, color: '#10b981' },
-        { label: 'Perdidos', value: leads.filter(l => l.status === 'Perdido').length || 5, color: '#f43f5e' },
+        { label: 'Novos', value: leads.filter(l => l.status === 'Novo').length, color: '#3b82f6' },
+        { label: 'Qualificados', value: leads.filter(l => l.status === 'Qualificado').length, color: '#8b5cf6' },
+        { label: 'Oportunidade', value: leads.filter(l => l.status === 'Oportunidade').length, color: '#f59e0b' },
+        { label: 'Clientes', value: leads.filter(l => l.status === 'Cliente').length, color: '#10b981' },
+        { label: 'Perdidos', value: leads.filter(l => l.status === 'Perdido').length, color: '#f43f5e' },
     ];
 
-    const activities = [
-        { icon: <Instagram size={13} />, color: '#833ab4', text: 'Novo lead capturado via Instagram', sub: '@marketing.digital comentou "QUERO"', time: '2min' },
-        { icon: <MessageSquare size={13} />, color: '#3b82f6', text: 'DM automático enviado com sucesso', sub: 'Campanha "Black Friday Pro"', time: '8min' },
-        { icon: <CheckCircle2 size={13} />, color: '#10b981', text: 'Lead convertido em Cliente', sub: 'Pedro Alves • R$ 1.200/mês', time: '24min' },
-        { icon: <Zap size={13} />, color: '#f59e0b', text: 'Automação ativada', sub: 'Regra "Palavra-chave: LINK"', time: '1h' },
-        { icon: <ShoppingBag size={13} />, color: '#ec4899', text: 'Venda atribuída ao CRM', sub: 'Plano Profissional • R$ 497', time: '2h' },
-        { icon: <Star size={13} />, color: '#06b6d4', text: 'Meta de leads atingida!', sub: '50 leads capturados este mês 🎉', time: '3h' },
+    const activities = logs.length > 0 ? logs.slice(0, 6).map(log => ({
+        icon: <MessageSquare size={13} />,
+        color: '#3b82f6',
+        text: `DM automático enviado para @${log.instagramUsername}`,
+        sub: `Palavra-chave: "${log.matchedKeyword}" • ${log.automationName || 'Regra Bexly'}`,
+        time: log.timestamp
+    })) : [
+        ...(account ? [{
+            icon: <Instagram size={13} />,
+            color: '#833ab4',
+            text: `Perfil @${account.username} conectado com sucesso`,
+            sub: 'Meta Graph API v21.0 ativa e pronta para automação',
+            time: 'Hoje'
+        }] : []),
+        ...(automations.length > 0 ? [{
+            icon: <Zap size={13} />,
+            color: '#10b981',
+            text: `${automations.length} regra(s) ativas monitorando comentários`,
+            sub: 'Aguardando primeiros comentários para disparo no Direct',
+            time: 'Agora'
+        }] : [{
+            icon: <Zap size={13} />,
+            color: '#64748b',
+            text: 'Nenhuma automação criada ainda',
+            sub: 'Crie sua primeira regra na aba Automações de Conversão',
+            time: 'Aguardando'
+        }])
     ];
 
     const goals = [
         { label: 'Leads este mês', current: totalLeads, target: 100, color: '#3b82f6' },
         { label: 'DMs enviados', current: totalDms, target: 500, color: '#8b5cf6' },
-        { label: 'Taxa de conversão', current: 18, target: 25, color: '#10b981', suffix: '%' },
+        { label: 'Taxa de conversão', current: automations.length > 0 ? Math.round(automations.reduce((s, a) => s + a.metrics.conversionRate, 0) / automations.length) : 0, target: 25, color: '#10b981', suffix: '%' },
         { label: 'Faturamento', current: Math.round(totalRevenue / 1000), target: 20, color: '#f59e0b', suffix: 'k' },
     ];
 
     const kpis = [
         {
             icon: <Users size={17} />, iconBg: 'rgba(59,130,246,0.15)', iconColor: '#60a5fa',
-            label: 'Total de Leads', value: totalLeads, trend: '+23%', up: true,
-            sparkData: [12, 18, 15, 22, 28, 25, 31, 38, 34, 42, 48, 67], sparkColor: '#3b82f6', sub: 'vs mês anterior'
+            label: 'Total de Leads', value: totalLeads, trend: totalLeads > 0 ? '+100%' : '0%', up: totalLeads > 0,
+            sparkData: [0, 0, 0, 0, totalLeads], sparkColor: '#3b82f6', sub: 'leads no CRM'
         },
         {
             icon: <Activity size={17} />, iconBg: 'rgba(139,92,246,0.15)', iconColor: '#a78bfa',
-            label: 'Automações Ativas', value: activeAutomations, trend: '+2', up: true,
-            sparkData: [1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4], sparkColor: '#8b5cf6', sub: 'novas regras ativas'
+            label: 'Automações Ativas', value: activeAutomations, trend: `${activeAutomations}`, up: activeAutomations > 0,
+            sparkData: [0, 0, 0, activeAutomations], sparkColor: '#8b5cf6', sub: 'regras ativas'
         },
         {
             icon: <MessageSquare size={17} />, iconBg: 'rgba(16,185,129,0.15)', iconColor: '#34d399',
-            label: 'DMs Enviados', value: totalDms, trend: '+41%', up: true,
-            sparkData: [40, 55, 48, 70, 82, 75, 95, 110, 98, 130, 150, 234], sparkColor: '#10b981', sub: 'envios automáticos'
+            label: 'DMs Enviados', value: totalDms, trend: `${totalDms}`, up: totalDms > 0,
+            sparkData: [0, 0, totalDms], sparkColor: '#10b981', sub: 'envios oficiais da Meta'
         },
         {
             icon: <DollarSign size={17} />, iconBg: 'rgba(245,158,11,0.15)', iconColor: '#fbbf24',
-            label: 'Faturamento', value: `R$ ${totalRevenue.toLocaleString('pt-BR')}`, trend: '+18%', up: true,
-            sparkData: [4200, 5800, 7100, 6400, 9200, 11400, 8900, 12100, 15300, 13800, 17200, 14800], sparkColor: '#f59e0b', sub: 'receita atribuída'
+            label: 'Faturamento', value: `R$ ${totalRevenue.toLocaleString('pt-BR')}`, trend: 'R$ 0', up: totalRevenue > 0,
+            sparkData: [0, 0, totalRevenue], sparkColor: '#f59e0b', sub: 'receita convertida'
         },
     ];
 
