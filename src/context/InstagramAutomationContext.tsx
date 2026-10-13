@@ -271,10 +271,17 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
 
         // Fallback: check localStorage
         const savedAccount = localStorage.getItem('bexly_ig_account');
+        const savedToken = localStorage.getItem('bexly_meta_access_token');
         if (savedAccount) {
             try {
                 const parsed = JSON.parse(savedAccount);
                 setAccount(parsed);
+                // Synchronize to backend database with real token
+                api.syncLocalAccount({
+                    ...parsed,
+                    accessToken: savedToken || undefined
+                }).catch(() => {});
+
                 if (parsed?.id) {
                     refreshPosts(parsed.id);
                     refreshAutomations();
@@ -363,18 +370,22 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             setAccountLoading(true);
             const res = await api.connectToken(token);
             if (res?.success && res?.account) {
-                setAccount({
+                const acc: InstagramAccount = {
                     id: res.account.id,
                     username: res.account.username,
                     name: res.account.name || res.account.username,
-                    profilePictureUrl: res.account.profile_picture_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+                    profilePictureUrl: res.account.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(res.account.username)}&background=833ab4&color=fff&size=150`,
                     followersCount: res.account.followers_count || 0,
                     mediaCount: res.account.media_count || 0,
                     connectionStatus: 'connected',
                     tokenExpiresAt: res.account.token_expires_at,
                     connectedAt: new Date().toISOString(),
                     instagramBusinessId: res.account.id
-                });
+                };
+                setAccount(acc);
+                localStorage.setItem('bexly_ig_account', JSON.stringify(acc));
+                localStorage.setItem('bexly_meta_access_token', token.trim());
+                await refreshPosts(res.account.id);
                 return { success: true };
             }
             return { success: false, message: 'A Meta não retornou dados para este token.' };

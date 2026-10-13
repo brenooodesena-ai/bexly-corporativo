@@ -2139,15 +2139,57 @@ export default function Marketing() {
                                                 </div>
                                             ) : (
                                                 <div style={{
-                                                    padding: '20px',
+                                                    padding: '24px 16px',
                                                     borderRadius: '10px',
                                                     backgroundColor: 'rgba(255, 255, 255, 0.02)',
                                                     border: '1px dashed rgba(255, 255, 255, 0.1)',
-                                                    textAlign: 'center'
+                                                    textAlign: 'center',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
                                                 }}>
-                                                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
-                                                        Nenhuma publicação encontrada nesta categoria para @{account.username}.
+                                                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#cbd5e1', fontWeight: 600 }}>
+                                                        Nenhuma publicação retornada da API do Instagram para @{account.username}.
                                                     </p>
+                                                    <p style={{ margin: 0, fontSize: '0.72rem', color: '#94a3b8', maxWidth: '380px', lineHeight: 1.4 }}>
+                                                        Para carregar fotos, reels e stories de 24h em tempo real direto do Instagram, sincronize usando o Login Oficial da Meta ou seu Token de Acesso da Meta.
+                                                    </p>
+                                                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => refreshPosts()}
+                                                            disabled={postsLoading}
+                                                            style={{
+                                                                padding: '6px 12px',
+                                                                borderRadius: '8px',
+                                                                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                                                color: '#ffffff',
+                                                                fontSize: '0.74rem',
+                                                                fontWeight: 600,
+                                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            {postsLoading ? 'Buscando...' : '🔄 Tentar Novamente'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowTokenInput(true)}
+                                                            style={{
+                                                                padding: '6px 12px',
+                                                                borderRadius: '8px',
+                                                                backgroundColor: '#3b82f6',
+                                                                color: '#ffffff',
+                                                                fontSize: '0.74rem',
+                                                                fontWeight: 600,
+                                                                border: 'none',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            🔑 Inserir Token Meta
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             )}
 

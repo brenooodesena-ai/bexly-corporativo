@@ -202,8 +202,10 @@ export async function getUserMedia(
   limit = 50
 ): Promise<InstagramMedia[]> {
   const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/me/media`,
     `https://graph.instagram.com/${config.META_API_VERSION}/${instagramUserId}/media`,
     `https://graph.facebook.com/${config.META_API_VERSION}/${instagramUserId}/media`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/me/media`,
   ];
 
   for (const url of endpoints) {
@@ -236,8 +238,10 @@ export async function getUserStories(
   accessToken: string
 ): Promise<InstagramMedia[]> {
   const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/me/stories`,
     `https://graph.instagram.com/${config.META_API_VERSION}/${instagramUserId}/stories`,
     `https://graph.facebook.com/${config.META_API_VERSION}/${instagramUserId}/stories`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/me/stories`,
   ];
 
   const now = Date.now();

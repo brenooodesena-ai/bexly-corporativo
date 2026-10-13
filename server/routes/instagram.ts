@@ -173,6 +173,7 @@ instagramRouter.post('/callback', async (req: Request, res: Response) => {
         media_count: profile.media_count,
         connection_status: 'connected',
         token_expires_at: expiresAt,
+        accessToken: longTokenRes.access_token,
       },
     });
   } catch (error: any) {
@@ -284,6 +285,7 @@ instagramRouter.post('/connect-token', async (req: Request, res: Response) => {
         media_count: profile.media_count,
         connection_status: 'connected',
         token_expires_at: expiresAt,
+        accessToken: token.trim(),
       },
     });
   } catch (error: any) {
@@ -403,26 +405,50 @@ instagramRouter.post('/sync-local-account', (req: Request, res: Response) => {
   const followers = followersCount ?? followers_count ?? 0;
   const media = mediaCount ?? media_count ?? 0;
 
+  const rawToken = req.body.accessToken || req.body.access_token;
+
   if (existing) {
-    db.prepare(`
-      UPDATE instagram_accounts SET
-        name = ?,
-        profile_picture_url = ?,
-        followers_count = ?,
-        media_count = ?,
-        connection_status = 'connected',
-        updated_at = ?
-      WHERE id = ?
-    `).run(
-      name || cleanUsername,
-      pic,
-      followers,
-      media,
-      now,
-      existing.id
-    );
+    if (rawToken && !rawToken.startsWith('saved_token_')) {
+      db.prepare(`
+        UPDATE instagram_accounts SET
+          name = ?,
+          profile_picture_url = ?,
+          followers_count = ?,
+          media_count = ?,
+          access_token_encrypted = ?,
+          connection_status = 'connected',
+          updated_at = ?
+        WHERE id = ?
+      `).run(
+        name || cleanUsername,
+        pic,
+        followers,
+        media,
+        encryptToken(rawToken),
+        now,
+        existing.id
+      );
+    } else {
+      db.prepare(`
+        UPDATE instagram_accounts SET
+          name = ?,
+          profile_picture_url = ?,
+          followers_count = ?,
+          media_count = ?,
+          connection_status = 'connected',
+          updated_at = ?
+        WHERE id = ?
+      `).run(
+        name || cleanUsername,
+        pic,
+        followers,
+        media,
+        now,
+        existing.id
+      );
+    }
   } else {
-    const encryptedToken = encryptToken(`saved_token_${cleanUsername}_${Date.now()}`);
+    const encryptedToken = rawToken ? encryptToken(rawToken) : encryptToken(`saved_token_${cleanUsername}_${Date.now()}`);
     db.prepare(`
       INSERT OR IGNORE INTO instagram_accounts (
         id, organization_id, instagram_user_id, username, name,
@@ -554,88 +580,10 @@ instagramRouter.get('/accounts/:id/media', async (req: Request, res: Response) =
     }
   }
 
-  // If live Meta API returned nothing or account is using connected handle without token,
-  // provide rich, realistic publications so the feed is never empty and links never required!
-  if (!mediaList || mediaList.length === 0) {
-    const now = Date.now();
-    mediaList = [
-      {
-        id: 'story_active_1',
-        caption: `🔥 Responda 'EU QUERO' para receber acesso VIP ao Bexly`,
-        media_type: 'STORY',
-        media_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
-        thumbnail_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
-        permalink: `https://instagram.com/stories/${username}`,
-        timestamp: new Date(now - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-        like_count: 84,
-        comments_count: 32,
-        is_story: true,
-        expires_in_hours: 21,
-      },
-      {
-        id: 'story_active_2',
-        caption: `✨ Bastidores da nova automação de Directs 100% nativa`,
-        media_type: 'STORY',
-        media_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80',
-        thumbnail_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80',
-        permalink: `https://instagram.com/stories/${username}`,
-        timestamp: new Date(now - 10 * 60 * 60 * 1000).toISOString(), // 10 hours ago
-        like_count: 142,
-        comments_count: 57,
-        is_story: true,
-        expires_in_hours: 14,
-      },
-      {
-        id: 'reel_demo_1',
-        caption: `📲 Como transformar comentários em vendas no Direct em menos de 1 segundo! Comente "eu quero"`,
-        media_type: 'VIDEO',
-        media_url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80',
-        thumbnail_url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80',
-        permalink: `https://instagram.com/reel/C3xL9vNpK_1`,
-        timestamp: new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        like_count: 429,
-        comments_count: 118,
-      },
-      {
-        id: 'post_feed_1',
-        caption: `🚀 O Bexly chegou: automação oficial do Instagram sem bloqueios e integrada ao seu CRM.`,
-        media_type: 'CAROUSEL_ALBUM',
-        media_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80',
-        thumbnail_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80',
-        permalink: `https://instagram.com/p/DFX892019a`,
-        timestamp: new Date(now - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        like_count: 284,
-        comments_count: 67,
-      },
-      {
-        id: 'post_feed_2',
-        caption: `💡 5 gatilhos mentais que aumentam a conversão do direct do Instagram em 300%. Salve para ver depois!`,
-        media_type: 'IMAGE',
-        media_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80',
-        thumbnail_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80',
-        permalink: `https://instagram.com/p/C2_9aKL01bc`,
-        timestamp: new Date(now - 9 * 24 * 60 * 60 * 1000).toISOString(),
-        like_count: 312,
-        comments_count: 89,
-      },
-      {
-        id: 'reel_demo_2',
-        caption: `⚡ Demonstração rápida: do comentário 'eu quero' até o link de pagamento na DM!`,
-        media_type: 'VIDEO',
-        media_url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80',
-        thumbnail_url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80',
-        permalink: `https://instagram.com/reel/C10zKLm98a`,
-        timestamp: new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString(),
-        like_count: 567,
-        comments_count: 204,
-      },
-    ];
-  }
-
-  // Filter stories strictly by 24h
+  // Strictly real media from Meta API only — NO mock or fictitious items!
   const now = Date.now();
   const twentyFourHours = 24 * 60 * 60 * 1000;
-  const filteredMedia = mediaList.filter((m) => {
+  const filteredMedia = (mediaList || []).filter((m) => {
     if (m.is_story || m.media_type === 'STORY') {
       const t = m.timestamp ? new Date(m.timestamp).getTime() : now;
       return t >= (now - twentyFourHours);
@@ -649,6 +597,7 @@ instagramRouter.get('/accounts/:id/media', async (req: Request, res: Response) =
     feed: filteredMedia.filter((m) => !m.is_story && m.media_type !== 'STORY'),
     account_username: username,
     total: filteredMedia.length,
+    is_live_meta: filteredMedia.length > 0,
   });
 });
 
