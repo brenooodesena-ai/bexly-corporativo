@@ -108,14 +108,27 @@ export const automationEngine = {
       postId: event.postId,
     });
 
-    // Find all active automations for this account
-    const automations = db.prepare(`
+    // Find all active automations for this account with robust fallback
+    let automations = db.prepare(`
       SELECT a.* FROM automations a
       INNER JOIN instagram_accounts ia ON ia.id = a.instagram_account_id
-      WHERE ia.instagram_user_id = ?
-        AND a.organization_id = ?
+      WHERE (ia.instagram_user_id = ? OR ia.id = ? OR a.instagram_account_id = ?)
         AND a.status = 'active'
-    `).all(event.instagramUserId, event.organizationId) as AutomationRecord[];
+    `).all(event.instagramUserId, event.instagramUserId, event.instagramUserId) as AutomationRecord[];
+
+    if (automations.length === 0) {
+      automations = db.prepare(`
+        SELECT a.* FROM automations a
+        WHERE a.organization_id = ? AND a.status = 'active'
+      `).all(event.organizationId) as AutomationRecord[];
+    }
+
+    if (automations.length === 0) {
+      automations = db.prepare(`
+        SELECT a.* FROM automations a
+        WHERE a.status = 'active'
+      `).all() as AutomationRecord[];
+    }
 
     if (automations.length === 0) {
       log('lookup', 'skip', 'No active automations found for this account');
@@ -150,7 +163,7 @@ export const automationEngine = {
       // ── Step 1: Evaluate trigger ──
       const triggerMatches = this._evaluateTrigger(trigger, event);
       log('trigger_eval', triggerMatches ? 'ok' : 'skip',
-        triggerMatches ? `Trigger matched (post: ${trigger.post_id})` : `Trigger did not match (post: ${trigger.post_id} vs event: ${event.postId})`
+        triggerMatches ? `Trigger matched (post: ${trigger.post_id || 'all'})` : `Trigger did not match (post: ${trigger.post_id} vs event: ${event.postId})`
       );
 
       if (!triggerMatches) {
@@ -159,7 +172,7 @@ export const automationEngine = {
       }
 
       // ── Step 2: Evaluate conditions ──
-      const conditionResult = this._evaluateConditions(conditions, event);
+      const conditionResult = this._evaluateConditions(conditions, event, trigger);
       log('condition_eval', conditionResult.matched ? 'ok' : 'skip',
         conditionResult.matched
           ? `Condition matched: keyword "${conditionResult.matchedKeyword}"`
@@ -255,15 +268,32 @@ export const automationEngine = {
     return false;
   },
 
-  _evaluateConditions(conditions: ConditionConfig[], event: CommentEvent): {
+  _evaluateConditions(
+    conditions: ConditionConfig[],
+    event: CommentEvent,
+    trigger?: TriggerConfig
+  ): {
     matched: boolean;
     matchedKeyword?: string;
   } {
+    const normComment = normalizeText(event.commentText);
+
+    // Check trigger-level keywords (used by modern UI and story replies)
+    const triggerKeywords = (trigger as any)?.keywords || ((trigger as any)?.keyword ? [(trigger as any).keyword] : []);
+    if (Array.isArray(triggerKeywords) && triggerKeywords.length > 0) {
+      for (const rawKw of triggerKeywords) {
+        if (!rawKw) continue;
+        const normKw = normalizeText(String(rawKw));
+        if (normComment.includes(normKw)) {
+          return { matched: true, matchedKeyword: String(rawKw) };
+        }
+      }
+      return { matched: false };
+    }
+
     if (!conditions || conditions.length === 0) {
       return { matched: true, matchedKeyword: 'TODAS' };
     }
-
-    const normComment = normalizeText(event.commentText);
 
     for (const condition of conditions) {
       const rawValue = condition.value || (condition as any).keyword || '';
