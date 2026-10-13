@@ -112,8 +112,21 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
         setPostsLoading(true);
         try {
             const data = await api.getAccountMedia(accId);
+
+            // Load existing saved posts to ensure feed and reels are NEVER lost from history
+            const savedRaw = localStorage.getItem('bexly_ig_posts');
+            let existingPosts: InstagramPost[] = [];
+            try {
+                existingPosts = savedRaw ? JSON.parse(savedRaw) : [];
+            } catch {
+                existingPosts = [];
+            }
+
+            // Existing permanent feed posts and reels are preserved forever
+            const permanentExisting = existingPosts.filter(p => !p.isStory && p.mediaType !== 'STORY');
+
             if (data && Array.isArray(data.media)) {
-                const mapped: InstagramPost[] = data.media.map((m: any) => ({
+                const incomingMapped: InstagramPost[] = data.media.map((m: any) => ({
                     id: m.id,
                     caption: m.caption || (m.is_story || m.media_type === 'STORY' ? 'Story Ativo' : 'Sem legenda'),
                     mediaType: (m.media_type as any) || (m.is_story ? 'STORY' : 'IMAGE'),
@@ -129,11 +142,23 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
                     isStory: Boolean(m.is_story || m.media_type === 'STORY'),
                     expiresInHours: m.expires_in_hours,
                 }));
-                setPosts(mapped);
-                localStorage.setItem('bexly_ig_posts', JSON.stringify(mapped));
-            } else {
-                setPosts([]);
-                localStorage.setItem('bexly_ig_posts', JSON.stringify([]));
+
+                // Strict filtering for stories: ONLY active stories with <= 24h
+                const activeStories = incomingMapped.filter(m => m.isStory);
+
+                // Permanent posts and reels: merge historical posts with incoming items
+                const postMap = new Map<string, InstagramPost>();
+                permanentExisting.forEach(p => postMap.set(p.id, p));
+                incomingMapped.filter(m => !m.isStory).forEach(p => postMap.set(p.id, p));
+
+                const allPermanent = Array.from(postMap.values());
+                const unified = [...activeStories, ...allPermanent];
+
+                setPosts(unified);
+                localStorage.setItem('bexly_ig_posts', JSON.stringify(unified));
+            } else if (permanentExisting.length > 0) {
+                // If offline or 0 new items, keep all historical posts and reels
+                setPosts(permanentExisting);
             }
         } catch (err) {
             console.warn('Erro ao carregar posts reais do Instagram:', err);

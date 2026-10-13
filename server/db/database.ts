@@ -44,7 +44,12 @@ export async function initializeDatabase(): Promise<void> {
 }
 
 function runMigrations(): void {
-  const migrations = [migration_001_core_schema, migration_002_automation_engine, migration_003_attribution];
+  const migrations = [
+    migration_001_core_schema,
+    migration_002_automation_engine,
+    migration_003_attribution,
+    migration_004_media_cache,
+  ];
 
   for (const migration of migrations) {
     migration(db);
@@ -324,5 +329,31 @@ function migration_003_attribution(db: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS idx_conversions_lead ON conversions(lead_id);
     CREATE INDEX IF NOT EXISTS idx_conversions_org ON conversions(organization_id);
+  `);
+}
+
+// ── Migration 004: Persistent Media History & 24h Stories Cache ──
+function migration_004_media_cache(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS instagram_media_cache (
+      id TEXT PRIMARY KEY,
+      instagram_user_id TEXT NOT NULL,
+      username TEXT,
+      caption TEXT,
+      media_type TEXT NOT NULL,
+      media_url TEXT,
+      thumbnail_url TEXT,
+      permalink TEXT,
+      timestamp TEXT NOT NULL,
+      like_count INTEGER DEFAULT 0,
+      comments_count INTEGER DEFAULT 0,
+      is_story INTEGER NOT NULL DEFAULT 0, -- 0=permanent feed/reel, 1=temporary 24h story
+      expires_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_media_cache_user ON instagram_media_cache(instagram_user_id);
+    CREATE INDEX IF NOT EXISTS idx_media_cache_story ON instagram_media_cache(is_story);
+    CREATE INDEX IF NOT EXISTS idx_media_cache_time ON instagram_media_cache(timestamp);
   `);
 }

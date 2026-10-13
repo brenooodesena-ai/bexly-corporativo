@@ -580,24 +580,115 @@ instagramRouter.get('/accounts/:id/media', async (req: Request, res: Response) =
     }
   }
 
-  // Strictly real media from Meta API only — NO mock or fictitious items!
   const now = Date.now();
   const twentyFourHours = 24 * 60 * 60 * 1000;
-  const filteredMedia = (mediaList || []).filter((m) => {
-    if (m.is_story || m.media_type === 'STORY') {
-      const t = m.timestamp ? new Date(m.timestamp).getTime() : now;
-      return t >= (now - twentyFourHours);
+
+  // 1. If live Meta API returned media, save into persistent database
+  if (mediaList && mediaList.length > 0) {
+    const insertStmt = db.prepare(`
+      INSERT INTO instagram_media_cache (
+        id, instagram_user_id, username, caption, media_type,
+        media_url, thumbnail_url, permalink, timestamp,
+        like_count, comments_count, is_story, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(id) DO UPDATE SET
+        caption = excluded.caption,
+        media_url = excluded.media_url,
+        thumbnail_url = excluded.thumbnail_url,
+        like_count = excluded.like_count,
+        comments_count = excluded.comments_count,
+        updated_at = datetime('now')
+    `);
+
+    for (const item of mediaList) {
+      const isStory = item.is_story || item.media_type === 'STORY' ? 1 : 0;
+      const itemTime = item.timestamp ? new Date(item.timestamp).getTime() : now;
+
+      // Stories are ONLY saved if within the exact 24 hours window
+      if (isStory === 1 && itemTime < now - twentyFourHours) {
+        continue;
+      }
+
+      try {
+        insertStmt.run(
+          item.id,
+          account?.instagram_user_id || 'me',
+          username,
+          item.caption || null,
+          item.media_type || (isStory ? 'STORY' : 'IMAGE'),
+          item.media_url || item.thumbnail_url || null,
+          item.thumbnail_url || item.media_url || null,
+          item.permalink || `https://instagram.com/p/${item.id}`,
+          item.timestamp || new Date().toISOString(),
+          item.like_count || 0,
+          item.comments_count || 0,
+          isStory
+        );
+      } catch (insertErr: any) {
+        logger.warn(`Could not cache media ${item.id}: ${insertErr.message}`);
+      }
     }
-    return true;
-  });
+  }
+
+  // 2. Strict Rule: Clean up stories older than 24 hours (they must disappear!)
+  try {
+    db.prepare(`
+      DELETE FROM instagram_media_cache
+      WHERE is_story = 1 AND timestamp < datetime('now', '-24 hours')
+    `).run();
+  } catch (cleanErr: any) {
+    logger.warn(`Could not clean expired stories: ${cleanErr.message}`);
+  }
+
+  // 3. Retrieve all permanent posts & reels (ALWAYS PRESERVED IN HISTORY)
+  const cachedFeedAndReels = db.prepare(`
+    SELECT * FROM instagram_media_cache
+    WHERE (instagram_user_id = ? OR username = ? OR 1=1) AND is_story = 0
+    ORDER BY timestamp DESC
+  `).all(account?.instagram_user_id, username) as any[];
+
+  // 4. Retrieve only active stories of the last 24h
+  const cachedActiveStories = db.prepare(`
+    SELECT * FROM instagram_media_cache
+    WHERE (instagram_user_id = ? OR username = ? OR 1=1) AND is_story = 1
+      AND timestamp >= datetime('now', '-24 hours')
+    ORDER BY timestamp DESC
+  `).all(account?.instagram_user_id, username) as any[];
+
+  const formatItem = (m: any) => {
+    const isStory = Boolean(m.is_story || m.media_type === 'STORY');
+    const t = m.timestamp ? new Date(m.timestamp).getTime() : now;
+    const hoursPassed = Math.floor((now - t) / (1000 * 60 * 60));
+    const hoursRemaining = Math.max(1, 24 - hoursPassed);
+
+    return {
+      id: m.id,
+      caption: m.caption || (isStory ? 'Story Ativo' : 'Sem legenda'),
+      media_type: m.media_type,
+      media_url: m.media_url,
+      thumbnail_url: m.thumbnail_url || m.media_url,
+      permalink: m.permalink,
+      timestamp: m.timestamp,
+      like_count: m.like_count,
+      comments_count: m.comments_count,
+      is_story: isStory,
+      expires_in_hours: isStory ? hoursRemaining : undefined,
+    };
+  };
+
+  const stories = cachedActiveStories.map(formatItem);
+  const feed = cachedFeedAndReels.map(formatItem);
+  const combined = [...stories, ...feed];
 
   res.json({
-    media: filteredMedia,
-    stories: filteredMedia.filter((m) => m.is_story || m.media_type === 'STORY'),
-    feed: filteredMedia.filter((m) => !m.is_story && m.media_type !== 'STORY'),
+    media: combined,
+    stories,
+    feed,
     account_username: username,
-    total: filteredMedia.length,
-    is_live_meta: filteredMedia.length > 0,
+    total: combined.length,
+    stories_count: stories.length,
+    feed_count: feed.length,
+    is_live_meta: combined.length > 0,
   });
 });
 
