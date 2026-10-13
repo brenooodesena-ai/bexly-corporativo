@@ -43,6 +43,11 @@ export const api = {
     return res.data;
   },
 
+  async syncLocalAccount(data: any) {
+    const res = await apiClient.post('/instagram/sync-local-account', data);
+    return res.data;
+  },
+
   async getAccounts() {
     const res = await apiClient.get('/instagram/accounts');
     return res.data;

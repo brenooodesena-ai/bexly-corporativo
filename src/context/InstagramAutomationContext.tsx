@@ -141,7 +141,7 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
     const refreshAutomations = async () => {
         try {
             const data = await api.getAutomations();
-            if (data && Array.isArray(data.automations)) {
+            if (data && Array.isArray(data.automations) && data.automations.length > 0) {
                 const mapped: Automation[] = data.automations.map((a: any) => ({
                     id: a.id,
                     organizationId: a.organization_id || 'org_default',
@@ -164,6 +164,30 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
                 }));
                 setAutomations(mapped);
                 localStorage.setItem('bexly_ig_automations', JSON.stringify(mapped));
+            } else {
+                // If backend has 0 automations, check if localStorage has saved automations to preserve and re-sync
+                const saved = localStorage.getItem('bexly_ig_automations');
+                if (saved) {
+                    try {
+                        const localAutos: Automation[] = JSON.parse(saved);
+                        if (localAutos.length > 0) {
+                            setAutomations(localAutos);
+                            // Re-sync each to backend
+                            localAutos.forEach(la => {
+                                api.createAutomation({
+                                    name: la.name,
+                                    instagram_account_id: account?.id || 'ig_acc_bexlybr',
+                                    campaign_id: la.campaignName,
+                                    trigger_config: la.trigger,
+                                    conditions_config: la.conditions,
+                                    actions_config: la.actions
+                                }).catch(console.warn);
+                            });
+                        }
+                    } catch {
+                        // ignore parse error
+                    }
+                }
             }
         } catch (err) {
             console.warn('Erro ao carregar automações do backend:', err);

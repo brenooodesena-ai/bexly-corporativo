@@ -10,6 +10,7 @@ import {
   getLongLivedToken,
   getUserProfile,
   getUserMedia,
+  subscribePageToWebhooks,
 } from '../services/metaApiClient.js';
 import { encryptToken, decryptToken } from '../services/tokenEncryption.js';
 import { isMetaConfigured } from '../config/index.js';
@@ -149,6 +150,14 @@ instagramRouter.post('/callback', async (req: Request, res: Response) => {
       );
     }
 
+    // 5. Automatically subscribe account to Meta comment & message webhooks
+    try {
+      await subscribePageToWebhooks(profile.id, longTokenRes.access_token);
+      logger.info(`Subscribed @${profile.username} to Meta comment webhooks`);
+    } catch (subErr) {
+      logger.warn(`Could not auto-subscribe webhooks: ${subErr}`);
+    }
+
     logger.info(`Instagram account connected: @${profile.username} (org: ${orgId})`);
 
     res.json({
@@ -250,6 +259,14 @@ instagramRouter.post('/connect-token', async (req: Request, res: Response) => {
         now,
         now
       );
+    }
+
+    // Automatically subscribe to Meta webhooks
+    try {
+      await subscribePageToWebhooks(profile.id, token.trim());
+      logger.info(`Subscribed @${profile.username} to Meta comment webhooks via token`);
+    } catch (subErr) {
+      logger.warn(`Could not auto-subscribe webhooks: ${subErr}`);
     }
 
     logger.info(`Instagram account connected via direct token: @${profile.username} (org: ${orgId})`);
@@ -356,6 +373,79 @@ instagramRouter.post('/connect-custom', (req: Request, res: Response) => {
       token_expires_at: expiresAt,
     },
   });
+});
+
+/**
+ * POST /api/instagram/sync-local-account
+ * Synchronizes an account saved in browser localStorage to the backend SQLite database
+ */
+instagramRouter.post('/sync-local-account', (req: Request, res: Response) => {
+  const { id, username, name, profilePictureUrl, profile_picture_url, followersCount, followers_count, mediaCount, media_count, instagramBusinessId, instagramUserId, instagram_user_id } = req.body;
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required' });
+  }
+
+  const cleanUsername = username.replace(/^@/, '').trim();
+  const orgId = getOrgId(req);
+  const db = getDb();
+  const now = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+  const targetId = id || `ig_acc_${cleanUsername}`;
+  const targetIgUserId = instagramUserId || instagram_user_id || instagramBusinessId || '28940950032212853';
+
+  const existing = db.prepare(`
+    SELECT id FROM instagram_accounts WHERE organization_id = ? AND (username = ? OR id = ?)
+  `).get(orgId, cleanUsername, targetId) as { id: string } | undefined;
+
+  const pic = profilePictureUrl || profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanUsername)}&background=833ab4&color=fff&size=150`;
+  const followers = followersCount ?? followers_count ?? 0;
+  const media = mediaCount ?? media_count ?? 0;
+
+  if (existing) {
+    db.prepare(`
+      UPDATE instagram_accounts SET
+        name = ?,
+        profile_picture_url = ?,
+        followers_count = ?,
+        media_count = ?,
+        connection_status = 'connected',
+        updated_at = ?
+      WHERE id = ?
+    `).run(
+      name || cleanUsername,
+      pic,
+      followers,
+      media,
+      now,
+      existing.id
+    );
+  } else {
+    const encryptedToken = encryptToken(`saved_token_${cleanUsername}_${Date.now()}`);
+    db.prepare(`
+      INSERT OR IGNORE INTO instagram_accounts (
+        id, organization_id, instagram_user_id, username, name,
+        profile_picture_url, followers_count, media_count,
+        access_token_encrypted, token_expires_at, token_refreshed_at,
+        connection_status, connected_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'connected', ?, ?)
+    `).run(
+      targetId,
+      orgId,
+      targetIgUserId,
+      cleanUsername,
+      name || cleanUsername,
+      pic,
+      followers,
+      media,
+      encryptedToken,
+      expiresAt,
+      now,
+      now,
+      now
+    );
+  }
+
+  res.json({ success: true, message: 'Account synchronized to server database', accountId: targetId });
 });
 
 /**

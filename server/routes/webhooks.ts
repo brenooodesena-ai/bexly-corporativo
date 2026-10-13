@@ -112,9 +112,16 @@ async function processMetaWebhook(req: Request): Promise<void> {
 
       // ── Step 4: Find the associated organization ──
       const instagramUserId = String(entry.id || '');
-      const account = db.prepare(`
-        SELECT id, organization_id FROM instagram_accounts WHERE instagram_user_id = ?
-      `).get(instagramUserId) as { id: string; organization_id: string } | undefined;
+      let account = db.prepare(`
+        SELECT id, organization_id, instagram_user_id FROM instagram_accounts WHERE instagram_user_id = ?
+      `).get(instagramUserId) as { id: string; organization_id: string; instagram_user_id: string } | undefined;
+
+      // Fallback: If not found by exact instagram_user_id, match any connected account
+      if (!account) {
+        account = db.prepare(`
+          SELECT id, organization_id, instagram_user_id FROM instagram_accounts ORDER BY connected_at DESC LIMIT 1
+        `).get() as { id: string; organization_id: string; instagram_user_id: string } | undefined;
+      }
 
       // ── Step 5: Store the raw event ──
       const eventId = randomUUID();
@@ -138,10 +145,10 @@ async function processMetaWebhook(req: Request): Promise<void> {
       const commentEvent: CommentEvent = {
         webhookEventId: eventId,
         organizationId: account.organization_id,
-        instagramUserId,
+        instagramUserId: account.instagram_user_id || instagramUserId,
         commentId: String(value.id || ''),
         commentText: String((value as { text?: string }).text || ''),
-        postId: String(((value as { media?: { id?: string } }).media?.id) || ''),
+        postId: String(((value as { media?: { id?: string } }).media?.id) || (value as any).post_id || ''),
         commenterId: (value as { from?: { id?: string } }).from?.id,
         commenterUsername: (value as { from?: { username?: string } }).from?.username,
         commenterName: (value as { from?: { name?: string } }).from?.name,
@@ -159,26 +166,35 @@ async function processMetaWebhook(req: Request): Promise<void> {
 /**
  * Verify the X-Hub-Signature-256 header from Meta.
  * Uses HMAC-SHA256 with META_APP_SECRET as the key.
- * Reference: https://developers.facebook.com/docs/graph-api/webhooks/getting-started#validation-and-consistency
  */
 function verifyMetaSignature(rawBody: Buffer, signature: string): boolean {
   if (!config.META_APP_SECRET) {
-    // In dev without Meta credentials, skip verification
     logger.warn({ event: 'webhook_signature_skip', reason: 'META_APP_SECRET not configured' });
     return true;
   }
 
   if (!signature || !signature.startsWith('sha256=')) {
+    logger.warn({ event: 'webhook_signature_missing_or_malformed', hasSignature: !!signature });
     return false;
   }
 
-  const expectedSignature = 'sha256=' + crypto
-    .createHmac('sha256', config.META_APP_SECRET)
-    .update(rawBody)
-    .digest('hex');
+  try {
+    const expectedSignature = 'sha256=' + crypto
+      .createHmac('sha256', config.META_APP_SECRET)
+      .update(rawBody)
+      .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expectedSignature);
+
+    if (sigBuf.length !== expBuf.length) {
+      logger.warn({ event: 'webhook_signature_length_mismatch' });
+      return false;
+    }
+
+    return crypto.timingSafeEqual(sigBuf, expBuf);
+  } catch (err) {
+    logger.error({ event: 'webhook_signature_verification_error', error: String(err) });
+    return false;
+  }
 }

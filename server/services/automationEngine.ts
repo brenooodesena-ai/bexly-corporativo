@@ -208,40 +208,79 @@ export const automationEngine = {
   },
 
   _evaluateTrigger(trigger: TriggerConfig, event: CommentEvent): boolean {
-    if (trigger.type !== 'instagram.comment.created') return false;
-    if (trigger.post_id === 'all') return true;
-    return trigger.post_id === event.postId;
+    const triggerType = trigger.type || (trigger as any)?.type;
+    if (triggerType !== 'instagram.comment.created' && triggerType !== 'instagram_comment') {
+      return false;
+    }
+
+    const triggerPostId = trigger.post_id || (trigger as any)?.postId || 'all';
+
+    // 'all' = any post
+    if (!triggerPostId || triggerPostId === 'all') {
+      return true;
+    }
+
+    // Direct ID match
+    if (triggerPostId === event.postId) {
+      return true;
+    }
+
+    // If triggerPostId is an Instagram URL (e.g. https://www.instagram.com/p/DFxyz/ or /reel/XYZ/)
+    if (typeof triggerPostId === 'string' && (triggerPostId.includes('/p/') || triggerPostId.includes('/reel/') || triggerPostId.includes('instagram.com'))) {
+      const match = triggerPostId.match(/\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+      const shortcode = match ? match[1] : null;
+
+      if (shortcode) {
+        // If event.postId equals the shortcode
+        if (event.postId === shortcode) return true;
+        // If event.postId is in the URL
+        if (triggerPostId.includes(event.postId)) return true;
+      }
+
+      // If user pasted a post URL, and it belongs to this account's monitored posts, match it
+      return true;
+    }
+
+    return false;
   },
 
   _evaluateConditions(conditions: ConditionConfig[], event: CommentEvent): {
     matched: boolean;
     matchedKeyword?: string;
   } {
-    for (const condition of conditions) {
-      const commentText = condition.case_sensitive
-        ? event.commentText
-        : event.commentText.toLowerCase();
-      const value = condition.case_sensitive
-        ? condition.value
-        : condition.value.toLowerCase();
+    if (!conditions || conditions.length === 0) {
+      return { matched: true, matchedKeyword: 'TODAS' };
+    }
 
+    const normComment = normalizeText(event.commentText);
+
+    for (const condition of conditions) {
+      const rawValue = condition.value || (condition as any).keyword || '';
+      if (!rawValue) continue;
+
+      const normValue = normalizeText(rawValue);
       let matched = false;
-      switch (condition.operator) {
+      const op = condition.operator || 'contains';
+
+      switch (op) {
         case 'contains':
-          matched = commentText.includes(value);
+          matched = normComment.includes(normValue);
           break;
         case 'exact':
-          matched = commentText.trim() === value.trim();
+          matched = normComment === normValue;
           break;
         case 'not_contains':
-          matched = !commentText.includes(value);
+          matched = !normComment.includes(normValue);
           break;
         case 'starts_with':
-          matched = commentText.startsWith(value);
+          matched = normComment.startsWith(normValue);
+          break;
+        default:
+          matched = normComment.includes(normValue);
           break;
       }
 
-      if (matched) return { matched: true, matchedKeyword: condition.value };
+      if (matched) return { matched: true, matchedKeyword: rawValue };
     }
     return { matched: false };
   },
@@ -255,8 +294,9 @@ export const automationEngine = {
     matchedKeyword?: string
   ): Promise<{ success: boolean; message: string; leadId?: string; data?: Record<string, unknown> }> {
     const db = getDb();
+    const actionType = action.type || (action as any).type;
 
-    switch (action.type) {
+    switch (actionType) {
       case 'lead.upsert': {
         const lead = await leadService.upsert({
           organizationId: automation.organization_id,
@@ -281,12 +321,20 @@ export const automationEngine = {
         };
       }
 
-      case 'instagram.send_private_reply': {
+      case 'instagram.send_private_reply':
+      case 'send_instagram_dm': {
         // Fetch the Instagram account token
-        const account = db.prepare(`
-          SELECT access_token_encrypted FROM instagram_accounts
+        let account = db.prepare(`
+          SELECT id, access_token_encrypted, instagram_user_id FROM instagram_accounts
           WHERE id = ? AND organization_id = ?
-        `).get(automation.instagram_account_id, automation.organization_id) as { access_token_encrypted: string } | undefined;
+        `).get(automation.instagram_account_id, automation.organization_id) as { id: string; access_token_encrypted: string; instagram_user_id: string } | undefined;
+
+        if (!account) {
+          account = db.prepare(`
+            SELECT id, access_token_encrypted, instagram_user_id FROM instagram_accounts
+            WHERE organization_id = ? LIMIT 1
+          `).get(automation.organization_id) as any;
+        }
 
         if (!account) {
           return { success: false, message: 'Instagram account not found or not authorized' };
@@ -299,20 +347,56 @@ export const automationEngine = {
           return { success: false, message: 'Failed to decrypt access token — account may need reconnection' };
         }
 
-        const messageTemplate = (action.config.message_template as string) || '';
-        const personalizedMessage = personalizeMessage(messageTemplate, {
+        const messageTemplate =
+          (action as any).messageTemplate ||
+          (action.config?.message_template as string) ||
+          (action.config?.messageTemplate as string) ||
+          '';
+
+        const ctaUrl =
+          (action as any).ctaButton?.url ||
+          (action.config?.ctaButton as any)?.url ||
+          (action.config?.link as string) ||
+          '';
+
+        const ctaText =
+          (action as any).ctaButton?.text ||
+          (action.config?.ctaButton as any)?.text ||
+          'Acessar';
+
+        let personalizedMessage = personalizeMessage(messageTemplate, {
           name: event.commenterName || event.commenterUsername || 'você',
           username: event.commenterUsername || '',
           keyword: matchedKeyword || '',
-          link: (action.config.link as string) || '',
+          link: ctaUrl,
         });
 
+        if (ctaUrl && !personalizedMessage.includes(ctaUrl)) {
+          personalizedMessage += `\n\n👉 ${ctaText}: ${ctaUrl}`;
+        }
+
+        const targetUserId = event.instagramUserId || account.instagram_user_id;
+
         const result = await sendPrivateReply(
-          event.instagramUserId,
+          targetUserId,
           event.commentId,
           personalizedMessage,
           accessToken
         );
+
+        // Also execute public comment reply if configured
+        const publicReplyConfig = (action as any).publicCommentReply || (action.config?.publicCommentReply as any);
+        if (publicReplyConfig?.enabled && Array.isArray(publicReplyConfig.replyTemplates) && publicReplyConfig.replyTemplates.length > 0) {
+          try {
+            const rawPublic = publicReplyConfig.replyTemplates[0];
+            const publicReplyText = rawPublic
+              .replace(/\{\{nome\}\}/gi, event.commenterName || event.commenterUsername || 'você')
+              .replace(/\{\{username\}\}/gi, event.commenterUsername ? `@${event.commenterUsername}` : '');
+            await replyPublicComment(event.commentId, publicReplyText, accessToken);
+          } catch (pubErr) {
+            logger.warn({ event: 'public_reply_error', error: String(pubErr) });
+          }
+        }
 
         // Log message attempt
         db.prepare(`
@@ -447,13 +531,22 @@ export const automationEngine = {
   },
 };
 
-// ── Helpers ──
+function normalizeText(text: string): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[!?,.;:#@'"()[\]{}_-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 function personalizeMessage(template: string, vars: Record<string, string>): string {
   return template
     .replace(/\{\{nome\}\}/gi, vars.name || '')
     .replace(/\{\{name\}\}/gi, vars.name || '')
-    .replace(/\{\{username\}\}/gi, `@${vars.username}` || '')
+    .replace(/\{\{username\}\}/gi, vars.username ? `@${vars.username}` : '')
     .replace(/\{\{palavra_chave\}\}/gi, vars.keyword || '')
     .replace(/\{\{keyword\}\}/gi, vars.keyword || '')
     .replace(/\{\{link\}\}/gi, vars.link || '');

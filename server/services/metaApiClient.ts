@@ -236,45 +236,57 @@ export async function sendPrivateReply(
   messageText: string,
   accessToken: string
 ): Promise<MessagingResult> {
-  try {
-    const response = await axios.post<{ message_id: string }>(
-      `${GRAPH_BASE}/${instagramUserId}/messages`,
-      {
-        recipient: { comment_id: commentId },
-        message: { text: messageText },
-      },
-      {
-        params: { access_token: accessToken },
-      }
-    );
+  const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/${instagramUserId}/messages`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/${instagramUserId}/messages`,
+  ];
 
-    logger.info({
-      event: 'message_sent',
-      instagramUserId,
-      commentId,
-      messageId: response.data.message_id,
-    });
+  let lastError: any = null;
 
-    return { success: true, messageId: response.data.message_id };
-  } catch (err) {
-    const translated = translateMetaError(err, 'sendPrivateReply');
+  for (const url of endpoints) {
+    try {
+      const response = await axios.post<{ message_id: string }>(
+        url,
+        {
+          recipient: { comment_id: commentId },
+          message: { text: messageText },
+        },
+        {
+          params: { access_token: accessToken },
+        }
+      );
 
-    logger.warn({
-      event: 'message_failed',
-      instagramUserId,
-      commentId,
-      error: translated.message,
-      errorCode: translated.code,
-    });
+      logger.info({
+        event: 'message_sent',
+        endpoint: url,
+        instagramUserId,
+        commentId,
+        messageId: response.data.message_id,
+      });
 
-    return {
-      success: false,
-      errorCode: String(translated.code || 'UNKNOWN'),
-      errorMessage: translated.message,
-      isRetryable: isRetryableError(translated.code),
-      isPermanent: isPermanentError(translated.code),
-    };
+      return { success: true, messageId: response.data.message_id };
+    } catch (err: any) {
+      lastError = err;
+      const metaErr = err?.response?.data?.error;
+      logger.warn({
+        event: 'private_reply_attempt_failed',
+        endpoint: url,
+        status: err?.response?.status,
+        error: metaErr?.message || err?.message,
+        code: metaErr?.code,
+        subcode: metaErr?.error_subcode,
+      });
+    }
   }
+
+  const translated = translateMetaError(lastError, 'sendPrivateReply');
+  return {
+    success: false,
+    errorCode: String(translated.code || 'UNKNOWN'),
+    errorMessage: translated.message,
+    isRetryable: isRetryableError(translated.code),
+    isPermanent: isPermanentError(translated.code),
+  };
 }
 
 /**
@@ -287,58 +299,86 @@ export async function replyPublicComment(
   messageText: string,
   accessToken: string
 ): Promise<{ success: boolean; replyId?: string; error?: string }> {
-  try {
-    const response = await axios.post<{ id: string }>(
-      `${GRAPH_BASE}/${commentId}/replies`,
-      { message: messageText },
-      {
-        params: { access_token: accessToken },
-      }
-    );
+  const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/${commentId}/replies`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/${commentId}/replies`,
+  ];
 
-    logger.info({
-      event: 'public_comment_reply_sent',
-      commentId,
-      replyId: response.data.id,
-    });
+  let lastError: any = null;
 
-    return { success: true, replyId: response.data.id };
-  } catch (err) {
-    const translated = translateMetaError(err, 'replyPublicComment');
-    logger.warn({
-      event: 'public_comment_reply_failed',
-      commentId,
-      error: translated.message,
-    });
-    return { success: false, error: translated.message };
+  for (const url of endpoints) {
+    try {
+      const response = await axios.post<{ id: string }>(
+        url,
+        { message: messageText },
+        {
+          params: { access_token: accessToken },
+        }
+      );
+
+      logger.info({
+        event: 'public_comment_reply_sent',
+        endpoint: url,
+        commentId,
+        replyId: response.data.id,
+      });
+
+      return { success: true, replyId: response.data.id };
+    } catch (err: any) {
+      lastError = err;
+    }
   }
+
+  const translated = translateMetaError(lastError, 'replyPublicComment');
+  logger.warn({
+    event: 'public_comment_reply_failed',
+    commentId,
+    error: translated.message,
+  });
+  return { success: false, error: translated.message };
 }
 
 /**
- * Subscribe a page to receive webhook notifications.
- * Required for comment webhooks.
- * Official: POST /{page-id}/subscribed_apps
+ * Subscribe a page or account to receive webhook notifications.
+ * Required for comment and message webhooks.
+ * Official: POST /{id}/subscribed_apps
  */
 export async function subscribePageToWebhooks(
   instagramUserId: string,
   accessToken: string
 ): Promise<boolean> {
-  try {
-    const response = await axios.post<{ success: boolean }>(
-      `${GRAPH_BASE}/${instagramUserId}/subscribed_apps`,
-      null,
-      {
-        params: {
-          subscribed_fields: 'comments,live_comments',
-          access_token: accessToken,
-        },
+  const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/${instagramUserId}/subscribed_apps`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/${instagramUserId}/subscribed_apps`,
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const response = await axios.post<{ success: boolean }>(
+        url,
+        null,
+        {
+          params: {
+            subscribed_fields: 'comments,live_comments,messages',
+            access_token: accessToken,
+          },
+        }
+      );
+      if (response.data.success === true) {
+        logger.info({ event: 'subscribe_success', endpoint: url, instagramUserId });
+        return true;
       }
-    );
-    return response.data.success === true;
-  } catch (err) {
-    logger.error({ event: 'subscribe_failed', instagramUserId, error: String(err) });
-    return false;
+    } catch (err: any) {
+      logger.warn({
+        event: 'subscribe_attempt_failed',
+        endpoint: url,
+        instagramUserId,
+        error: err?.response?.data?.error?.message || err.message,
+      });
+    }
   }
+
+  return false;
 }
 
 // ── Error translation ──
