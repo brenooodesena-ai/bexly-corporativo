@@ -87,6 +87,103 @@ async function processMetaWebhook(req: Request): Promise<void> {
   const entries = (payload.entry as Record<string, unknown>[]) || [];
 
   for (const entry of entries) {
+    const db = getDb();
+    const instagramUserId = String(entry.id || '');
+
+    // ── FIND CONNECTED ACCOUNT ──
+    let account = db.prepare(`
+      SELECT id, organization_id, instagram_user_id FROM instagram_accounts WHERE instagram_user_id = ?
+    `).get(instagramUserId) as { id: string; organization_id: string; instagram_user_id: string } | undefined;
+
+    if (!account) {
+      account = db.prepare(`
+        SELECT id, organization_id, instagram_user_id FROM instagram_accounts ORDER BY connected_at DESC LIMIT 1
+      `).get() as { id: string; organization_id: string; instagram_user_id: string } | undefined;
+    }
+
+    // ── 1. PROCESS DIRECT MESSAGES & STORY REPLIES (entry.messaging) ──
+    const messagingList = (entry.messaging as Record<string, unknown>[]) || [];
+
+    for (const msg of messagingList) {
+      const sender = msg.sender as { id?: string; username?: string; name?: string } | undefined;
+      const message = msg.message as {
+        mid?: string;
+        text?: string;
+        reply_to?: {
+          story?: { id?: string; url?: string };
+          mid?: string;
+        };
+        story_share?: {
+          link?: string;
+          id?: string;
+        };
+        is_echo?: boolean;
+      } | undefined;
+
+      // Ignore echoes (bot's own replies) and empty text messages
+      if (!message || message.is_echo || !message.text) continue;
+
+      const storyId = message.reply_to?.story?.id || message.story_share?.id || '';
+      const isStoryReply = Boolean(message.reply_to?.story || message.story_share);
+
+      const externalEventId = `ig_msg_${message.mid || msg.timestamp || Date.now()}_${sender?.id || 'anon'}`;
+
+      // Idempotency check
+      const existingEvent = db.prepare(`
+        SELECT id FROM webhook_events WHERE provider = 'meta' AND external_event_id = ?
+      `).get(externalEventId);
+
+      if (existingEvent) {
+        logger.info({ event: 'webhook_duplicate_message_ignored', externalEventId });
+        continue;
+      }
+
+      const eventId = randomUUID();
+      db.prepare(`
+        INSERT INTO webhook_events (id, organization_id, provider, event_type, external_event_id, payload, status)
+        VALUES (?, ?, 'meta', ?, ?, ?, 'pending')
+      `).run(
+        eventId,
+        account?.organization_id || null,
+        isStoryReply ? 'instagram.story.replied' : 'instagram.message.received',
+        externalEventId,
+        JSON.stringify({ entry, msg })
+      );
+
+      if (!account) {
+        logger.warn({ event: 'webhook_no_account_found_for_message', instagramUserId, externalEventId });
+        db.prepare(`UPDATE webhook_events SET status = 'failed', error_message = 'No connected account found' WHERE id = ?`).run(eventId);
+        continue;
+      }
+
+      const storyEvent: CommentEvent = {
+        webhookEventId: eventId,
+        organizationId: account.organization_id,
+        instagramUserId: account.instagram_user_id || instagramUserId,
+        commentId: '', // No commentId for direct messages / story replies
+        commentText: String(message.text || ''),
+        postId: storyId || (isStoryReply ? 'story_active' : 'direct_message'),
+        commenterId: sender?.id,
+        commenterUsername: sender?.username || '',
+        commenterName: sender?.name || sender?.username || 'Usuário',
+        timestamp: String(msg.timestamp || Date.now()),
+        eventType: isStoryReply ? 'story_reply' : 'direct_message',
+        storyId: storyId || undefined,
+      };
+
+      eventQueue.enqueue('meta.comment', storyEvent as unknown as Record<string, unknown>);
+      db.prepare(`UPDATE webhook_events SET status = 'processing' WHERE id = ?`).run(eventId);
+
+      logger.info({
+        event: isStoryReply ? 'story_reply_enqueued' : 'direct_message_enqueued',
+        eventId,
+        senderId: sender?.id,
+        storyId,
+        keyword: message.text,
+      });
+    }
+
+    // ── 2. PROCESS COMMENTS (entry.changes) ──
     const changes = (entry.changes as Record<string, unknown>[]) || [];
 
     for (const change of changes) {
@@ -95,12 +192,10 @@ async function processMetaWebhook(req: Request): Promise<void> {
       const value = change.value as Record<string, unknown>;
       if (!value) continue;
 
-      // ── Step 2: Generate unique event ID for idempotency ──
+      // Step 2: Generate unique event ID for idempotency
       const externalEventId = `ig_comment_${value.id || entry.id}_${value.time || Date.now()}`;
 
-      const db = getDb();
-
-      // ── Step 3: Check idempotency ──
+      // Step 3: Check idempotency
       const existingEvent = db.prepare(`
         SELECT id, status FROM webhook_events WHERE provider = 'meta' AND external_event_id = ?
       `).get(externalEventId);
@@ -110,20 +205,7 @@ async function processMetaWebhook(req: Request): Promise<void> {
         continue;
       }
 
-      // ── Step 4: Find the associated organization ──
-      const instagramUserId = String(entry.id || '');
-      let account = db.prepare(`
-        SELECT id, organization_id, instagram_user_id FROM instagram_accounts WHERE instagram_user_id = ?
-      `).get(instagramUserId) as { id: string; organization_id: string; instagram_user_id: string } | undefined;
-
-      // Fallback: If not found by exact instagram_user_id, match any connected account
-      if (!account) {
-        account = db.prepare(`
-          SELECT id, organization_id, instagram_user_id FROM instagram_accounts ORDER BY connected_at DESC LIMIT 1
-        `).get() as { id: string; organization_id: string; instagram_user_id: string } | undefined;
-      }
-
-      // ── Step 5: Store the raw event ──
+      // Step 5: Store the raw event
       const eventId = randomUUID();
       db.prepare(`
         INSERT INTO webhook_events (id, organization_id, provider, event_type, external_event_id, payload, status)
@@ -141,7 +223,7 @@ async function processMetaWebhook(req: Request): Promise<void> {
         continue;
       }
 
-      // ── Step 6: Enqueue for async processing ──
+      // Step 6: Enqueue for async processing
       const commentEvent: CommentEvent = {
         webhookEventId: eventId,
         organizationId: account.organization_id,
@@ -153,6 +235,7 @@ async function processMetaWebhook(req: Request): Promise<void> {
         commenterUsername: (value as { from?: { username?: string } }).from?.username,
         commenterName: (value as { from?: { name?: string } }).from?.name,
         timestamp: String(value.timestamp || new Date().toISOString()),
+        eventType: 'comment',
       };
 
       eventQueue.enqueue('meta.comment', commentEvent as unknown as Record<string, unknown>);

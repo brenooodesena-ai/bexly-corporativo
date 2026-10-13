@@ -555,7 +555,11 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             if (auto.status !== 'active') return false;
 
             // Trigger post check
-            const postMatches = auto.trigger.postId === 'all' || auto.trigger.postId === postId;
+            const isStoryAuto = auto.trigger.type === 'instagram_story_reply' || auto.trigger.mediaType === 'STORY';
+            const postMatches =
+                auto.trigger.postId === 'all' ||
+                auto.trigger.postId === postId ||
+                (isStoryAuto && (postId === 'all' || postId.includes('story') || posts.find(p => p.id === postId)?.isStory || posts.find(p => p.id === postId)?.mediaType === 'STORY'));
             if (!postMatches) return false;
 
             // Condition check

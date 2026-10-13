@@ -21,14 +21,14 @@
 import { randomUUID } from 'crypto';
 import { getDb } from '../db/database.js';
 import { decryptToken } from './tokenEncryption.js';
-import { sendPrivateReply, replyPublicComment } from './metaApiClient.js';
+import { sendPrivateReply, sendDirectMessage, replyPublicComment } from './metaApiClient.js';
 import { leadService } from './leadService.js';
 import { logger } from '../utils/logger.js';
 
 // ── Types ──
 
 export interface TriggerConfig {
-  type: 'instagram.comment.created';
+  type: 'instagram.comment.created' | 'instagram_comment' | 'instagram_story_reply';
   post_id: string | 'all';  // 'all' = any post
   post_title?: string;
 }
@@ -43,6 +43,7 @@ export interface ConditionConfig {
 export interface ActionConfig {
   type:
     | 'instagram.send_private_reply'
+    | 'send_instagram_dm'
     | 'instagram.reply_public_comment'
     | 'lead.upsert'
     | 'lead.add_tag'
@@ -69,10 +70,12 @@ export interface CommentEvent {
   commentId: string;
   commentText: string;
   postId: string;
-  commenterId?: string;  // IG-scoped user ID of commenter (may not always be present)
+  commenterId?: string;  // IG-scoped user ID of commenter (essential for DMs and Story replies)
   commenterUsername?: string;
   commenterName?: string;
   timestamp: string;
+  eventType?: 'comment' | 'story_reply' | 'direct_message';
+  storyId?: string;
 }
 
 interface RunLogEntry {
@@ -219,13 +222,21 @@ export const automationEngine = {
 
     const triggerPostId = trigger.post_id || (trigger as any)?.postId || 'all';
 
-    // 'all' = any post
+    // 'all' = any post or any story
     if (!triggerPostId || triggerPostId === 'all') {
       return true;
     }
 
-    // Direct ID match
-    if (triggerPostId === event.postId) {
+    // Direct ID match (post ID, media ID, or story ID)
+    if (triggerPostId === event.postId || (event.storyId && triggerPostId === event.storyId)) {
+      return true;
+    }
+
+    // If it's a story reply event and the automation is set for stories
+    if (
+      event.eventType === 'story_reply' &&
+      (triggerType === 'instagram_story_reply' || (trigger as any)?.mediaType === 'STORY' || String(triggerPostId).includes('story'))
+    ) {
       return true;
     }
 
@@ -235,13 +246,9 @@ export const automationEngine = {
       const shortcode = match ? match[1] : null;
 
       if (shortcode) {
-        // If event.postId equals the shortcode
         if (event.postId === shortcode) return true;
-        // If event.postId is in the URL
         if (triggerPostId.includes(event.postId)) return true;
       }
-
-      // If user pasted a post URL, and it belongs to this account's monitored posts, match it
       return true;
     }
 
@@ -380,17 +387,44 @@ export const automationEngine = {
         }
 
         const targetUserId = event.instagramUserId || account.instagram_user_id;
+        const isStoryOrDm = event.eventType === 'story_reply' || event.eventType === 'direct_message' || (!event.commentId && Boolean(event.commenterId));
 
-        const result = await sendPrivateReply(
-          targetUserId,
-          event.commentId,
-          personalizedMessage,
-          accessToken
-        );
+        let result: { success: boolean; messageId?: string; errorCode?: string; errorMessage?: string; isRetryable?: boolean; isPermanent?: boolean };
 
-        // Also execute public comment reply if configured
+        if (isStoryOrDm && event.commenterId) {
+          // Send Direct Message using user's IGSID
+          result = await sendDirectMessage(
+            targetUserId,
+            event.commenterId,
+            personalizedMessage,
+            accessToken
+          );
+        } else {
+          // Send Private Reply to post comment
+          result = await sendPrivateReply(
+            targetUserId,
+            event.commentId,
+            personalizedMessage,
+            accessToken
+          );
+
+          // If private reply failed because comment_id was not valid or not found, but we have commenterId, fallback to sendDirectMessage
+          if (!result.success && event.commenterId) {
+            const fallbackResult = await sendDirectMessage(
+              targetUserId,
+              event.commenterId,
+              personalizedMessage,
+              accessToken
+            );
+            if (fallbackResult.success) {
+              result = fallbackResult;
+            }
+          }
+        }
+
+        // Only execute public comment reply if it is a real post comment (Stories do NOT have public comments)
         const publicReplyConfig = (action as any).publicCommentReply || (action.config?.publicCommentReply as any);
-        if (publicReplyConfig?.enabled && Array.isArray(publicReplyConfig.replyTemplates) && publicReplyConfig.replyTemplates.length > 0) {
+        if (!isStoryOrDm && publicReplyConfig?.enabled && Array.isArray(publicReplyConfig.replyTemplates) && publicReplyConfig.replyTemplates.length > 0 && event.commentId) {
           try {
             const rawPublic = publicReplyConfig.replyTemplates[0];
             const publicReplyText = rawPublic

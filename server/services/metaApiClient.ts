@@ -482,6 +482,73 @@ export async function sendPrivateReply(
 }
 
 /**
+ * Send an Instagram Direct Message to a user (IGSID).
+ * Used for Story replies, direct messages, and private messaging window (24h).
+ *
+ * OFFICIAL API: POST /{ig-user-id}/messages
+ * with recipient = { id: "<IGSID>" }
+ */
+export async function sendDirectMessage(
+  instagramUserId: string,
+  recipientId: string,
+  messageText: string,
+  accessToken: string
+): Promise<MessagingResult> {
+  const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/${instagramUserId}/messages`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/${instagramUserId}/messages`,
+  ];
+
+  let lastError: any = null;
+
+  for (const url of endpoints) {
+    try {
+      const response = await axios.post<{ message_id: string }>(
+        url,
+        {
+          recipient: { id: recipientId },
+          message: { text: messageText },
+        },
+        {
+          params: { access_token: accessToken },
+          timeout: 10000,
+        }
+      );
+
+      logger.info({
+        event: 'direct_message_sent',
+        endpoint: url,
+        instagramUserId,
+        recipientId,
+        messageId: response.data.message_id,
+      });
+
+      return { success: true, messageId: response.data.message_id };
+    } catch (err: any) {
+      lastError = err;
+      const metaErr = err?.response?.data?.error;
+      logger.warn({
+        event: 'direct_message_attempt_failed',
+        endpoint: url,
+        status: err?.response?.status,
+        error: metaErr?.message || err?.message,
+        code: metaErr?.code,
+        subcode: metaErr?.error_subcode,
+      });
+    }
+  }
+
+  const translated = translateMetaError(lastError, 'sendDirectMessage');
+  return {
+    success: false,
+    errorCode: String(translated.code || 'UNKNOWN'),
+    errorMessage: translated.message,
+    isRetryable: isRetryableError(translated.code),
+    isPermanent: isPermanentError(translated.code),
+  };
+}
+
+/**
  * Post a PUBLIC REPLY to an Instagram comment.
  * Official API: POST /{comment-id}/replies
  * Requires: instagram_business_manage_comments

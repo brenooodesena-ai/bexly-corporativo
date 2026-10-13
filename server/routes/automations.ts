@@ -287,16 +287,25 @@ automationsRouter.post('/test-trigger', async (req: Request, res: Response) => {
 
   const igUserId = account?.instagram_user_id || '28940950032212853';
 
+  const isStoryTest = Boolean(
+    req.body.is_story ||
+    req.body.type === 'instagram_story_reply' ||
+    (post_id && (String(post_id).includes('story') || String(post_id).startsWith('story_')))
+  );
+
   const mockCommentEvent = {
     webhookEventId: `test_${Date.now()}`,
     organizationId: orgId,
     instagramUserId: igUserId,
-    commentId: `mock_comment_${Date.now()}`,
+    commentId: isStoryTest ? '' : `mock_comment_${Date.now()}`,
     commentText: comment_text,
     postId: post_id || 'all',
+    commenterId: req.body.commenter_id || `test_user_${Date.now()}`,
     commenterUsername: commenter_username || 'usuario_teste',
     commenterName: commenter_username || 'Usuário Teste',
     timestamp: new Date().toISOString(),
+    eventType: (isStoryTest ? 'story_reply' : 'comment') as 'story_reply' | 'comment',
+    storyId: isStoryTest ? post_id : undefined,
   };
 
   try {
