@@ -17,6 +17,9 @@ healthRouter.get('/', (_req: Request, res: Response) => {
     status: dbStatus === 'ok' ? 'ok' : 'degraded',
     database: dbStatus,
     meta_configured: isMetaConfigured(),
+  });
+});
+
 healthRouter.get('/diagnostics', (_req: Request, res: Response) => {
   try {
     const db = getDb();
