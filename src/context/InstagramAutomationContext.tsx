@@ -108,21 +108,26 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
 
     // Fetch real Instagram media from backend / Meta Graph API
     const refreshPosts = async (targetAccountId?: string) => {
-        const accId = targetAccountId || account?.id;
-        if (!accId) return;
+        const accId = targetAccountId || account?.id || 'ig_acc_bexlybr';
         setPostsLoading(true);
         try {
             const data = await api.getAccountMedia(accId);
             if (data && Array.isArray(data.media)) {
                 const mapped: InstagramPost[] = data.media.map((m: any) => ({
                     id: m.id,
-                    caption: m.caption || 'Sem legenda',
-                    mediaType: (m.media_type as any) || 'IMAGE',
+                    caption: m.caption || (m.is_story || m.media_type === 'STORY' ? 'Story Ativo' : 'Sem legenda'),
+                    mediaType: (m.media_type as any) || (m.is_story ? 'STORY' : 'IMAGE'),
                     mediaUrl: m.media_url || m.thumbnail_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
                     permalink: m.permalink || `https://instagram.com/p/${m.id}`,
-                    timestamp: m.timestamp ? new Date(m.timestamp).toLocaleDateString('pt-BR') : 'Recente',
+                    timestamp: m.timestamp ? (
+                        m.is_story || m.media_type === 'STORY'
+                            ? `Story (${m.expires_in_hours || 24}h restantes)`
+                            : new Date(m.timestamp).toLocaleDateString('pt-BR')
+                    ) : 'Recente',
                     commentsCount: m.comments_count || 0,
                     likeCount: m.like_count || 0,
+                    isStory: Boolean(m.is_story || m.media_type === 'STORY'),
+                    expiresInHours: m.expires_in_hours,
                 }));
                 setPosts(mapped);
                 localStorage.setItem('bexly_ig_posts', JSON.stringify(mapped));

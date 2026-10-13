@@ -91,8 +91,8 @@ export default function Marketing() {
     const [formName, setFormName] = useState('');
     const [formCampaign, setFormCampaign] = useState('');
     const [postSelectionMode, setPostSelectionMode] = useState<'all' | 'specific'>('all');
+    const [postCategoryFilter, setPostCategoryFilter] = useState<'all' | 'feed' | 'reels' | 'stories'>('all');
     const [formPostId, setFormPostId] = useState(posts[0]?.id || 'all');
-    const [customPostLink, setCustomPostLink] = useState('');
     const [formKeyword, setFormKeyword] = useState('');
     const [formPublicReply, setFormPublicReply] = useState('Acabei de te enviar no Direct! 🚀 Confere lá!');
     const [formMessage, setFormMessage] = useState('Olá, {{nome}}! 👋 Conforme combinado, aqui está o seu acesso prioritário: {{link}}');
@@ -137,8 +137,9 @@ export default function Marketing() {
     const handleSaveAutomation = () => {
         if (!formName.trim() || !formKeyword.trim() || !formMessage.trim()) return;
         const isAll = postSelectionMode === 'all';
-        const targetPostId = isAll ? 'all' : (formPostId || customPostLink || 'all');
+        const targetPostId = isAll ? 'all' : (formPostId || (posts.length > 0 ? posts[0].id : 'all'));
         const selectedPost = posts.find(p => p.id === targetPostId);
+        const isStory = selectedPost?.isStory || selectedPost?.mediaType === 'STORY';
 
         createAutomation({
             organizationId: account?.id || 'org_default',
@@ -146,11 +147,12 @@ export default function Marketing() {
             campaignName: formCampaign.trim() || formName.trim(),
             status: 'active',
             trigger: {
-                type: 'instagram_comment',
+                type: isStory ? 'instagram_story_reply' : 'instagram_comment',
                 postId: targetPostId,
                 postTitle: isAll
-                    ? 'Todas as publicações e reels'
-                    : (selectedPost?.caption?.substring(0, 60) || customPostLink || 'Publicação Selecionada')
+                    ? 'Todas as publicações, reels e stories'
+                    : (selectedPost ? `${selectedPost.mediaType === 'STORY' ? '⏳ Story' : selectedPost.mediaType === 'VIDEO' ? '🎬 Reel' : '📸 Feed'}: ${selectedPost.caption.substring(0, 50)}` : 'Publicação Selecionada'),
+                mediaType: selectedPost?.mediaType,
             },
             conditions: [{
                 field: 'comment_text',
@@ -166,8 +168,8 @@ export default function Marketing() {
                     url: formCtaUrl
                 } : undefined,
                 publicCommentReply: {
-                    enabled: true,
-                    replyTemplates: [formPublicReply || 'Enviado no seu direct! 🚀']
+                    enabled: !isStory,
+                    replyTemplates: [formPublicReply || 'Acabei de te enviar no direct! 🚀']
                 }
             }]
         });
@@ -176,7 +178,6 @@ export default function Marketing() {
         setFormName('');
         setFormCampaign('');
         setFormKeyword('');
-        setCustomPostLink('');
     };
 
     // Global Metrics Calculation
@@ -1206,6 +1207,42 @@ export default function Marketing() {
                         </button>
                     </div>
 
+                    {/* Category Filter for Tab 2 */}
+                    {posts.length > 0 && (() => {
+                        const feedPosts = posts.filter(p => !p.isStory && p.mediaType !== 'STORY' && p.mediaType !== 'VIDEO');
+                        const reelPosts = posts.filter(p => p.mediaType === 'VIDEO');
+                        const storyPosts = posts.filter(p => p.isStory || p.mediaType === 'STORY');
+
+                        return (
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                {[
+                                    { key: 'all', label: `Todos (${posts.length})` },
+                                    { key: 'feed', label: `📸 Feed (${feedPosts.length})` },
+                                    { key: 'reels', label: `🎬 Reels (${reelPosts.length})` },
+                                    { key: 'stories', label: `⏳ Stories Recentes 24h (${storyPosts.length})` }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setPostCategoryFilter(tab.key as any)}
+                                        style={{
+                                            padding: '7px 14px',
+                                            borderRadius: '10px',
+                                            fontSize: '0.78rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            border: 'none',
+                                            backgroundColor: postCategoryFilter === tab.key ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)',
+                                            color: postCategoryFilter === tab.key ? '#ffffff' : '#94a3b8',
+                                            transition: 'all 0.15s'
+                                        }}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+                        );
+                    })()}
+
                     {posts.length === 0 ? (
                         <div style={{
                             backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -1222,10 +1259,10 @@ export default function Marketing() {
                                 <Instagram size={28} color="#60a5fa" />
                             </div>
                             <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: '#ffffff' }}>
-                                Nenhuma publicação encontrada no @{account.username}
+                                Sincronizando publicações do @{account.username}
                             </h3>
                             <p style={{ color: '#94a3b8', fontSize: '0.85rem', maxWidth: '520px', margin: 0, lineHeight: 1.5 }}>
-                                O feed oficial da sua conta está conectado. Assim que você publicar novos posts ou reels no Instagram, clique em "Sincronizar Feed" para visualizá-los aqui e aplicar regras exclusivas por post.
+                                Clique no botão abaixo para carregar todos os posts, reels e stories ativos de 24 horas da conta.
                             </p>
                             <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
                                 <button
@@ -1237,53 +1274,39 @@ export default function Marketing() {
                                         gap: '8px',
                                         padding: '10px 20px',
                                         borderRadius: '12px',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                        color: '#ffffff',
-                                        fontWeight: 600,
-                                        fontSize: '0.84rem',
-                                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                                        cursor: postsLoading ? 'not-allowed' : 'pointer'
-                                    }}
-                                >
-                                    {postsLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
-                                    {postsLoading ? 'Sincronizando...' : 'Sincronizar Feed Agora'}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setPostSelectionMode('all');
-                                        setFormPostId('all');
-                                        setShowCreateModal(true);
-                                    }}
-                                    style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        padding: '10px 20px',
-                                        borderRadius: '12px',
                                         backgroundColor: '#3b82f6',
                                         color: '#ffffff',
                                         fontWeight: 600,
                                         fontSize: '0.84rem',
                                         border: 'none',
-                                        cursor: 'pointer'
+                                        cursor: postsLoading ? 'not-allowed' : 'pointer'
                                     }}
                                 >
-                                    <Zap size={14} />
-                                    Criar Automação Global
+                                    {postsLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
+                                    {postsLoading ? 'Sincronizando...' : 'Carregar Publicações Agora'}
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                            {posts.map(post => {
+                            {posts
+                                .filter(p => {
+                                    if (postCategoryFilter === 'feed') return !p.isStory && p.mediaType !== 'STORY' && p.mediaType !== 'VIDEO';
+                                    if (postCategoryFilter === 'reels') return p.mediaType === 'VIDEO';
+                                    if (postCategoryFilter === 'stories') return p.isStory || p.mediaType === 'STORY';
+                                    return true;
+                                })
+                                .map(post => {
                                 const isAutomated = automations.some(a => a.trigger.postId === post.id);
+                                const isStory = post.isStory || post.mediaType === 'STORY';
+                                const isReel = post.mediaType === 'VIDEO';
 
                                 return (
                                     <div
                                         key={post.id}
                                         style={{
                                             backgroundColor: 'rgba(15, 23, 42, 0.75)',
-                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                            border: isStory ? '1px solid rgba(236, 72, 153, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
                                             borderRadius: '20px',
                                             overflow: 'hidden',
                                             display: 'flex',
@@ -1303,14 +1326,18 @@ export default function Marketing() {
                                                     position: 'absolute',
                                                     top: '12px',
                                                     left: '12px',
-                                                    padding: '3px 8px',
+                                                    padding: '3px 9px',
                                                     borderRadius: '6px',
                                                     fontSize: '0.68rem',
                                                     fontWeight: 700,
-                                                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                                                    background: isStory
+                                                        ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)'
+                                                        : isReel
+                                                        ? 'rgba(15, 23, 42, 0.9)'
+                                                        : 'rgba(0, 0, 0, 0.75)',
                                                     color: '#ffffff'
                                                 }}>
-                                                    {post.mediaType}
+                                                    {isStory ? `⏳ Story (${post.expiresInHours || 24}h)` : isReel ? '🎬 Reel' : '📸 Feed'}
                                                 </span>
                                                 {isAutomated ? (
                                                     <span style={{
@@ -1929,154 +1956,263 @@ export default function Marketing() {
                                     </button>
                                 </div>
 
-                                {/* Post History Picker */}
-                                {postSelectionMode === 'specific' && (
-                                    <div style={{
-                                        backgroundColor: '#020617',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        borderRadius: '14px',
-                                        padding: '14px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '12px'
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>
-                                                {posts.length > 0
-                                                    ? `Selecione a publicação (${posts.length} sincronizadas)`
-                                                    : `Nenhuma publicação no feed do @${account.username}`
-                                                }
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => refreshPosts()}
-                                                disabled={postsLoading}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    color: '#60a5fa',
-                                                    fontSize: '0.74rem',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '5px'
-                                                }}
-                                            >
-                                                <RefreshCw size={12} className={postsLoading ? 'animate-spin' : ''} />
-                                                {postsLoading ? 'Sincronizando...' : 'Sincronizar Feed'}
-                                            </button>
-                                        </div>
+                                {/* Post / Reels / Stories History Picker */}
+                                {postSelectionMode === 'specific' && (() => {
+                                    const feedPosts = posts.filter(p => !p.isStory && p.mediaType !== 'STORY' && p.mediaType !== 'VIDEO');
+                                    const reelPosts = posts.filter(p => p.mediaType === 'VIDEO');
+                                    const storyPosts = posts.filter(p => p.isStory || p.mediaType === 'STORY');
 
-                                        {posts.length > 0 ? (
+                                    const visiblePosts = postCategoryFilter === 'feed'
+                                        ? feedPosts
+                                        : postCategoryFilter === 'reels'
+                                        ? reelPosts
+                                        : postCategoryFilter === 'stories'
+                                        ? storyPosts
+                                        : posts;
+
+                                    const currentSelected = posts.find(p => p.id === formPostId);
+
+                                    return (
+                                        <div style={{
+                                            backgroundColor: '#020617',
+                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                            borderRadius: '14px',
+                                            padding: '16px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '14px'
+                                        }}>
+                                            {/* Header with Title and Sync Button */}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div>
+                                                    <span style={{ color: '#ffffff', fontSize: '0.82rem', fontWeight: 600 }}>
+                                                        Publicações de @{account.username}
+                                                    </span>
+                                                    <span style={{ color: '#64748b', fontSize: '0.72rem', marginLeft: '6px' }}>
+                                                        ({posts.length} disponíveis)
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => refreshPosts()}
+                                                    disabled={postsLoading}
+                                                    style={{
+                                                        background: 'rgba(59, 130, 246, 0.1)',
+                                                        border: '1px solid rgba(59, 130, 246, 0.25)',
+                                                        borderRadius: '8px',
+                                                        padding: '5px 10px',
+                                                        color: '#60a5fa',
+                                                        fontSize: '0.74rem',
+                                                        fontWeight: 500,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '5px',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    <RefreshCw size={12} className={postsLoading ? 'animate-spin' : ''} />
+                                                    {postsLoading ? 'Sincronizando...' : 'Sincronizar'}
+                                                </button>
+                                            </div>
+
+                                            {/* Category Filter Tabs: Todos, Feed, Reels, Stories (24h) */}
                                             <div style={{
-                                                display: 'grid',
-                                                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                                                gap: '10px',
-                                                maxHeight: '220px',
-                                                overflowY: 'auto',
-                                                paddingRight: '4px'
+                                                display: 'flex',
+                                                gap: '6px',
+                                                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                                                paddingBottom: '10px'
                                             }}>
-                                                {posts.map(p => {
-                                                    const isSelected = formPostId === p.id;
-                                                    return (
-                                                        <div
-                                                            key={p.id}
-                                                            onClick={() => setFormPostId(p.id)}
-                                                            style={{
-                                                                position: 'relative',
-                                                                borderRadius: '10px',
-                                                                overflow: 'hidden',
-                                                                cursor: 'pointer',
-                                                                border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.1)',
-                                                                backgroundColor: '#0f172a',
-                                                                display: 'flex',
-                                                                flexDirection: 'column'
-                                                            }}
-                                                        >
-                                                            <div style={{ position: 'relative', height: '90px' }}>
-                                                                <img
-                                                                    src={p.mediaUrl}
-                                                                    alt="Post thumbnail"
-                                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                                                />
-                                                                <span style={{
-                                                                    position: 'absolute',
-                                                                    top: '4px',
-                                                                    left: '4px',
-                                                                    padding: '2px 5px',
-                                                                    borderRadius: '4px',
-                                                                    fontSize: '0.6rem',
-                                                                    fontWeight: 700,
-                                                                    backgroundColor: 'rgba(0,0,0,0.7)',
-                                                                    color: '#ffffff'
-                                                                }}>
-                                                                    {p.mediaType}
-                                                                </span>
-                                                                {isSelected && (
-                                                                    <div style={{
+                                                {[
+                                                    { key: 'all', label: `Todos (${posts.length})` },
+                                                    { key: 'feed', label: `📸 Feed (${feedPosts.length})` },
+                                                    { key: 'reels', label: `🎬 Reels (${reelPosts.length})` },
+                                                    { key: 'stories', label: `⏳ Stories 24h (${storyPosts.length})` }
+                                                ].map(tab => (
+                                                    <button
+                                                        key={tab.key}
+                                                        type="button"
+                                                        onClick={() => setPostCategoryFilter(tab.key as any)}
+                                                        style={{
+                                                            padding: '5px 11px',
+                                                            borderRadius: '8px',
+                                                            fontSize: '0.74rem',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer',
+                                                            border: 'none',
+                                                            backgroundColor: postCategoryFilter === tab.key ? '#3b82f6' : 'rgba(255, 255, 255, 0.04)',
+                                                            color: postCategoryFilter === tab.key ? '#ffffff' : '#94a3b8',
+                                                            transition: 'all 0.15s'
+                                                        }}
+                                                    >
+                                                        {tab.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Grid of Posts, Reels, and 24h Stories */}
+                                            {visiblePosts.length > 0 ? (
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                                                    gap: '10px',
+                                                    maxHeight: '230px',
+                                                    overflowY: 'auto',
+                                                    paddingRight: '4px'
+                                                }}>
+                                                    {visiblePosts.map(p => {
+                                                        const isSelected = formPostId === p.id;
+                                                        const isStory = p.isStory || p.mediaType === 'STORY';
+                                                        const isReel = p.mediaType === 'VIDEO';
+
+                                                        return (
+                                                            <div
+                                                                key={p.id}
+                                                                onClick={() => setFormPostId(p.id)}
+                                                                style={{
+                                                                    position: 'relative',
+                                                                    borderRadius: '10px',
+                                                                    overflow: 'hidden',
+                                                                    cursor: 'pointer',
+                                                                    border: isSelected
+                                                                        ? '2px solid #3b82f6'
+                                                                        : isStory
+                                                                        ? '1px solid rgba(220, 39, 67, 0.4)'
+                                                                        : '1px solid rgba(255, 255, 255, 0.08)',
+                                                                    backgroundColor: '#0f172a',
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    boxShadow: isSelected ? '0 0 12px rgba(59, 130, 246, 0.4)' : 'none',
+                                                                    transition: 'all 0.15s'
+                                                                }}
+                                                            >
+                                                                <div style={{ position: 'relative', height: '90px' }}>
+                                                                    <img
+                                                                        src={p.mediaUrl}
+                                                                        alt="Thumbnail"
+                                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                                    />
+                                                                    <span style={{
                                                                         position: 'absolute',
                                                                         top: '4px',
-                                                                        right: '4px',
-                                                                        width: '18px',
-                                                                        height: '18px',
-                                                                        borderRadius: '50%',
-                                                                        backgroundColor: '#3b82f6',
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'center'
+                                                                        left: '4px',
+                                                                        padding: '2px 5px',
+                                                                        borderRadius: '4px',
+                                                                        fontSize: '0.58rem',
+                                                                        fontWeight: 700,
+                                                                        background: isStory
+                                                                            ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)'
+                                                                            : isReel
+                                                                            ? 'rgba(15, 23, 42, 0.85)'
+                                                                            : 'rgba(0, 0, 0, 0.75)',
+                                                                        color: '#ffffff'
                                                                     }}>
-                                                                        <CheckCircle2 size={12} color="#ffffff" />
-                                                                    </div>
-                                                                )}
+                                                                        {isStory ? `⏳ Story (${p.expiresInHours || 24}h)` : isReel ? '🎬 Reel' : '📸 Feed'}
+                                                                    </span>
+                                                                    {isSelected && (
+                                                                        <div style={{
+                                                                            position: 'absolute',
+                                                                            top: '4px',
+                                                                            right: '4px',
+                                                                            width: '18px',
+                                                                            height: '18px',
+                                                                            borderRadius: '50%',
+                                                                            backgroundColor: '#3b82f6',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            boxShadow: '0 2px 6px rgba(0,0,0,0.5)'
+                                                                        }}>
+                                                                            <CheckCircle2 size={12} color="#ffffff" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div style={{ padding: '6px 8px', fontSize: '0.7rem', color: '#cbd5e1' }}>
+                                                                    <p style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                                                                        {p.caption || (isStory ? 'Story Ativo' : 'Sem legenda')}
+                                                                    </p>
+                                                                    <span style={{ color: '#64748b', fontSize: '0.64rem' }}>{p.timestamp}</span>
+                                                                </div>
                                                             </div>
-                                                            <div style={{ padding: '6px 8px', fontSize: '0.7rem', color: '#cbd5e1' }}>
-                                                                <p style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                                    {p.caption || 'Sem legenda'}
-                                                                </p>
-                                                                <span style={{ color: '#64748b', fontSize: '0.65rem' }}>{p.timestamp}</span>
-                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div style={{
+                                                    padding: '20px',
+                                                    borderRadius: '10px',
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                    border: '1px dashed rgba(255, 255, 255, 0.1)',
+                                                    textAlign: 'center'
+                                                }}>
+                                                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
+                                                        Nenhuma publicação encontrada nesta categoria para @{account.username}.
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Currently Selected Publication Card */}
+                                            {currentSelected && (
+                                                <div style={{
+                                                    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                                                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                                                    borderRadius: '10px',
+                                                    padding: '10px 12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '10px'
+                                                }}>
+                                                    <img
+                                                        src={currentSelected.mediaUrl}
+                                                        alt="Selected thumbnail"
+                                                        style={{ width: '38px', height: '38px', borderRadius: '6px', objectFit: 'cover' }}
+                                                    />
+                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            <span style={{
+                                                                fontSize: '0.62rem',
+                                                                fontWeight: 700,
+                                                                padding: '1px 5px',
+                                                                borderRadius: '4px',
+                                                                background: (currentSelected.isStory || currentSelected.mediaType === 'STORY')
+                                                                    ? 'linear-gradient(45deg, #f09433, #dc2743, #bc1888)'
+                                                                    : '#3b82f6',
+                                                                color: '#ffffff'
+                                                            }}>
+                                                                {(currentSelected.isStory || currentSelected.mediaType === 'STORY')
+                                                                    ? `STORY (Expira em ${currentSelected.expiresInHours || 24}h)`
+                                                                    : currentSelected.mediaType === 'VIDEO' ? 'REEL' : 'FEED'}
+                                                            </span>
+                                                            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{currentSelected.timestamp}</span>
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div style={{
-                                                padding: '16px',
-                                                borderRadius: '10px',
-                                                backgroundColor: 'rgba(255,255,255,0.02)',
-                                                border: '1px dashed rgba(255,255,255,0.1)',
-                                                textAlign: 'center',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '8px'
-                                            }}>
-                                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
-                                                    Nenhum post publicado encontrado no feed do @{account.username} ainda.
-                                                </p>
-                                                <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b' }}>
-                                                    Você pode colar o link direto ou ID de um post abaixo:
-                                                </p>
-                                                <input
-                                                    type="text"
-                                                    value={customPostLink}
-                                                    onChange={(e) => setCustomPostLink(e.target.value)}
-                                                    placeholder="Cole o link do post (ex: https://instagram.com/p/...)"
-                                                    style={{
-                                                        width: '100%',
-                                                        backgroundColor: '#020617',
-                                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                                        borderRadius: '8px',
-                                                        padding: '8px 10px',
-                                                        color: '#ffffff',
-                                                        fontSize: '0.76rem',
-                                                        outline: 'none',
-                                                        boxSizing: 'border-box'
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                                        <p style={{ margin: '2px 0 0', fontSize: '0.76rem', color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {currentSelected.caption || 'Sem legenda'}
+                                                        </p>
+                                                    </div>
+                                                    <CheckCircle2 size={16} color="#3b82f6" />
+                                                </div>
+                                            )}
+
+                                            {/* Story Automation Context Helper */}
+                                            {currentSelected && (currentSelected.isStory || currentSelected.mediaType === 'STORY') && (
+                                                <div style={{
+                                                    backgroundColor: 'rgba(236, 72, 153, 0.08)',
+                                                    border: '1px solid rgba(236, 72, 153, 0.25)',
+                                                    borderRadius: '8px',
+                                                    padding: '8px 12px',
+                                                    fontSize: '0.72rem',
+                                                    color: '#f472b6',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px'
+                                                }}>
+                                                    <span>💬</span>
+                                                    <span>Esta automação responderá no direct quando alguém <strong>responder a este Story</strong> com a palavra-chave nas próximas {currentSelected.expiresInHours || 24} horas!</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             <div>

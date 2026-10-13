@@ -209,7 +209,11 @@ export const automationEngine = {
 
   _evaluateTrigger(trigger: TriggerConfig, event: CommentEvent): boolean {
     const triggerType = trigger.type || (trigger as any)?.type;
-    if (triggerType !== 'instagram.comment.created' && triggerType !== 'instagram_comment') {
+    if (
+      triggerType !== 'instagram.comment.created' &&
+      triggerType !== 'instagram_comment' &&
+      triggerType !== 'instagram_story_reply'
+    ) {
       return false;
     }
 

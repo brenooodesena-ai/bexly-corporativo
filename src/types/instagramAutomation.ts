@@ -18,20 +18,23 @@ export interface InstagramAccount {
 export interface InstagramPost {
     id: string;
     caption: string;
-    mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REEL';
+    mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REEL' | 'STORY';
     mediaUrl: string;
     permalink: string;
     timestamp: string;
     commentsCount: number;
     likeCount: number;
+    isStory?: boolean;
+    expiresInHours?: number;
 }
 
 export type KeywordMatchType = 'exact' | 'contains';
 
 export interface AutomationTrigger {
-    type: 'instagram_comment';
-    postId: string; // 'all' or specific post id
+    type: 'instagram_comment' | 'instagram_story_reply';
+    postId: string; // 'all' or specific post/story id
     postTitle?: string;
+    mediaType?: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REEL' | 'STORY';
 }
 
 export interface AutomationCondition {

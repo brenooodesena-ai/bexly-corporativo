@@ -47,13 +47,15 @@ export interface InstagramUserProfile {
 export interface InstagramMedia {
   id: string;
   caption?: string;
-  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REEL';
+  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REEL' | 'STORY';
   media_url?: string;
   thumbnail_url?: string;
   permalink: string;
   timestamp: string;
   like_count?: number;
   comments_count?: number;
+  is_story?: boolean;
+  expires_in_hours?: number;
 }
 
 export interface MetaApiError {
@@ -192,28 +194,118 @@ export async function getUserProfile(accessToken: string): Promise<InstagramUser
 /**
  * Fetch user's media (posts/reels).
  * Official endpoint: GET /{ig-user-id}/media
- * Requires: instagram_business_basic
+ * Tries both graph.instagram.com and graph.facebook.com
  */
 export async function getUserMedia(
   instagramUserId: string,
   accessToken: string,
-  limit = 20
+  limit = 50
 ): Promise<InstagramMedia[]> {
-  try {
-    const response = await axios.get<{ data: InstagramMedia[] }>(
-      `${GRAPH_BASE}/${instagramUserId}/media`,
-      {
+  const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/${instagramUserId}/media`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/${instagramUserId}/media`,
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const response = await axios.get<{ data: InstagramMedia[] }>(url, {
         params: {
           fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
           limit,
           access_token: accessToken,
         },
+        timeout: 10000,
+      });
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        return response.data.data;
       }
-    );
-    return response.data.data || [];
-  } catch (err) {
-    throw translateMetaError(err, 'getUserMedia');
+    } catch (err: any) {
+      logger.warn(`getUserMedia attempt failed on ${url}: ${err.message}`);
+    }
   }
+  return [];
+}
+
+/**
+ * Fetch user's active stories.
+ * Official endpoint: GET /{ig-user-id}/stories
+ * STRICT RULE: Only stories posted within the last 24 hours are returned!
+ */
+export async function getUserStories(
+  instagramUserId: string,
+  accessToken: string
+): Promise<InstagramMedia[]> {
+  const endpoints = [
+    `https://graph.instagram.com/${config.META_API_VERSION}/${instagramUserId}/stories`,
+    `https://graph.facebook.com/${config.META_API_VERSION}/${instagramUserId}/stories`,
+  ];
+
+  const now = Date.now();
+  const twentyFourHoursAgo = now - 24 * 60 * 60 * 1000;
+
+  for (const url of endpoints) {
+    try {
+      const response = await axios.get<{ data: any[] }>(url, {
+        params: {
+          fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
+          access_token: accessToken,
+        },
+        timeout: 10000,
+      });
+
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        const stories: InstagramMedia[] = [];
+        for (const item of response.data.data) {
+          const itemTime = item.timestamp ? new Date(item.timestamp).getTime() : now;
+          // Filter strictly: only stories that have 24 hours or less
+          if (itemTime >= twentyFourHoursAgo) {
+            const hoursPassed = Math.floor((now - itemTime) / (1000 * 60 * 60));
+            const hoursRemaining = Math.max(1, 24 - hoursPassed);
+            stories.push({
+              id: item.id,
+              caption: item.caption || 'Story Ativo',
+              media_type: 'STORY',
+              media_url: item.media_url || item.thumbnail_url,
+              thumbnail_url: item.thumbnail_url || item.media_url,
+              permalink: item.permalink || `https://instagram.com/stories`,
+              timestamp: item.timestamp || new Date().toISOString(),
+              like_count: item.like_count || 0,
+              comments_count: item.comments_count || 0,
+              is_story: true,
+              expires_in_hours: hoursRemaining,
+            });
+          }
+        }
+        return stories;
+      }
+    } catch (err: any) {
+      logger.warn(`getUserStories attempt failed on ${url}: ${err.message}`);
+    }
+  }
+  return [];
+}
+
+/**
+ * Fetch all account media: Feed, Reels, and Active 24h Stories
+ */
+export async function getAllAccountMedia(
+  instagramUserId: string,
+  accessToken: string
+): Promise<InstagramMedia[]> {
+  const [feedMedia, stories] = await Promise.all([
+    getUserMedia(instagramUserId, accessToken, 50).catch(() => [] as InstagramMedia[]),
+    getUserStories(instagramUserId, accessToken).catch(() => [] as InstagramMedia[]),
+  ]);
+
+  const combined = [...stories, ...feedMedia];
+  // Sort newest first
+  combined.sort((a, b) => {
+    const tA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const tB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return tB - tA;
+  });
+
+  return combined;
 }
 
 /**
