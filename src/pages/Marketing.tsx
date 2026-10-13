@@ -590,6 +590,31 @@ export default function Marketing() {
                         </div>
                     </div>
 
+                    {/* Token Meta Action Button */}
+                    <button
+                        onClick={() => {
+                            setTokenError('');
+                            setShowTokenInput(true);
+                        }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            borderRadius: '12px',
+                            backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            color: '#60a5fa',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <span>🔑</span>
+                        <span>Inserir Token Meta</span>
+                    </button>
+
                     {/* Test Console Trigger Button */}
                     <button
                         onClick={() => {
@@ -1245,26 +1270,100 @@ export default function Marketing() {
 
                     {posts.length === 0 ? (
                         <div style={{
-                            backgroundColor: 'rgba(15, 23, 42, 0.5)',
-                            border: '1px dashed rgba(255, 255, 255, 0.12)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                            border: '1px solid rgba(239, 68, 68, 0.25)',
                             borderRadius: '20px',
-                            padding: '60px 24px',
+                            padding: '48px 24px',
                             textAlign: 'center',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '12px'
+                            gap: '14px',
+                            backdropFilter: 'blur(16px)'
                         }}>
-                            <div style={{ width: '56px', height: '56px', borderRadius: '16px', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
-                                <Instagram size={28} color="#60a5fa" />
+                            <div style={{ width: '60px', height: '60px', borderRadius: '18px', backgroundColor: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Instagram size={30} color="#f87171" />
                             </div>
-                            <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: '#ffffff' }}>
-                                Sincronizando publicações do @{account.username}
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+                                Por que a publicação do @{account.username} não apareceu aqui?
                             </h3>
-                            <p style={{ color: '#94a3b8', fontSize: '0.85rem', maxWidth: '520px', margin: 0, lineHeight: 1.5 }}>
-                                Clique no botão abaixo para carregar todos os posts, reels e stories ativos de 24 horas da conta.
+                            <p style={{ color: '#cbd5e1', fontSize: '0.88rem', maxWidth: '620px', margin: 0, lineHeight: 1.6 }}>
+                                O Instagram <strong>não permite</strong> que nenhum sistema acesse posts, reels ou stories sem uma chave de autorização oficial da Meta. Como sua conta foi vinculada apenas pelo @username sem o <strong>Token de Acesso da Meta</strong>, a API oficial do Instagram bloqueia a leitura do feed por segurança.
                             </p>
-                            <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+
+                            <div style={{
+                                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                                border: '1px solid rgba(59, 130, 246, 0.25)',
+                                borderRadius: '14px',
+                                padding: '16px 20px',
+                                maxWidth: '580px',
+                                width: '100%',
+                                textAlign: 'left',
+                                fontSize: '0.82rem',
+                                color: '#93c5fd',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px'
+                            }}>
+                                <strong style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span>⚡</span> Como liberar os posts reais em 1 minuto:
+                                </strong>
+                                <span style={{ color: '#cbd5e1' }}>
+                                    1. No painel de Desenvolvedores da Meta que você tem aberto, expanda o item <strong>"2. Gerar tokens de acesso"</strong>.
+                                </span>
+                                <span style={{ color: '#cbd5e1' }}>
+                                    2. Clique em <strong>"Gerar token"</strong> para o @{account.username} e copie o código gerado.
+                                </span>
+                                <span style={{ color: '#cbd5e1' }}>
+                                    3. Clique no botão azul abaixo e cole o token para carregar seus posts e stories em tempo real!
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => {
+                                        setTokenError('');
+                                        setShowTokenInput(true);
+                                    }}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '11px 22px',
+                                        borderRadius: '12px',
+                                        backgroundColor: '#3b82f6',
+                                        color: '#ffffff',
+                                        fontWeight: 600,
+                                        fontSize: '0.86rem',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)'
+                                    }}
+                                >
+                                    <span>🔑</span>
+                                    <span>Inserir Token da Meta Agora</span>
+                                </button>
+
+                                <button
+                                    onClick={() => reconnectInstagram()}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '11px 18px',
+                                        borderRadius: '12px',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                        color: '#ffffff',
+                                        fontWeight: 600,
+                                        fontSize: '0.84rem',
+                                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <span>⚡</span>
+                                    <span>Conectar com Login Oficial</span>
+                                </button>
+
                                 <button
                                     onClick={() => refreshPosts()}
                                     disabled={postsLoading}
@@ -1272,18 +1371,18 @@ export default function Marketing() {
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: '8px',
-                                        padding: '10px 20px',
+                                        padding: '11px 16px',
                                         borderRadius: '12px',
-                                        backgroundColor: '#3b82f6',
-                                        color: '#ffffff',
-                                        fontWeight: 600,
+                                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                        color: '#94a3b8',
+                                        fontWeight: 500,
                                         fontSize: '0.84rem',
-                                        border: 'none',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
                                         cursor: postsLoading ? 'not-allowed' : 'pointer'
                                     }}
                                 >
                                     {postsLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
-                                    {postsLoading ? 'Sincronizando...' : 'Carregar Publicações Agora'}
+                                    {postsLoading ? 'Sincronizando...' : 'Tentar Novamente'}
                                 </button>
                             </div>
                         </div>
@@ -2398,6 +2497,151 @@ export default function Marketing() {
                                 }}
                             >
                                 Salvar e Ativar Regra
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── UNIVERSAL TOKEN CONNECTION MODAL ── */}
+            {showTokenInput && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.82)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 99999,
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        backgroundColor: '#0f172a',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '20px',
+                        width: '100%',
+                        maxWidth: '540px',
+                        padding: '28px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '18px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: 'rgba(59, 130, 246, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Instagram size={20} color="#60a5fa" />
+                                </div>
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#ffffff' }}>
+                                        Conectar Token de Acesso da Meta
+                                    </h3>
+                                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
+                                        Necessário para ler fotos, reels e stories reais do @{account?.username || 'bexlybr'}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowTokenInput(false);
+                                    setTokenError('');
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div style={{
+                            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                            border: '1px solid rgba(59, 130, 246, 0.2)',
+                            borderRadius: '12px',
+                            padding: '14px',
+                            fontSize: '0.8rem',
+                            color: '#93c5fd',
+                            lineHeight: 1.5
+                        }}>
+                            <p style={{ margin: '0 0 6px 0', fontWeight: 600, color: '#ffffff' }}>
+                                📋 Como obter o Token no Painel da Meta em 3 passos:
+                            </p>
+                            <ol style={{ margin: 0, paddingLeft: '18px', color: '#cbd5e1' }}>
+                                <li>No seu portal Meta Developers, expanda o item <strong>"2. Gerar tokens de acesso"</strong>.</li>
+                                <li>Selecione sua conta do Instagram e clique no botão <strong>"Gerar token"</strong>.</li>
+                                <li>Copie o código gerado e cole no campo abaixo.</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '8px' }}>
+                                Token de Acesso (Access Token):
+                            </label>
+                            <textarea
+                                value={tokenInput}
+                                onChange={(e) => setTokenInput(e.target.value)}
+                                placeholder="Cole aqui seu token gerado na Meta (ex: IGAA... ou EAA...)"
+                                rows={3}
+                                style={{
+                                    width: '100%',
+                                    backgroundColor: '#020617',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    borderRadius: '10px',
+                                    padding: '10px 12px',
+                                    color: '#ffffff',
+                                    fontSize: '0.8rem',
+                                    fontFamily: 'monospace',
+                                    outline: 'none',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                            {tokenError && (
+                                <p style={{ margin: '6px 0 0', fontSize: '0.78rem', color: '#f87171' }}>
+                                    ⚠️ {tokenError}
+                                </p>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button
+                                onClick={() => {
+                                    setShowTokenInput(false);
+                                    setTokenError('');
+                                }}
+                                style={{
+                                    padding: '9px 16px',
+                                    borderRadius: '10px',
+                                    backgroundColor: 'transparent',
+                                    color: '#94a3b8',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    fontSize: '0.82rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    await handleConnectToken();
+                                    setShowTokenInput(false);
+                                }}
+                                disabled={isConnectingToken || !tokenInput.trim()}
+                                style={{
+                                    padding: '9px 20px',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#3b82f6',
+                                    color: '#ffffff',
+                                    fontSize: '0.82rem',
+                                    fontWeight: 600,
+                                    border: 'none',
+                                    cursor: (isConnectingToken || !tokenInput.trim()) ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    boxShadow: '0 4px 14px rgba(59, 130, 246, 0.35)'
+                                }}
+                            >
+                                {isConnectingToken ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />}
+                                {isConnectingToken ? 'Validando na Meta...' : 'Salvar e Carregar Publicações'}
                             </button>
                         </div>
                     </div>

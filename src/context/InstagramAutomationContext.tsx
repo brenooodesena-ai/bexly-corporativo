@@ -362,19 +362,21 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
                 const redirectUri = `${window.location.origin}/integrations/instagram/callback`;
                 const scopes = [
                     'instagram_business_basic',
-                    'instagram_business_manage_comments',
-                    'instagram_business_manage_messages'
+                    'instagram_business_manage_messages',
+                    'instagram_business_manage_comments'
                 ].join(',');
                 const state = btoa(JSON.stringify({ origin: window.location.origin, timestamp: Date.now() }));
 
                 const params = new URLSearchParams({
+                    enable_fb_login: '0',
+                    force_authentication: '1',
                     client_id: clientId,
                     redirect_uri: redirectUri,
                     scope: scopes,
                     response_type: 'code',
                     state: state
                 });
-                authUrl = `https://api.instagram.com/oauth/authorize?${params.toString()}`;
+                authUrl = `https://www.instagram.com/oauth/authorize?${params.toString()}`;
             }
 
             if (authUrl) {

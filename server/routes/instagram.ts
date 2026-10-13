@@ -568,11 +568,13 @@ instagramRouter.get('/accounts/:id/media', async (req: Request, res: Response) =
 
   const username = account?.username || 'bexlybr';
   let mediaList: any[] = [];
+  let hasRealToken = false;
 
   if (account && account.access_token_encrypted) {
     try {
       const accessToken = decryptToken(account.access_token_encrypted);
-      if (accessToken && !accessToken.startsWith('saved_token_')) {
+      if (accessToken && !accessToken.startsWith('saved_token_') && !accessToken.startsWith('custom_token_')) {
+        hasRealToken = true;
         mediaList = await getAllAccountMedia(account.instagram_user_id, accessToken);
       }
     } catch (apiErr: any) {
@@ -689,6 +691,7 @@ instagramRouter.get('/accounts/:id/media', async (req: Request, res: Response) =
     stories_count: stories.length,
     feed_count: feed.length,
     is_live_meta: combined.length > 0,
+    has_real_token: hasRealToken,
   });
 });
 
