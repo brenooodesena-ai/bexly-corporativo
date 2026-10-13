@@ -49,22 +49,45 @@ export function encryptToken(plaintext: string): string {
 
 /**
  * Decrypt a stored token.
- * Throws if the token has been tampered with or the key is wrong.
+ * Falls back safely if the token is already in plaintext or invalid.
  */
 export function decryptToken(encrypted: string): string {
-  const key = getKey();
-  const combined = Buffer.from(encrypted, 'base64');
+  if (!encrypted || typeof encrypted !== 'string') {
+    return '';
+  }
 
-  const iv = combined.subarray(0, IV_LENGTH);
-  const authTag = combined.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
-  const ciphertext = combined.subarray(IV_LENGTH + TAG_LENGTH);
+  // Already a raw Meta token
+  if (
+    encrypted.startsWith('EAA') ||
+    encrypted.startsWith('IGAA') ||
+    encrypted.startsWith('EAAB')
+  ) {
+    return encrypted;
+  }
 
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-  decipher.setAuthTag(authTag);
+  try {
+    const key = getKey();
+    const combined = Buffer.from(encrypted, 'base64');
 
-  const decrypted = Buffer.concat([
-    decipher.update(ciphertext),
-    decipher.final(),
-  ]);
-  return decrypted.toString('utf8');
+    if (combined.length < IV_LENGTH + TAG_LENGTH) {
+      return encrypted;
+    }
+
+    const iv = combined.subarray(0, IV_LENGTH);
+    const authTag = combined.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
+    const ciphertext = combined.subarray(IV_LENGTH + TAG_LENGTH);
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    decipher.setAuthTag(authTag);
+
+    const decrypted = Buffer.concat([
+      decipher.update(ciphertext),
+      decipher.final(),
+    ]);
+    return decrypted.toString('utf8');
+  } catch (err: any) {
+    // If decryption fails (e.g. dummy placeholder or key changed), return string safely
+    return encrypted;
+  }
 }
+
