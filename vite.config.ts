@@ -1,6 +1,5 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import basicSsl from '@vitejs/plugin-basic-ssl'
 import path from 'path'
 import { spawn, type ChildProcess } from 'child_process'
 import net from 'net'
@@ -55,7 +54,7 @@ function bexlyBackendPlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), basicSsl(), bexlyBackendPlugin()],
+  plugins: [react(), bexlyBackendPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
