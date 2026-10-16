@@ -138,118 +138,89 @@ const Home = () => {
                 </div>
             </main>
 
-            {/* Features Showcase Section (Left-Aligned Header & Extra Spaced White Cards) */}
-            <section className="w-full relative z-20 -mt-16 md:-mt-28 pt-4 md:pt-6 pb-28 md:pb-40 overflow-hidden flex justify-center">
+            {/* Features Showcase Section (Exact Match to User Reference) */}
+            <section className="w-full relative z-20 -mt-16 md:-mt-24 pt-4 md:pt-6 pb-24 md:pb-32 overflow-hidden flex justify-center">
                 {/* Ambient Soft Glow Behind Section */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-blue-600/10 blur-[160px] pointer-events-none rounded-full" />
 
                 <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-start">
-                    {/* Section Header (Left-Aligned flush with cards) */}
+                    {/* Section Header (Left-Aligned, No Pill Badge, Matching Screenshot) */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
-                        className="w-full flex flex-col items-start text-left mb-12 md:mb-16"
+                        className="w-full flex flex-col items-start text-left mb-8 md:mb-10"
                     >
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-4">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                            Recursos de Conversão
-                        </div>
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-extrabold text-white tracking-tight leading-[1.12] mb-4 text-left">
+                        <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-white tracking-tight leading-[1.18] mb-3 text-left">
                             Tudo o que seu negócio <br className="hidden sm:inline" />
                             precisa para vender mais
                         </h2>
-                        <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed max-w-2xl text-left">
+                        <p className="text-sm sm:text-base text-slate-400 font-normal leading-relaxed max-w-2xl text-left">
                             Potente por dentro, simples por fora. Você não precisa entender nada técnico.
                         </p>
                     </motion.div>
 
                     {/* Bento Grid: 2 Large Cards on Top */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-7 w-full mb-20 md:mb-28">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full mb-5">
                         {/* Card 1: Fala como uma pessoa */}
                         <motion.div
-                            initial={{ opacity: 0, y: 25 }}
+                            initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
-                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[290px]"
+                            className="relative bg-gradient-to-br from-[#0b1324] via-[#0d162a] to-[#101b33] border border-slate-800/90 rounded-[22px] p-7 sm:p-8 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.35)] flex flex-col justify-start min-h-[250px]"
                         >
-                            <div className="absolute top-0 right-0 w-52 h-52 bg-blue-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-blue-500/20 transition-all duration-500" />
-
-                            <div>
-                                <div className="flex items-center justify-between mb-7">
-                                    <div className="w-13 h-13 p-3 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 text-blue-400 shadow-[0_4px_16px_rgba(59,130,246,0.25)] flex items-center justify-center group-hover:scale-105 transition-transform">
-                                        <Bot size={28} strokeWidth={2.2} />
-                                    </div>
-                                    <span className="px-3.5 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-white/70 text-xs font-semibold tracking-wide">
-                                        Atendimento Humanizado
-                                    </span>
-                                </div>
-                                <h3 className="text-2xl sm:text-[28px] font-bold text-white mb-3.5 tracking-tight group-hover:text-blue-100 transition-colors">
-                                    Fala como uma pessoa
-                                </h3>
-                                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                                    Sua IA conversa de forma natural, com o nome e o tom que você escolher. Conhece seus produtos de cor e nunca perde a paciência. Seus clientes jamais notam a diferença.
-                                </p>
+                            <div className="w-11 h-11 rounded-xl bg-[#142138] border border-sky-400/20 text-sky-400 flex items-center justify-center mb-6">
+                                <Bot size={22} strokeWidth={2.2} />
                             </div>
+                            <h3 className="text-xl sm:text-[22px] font-bold text-white mb-2.5 tracking-tight text-left">
+                                Fala como uma pessoa
+                            </h3>
+                            <p className="text-slate-400 text-[13.5px] sm:text-[14px] leading-relaxed font-normal text-left">
+                                Sua IA conversa de forma natural, com o nome e o tom que você escolher. Conhece seus produtos de cor e nunca perde a paciência. Seus clientes jamais notam a diferença.
+                            </p>
                         </motion.div>
 
                         {/* Card 2: Cobra dentro do chat */}
                         <motion.div
-                            initial={{ opacity: 0, y: 25 }}
+                            initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.1 }}
-                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[290px]"
+                            className="relative bg-gradient-to-br from-[#0b1324] via-[#0d162a] to-[#101b33] border border-slate-800/90 rounded-[22px] p-7 sm:p-8 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.35)] flex flex-col justify-start min-h-[250px]"
                         >
-                            <div className="absolute top-0 right-0 w-52 h-52 bg-sky-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-sky-500/20 transition-all duration-500" />
-
-                            <div>
-                                <div className="flex items-center justify-between mb-7">
-                                    <div className="w-13 h-13 p-3 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-600/10 border border-sky-500/30 text-sky-400 shadow-[0_4px_16px_rgba(14,165,233,0.25)] flex items-center justify-center group-hover:scale-105 transition-transform">
-                                        <CreditCard size={28} strokeWidth={2.2} />
-                                    </div>
-                                    <span className="px-3.5 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-white/70 text-xs font-semibold tracking-wide">
-                                        Checkout Nativo
-                                    </span>
-                                </div>
-                                <h3 className="text-2xl sm:text-[28px] font-bold text-white mb-3.5 tracking-tight group-hover:text-sky-100 transition-colors">
-                                    Cobra dentro do chat
-                                </h3>
-                                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                                    Cartões, QR, Tigo Money, Personal Pay, MercadoPago e mais. O cliente paga sem sair da conversa e você recebe o aviso na hora.
-                                </p>
+                            <div className="w-11 h-11 rounded-xl bg-[#142138] border border-sky-400/20 text-sky-400 flex items-center justify-center mb-6">
+                                <CreditCard size={22} strokeWidth={2.2} />
                             </div>
+                            <h3 className="text-xl sm:text-[22px] font-bold text-white mb-2.5 tracking-tight text-left">
+                                Cobra dentro do chat
+                            </h3>
+                            <p className="text-slate-400 text-[13.5px] sm:text-[14px] leading-relaxed font-normal text-left">
+                                Cartões, QR, Tigo Money, Personal Pay, MercadoPago e mais. O cliente paga sem sair da conversa e você recebe o aviso na hora.
+                            </p>
                         </motion.div>
                     </div>
 
-                    {/* Bento Grid: 4 Cards on Bottom (White Cards with Internal Blue Light Effects, Pushed Down) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full pt-4">
+                    {/* Bento Grid: 4 Cards on Bottom (White Cards Matching Reference Photo) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
                         {/* Card 3: Tudo em um só lugar */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.1 }}
-                            className="group relative bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_18px_42px_rgba(37,99,235,0.2)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[240px] overflow-hidden"
+                            className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]"
                         >
-                            {/* Internal Blue Light Flares & Top Beam */}
-                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-90" />
-                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/25 via-sky-300/15 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/35 transition-all duration-500" />
-                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/10 rounded-full blur-lg pointer-events-none" />
-
-                            <div className="relative z-10 flex flex-col items-start text-left">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
-                                    <LayoutGrid size={24} strokeWidth={2.2} />
-                                </div>
-                                <h4 style={{ color: '#0f172a' }} className="text-lg font-bold mb-2 leading-snug tracking-tight text-left">
-                                    Tudo em um só lugar
-                                </h4>
-                                <p style={{ color: '#475569' }} className="text-sm leading-relaxed font-normal text-left">
-                                    Todas as conversas de todos os canais em uma única tela.
-                                </p>
+                            <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
+                                <LayoutGrid size={22} strokeWidth={2.2} />
                             </div>
+                            <h4 style={{ color: '#0f172a' }} className="text-[17px] font-bold mb-2 leading-snug tracking-tight text-left">
+                                Tudo em um só lugar
+                            </h4>
+                            <p style={{ color: '#64748b' }} className="text-[13px] sm:text-[13.5px] leading-relaxed font-normal text-left">
+                                Todas as conversas de todos os canais em uma única tela.
+                            </p>
                         </motion.div>
 
                         {/* Card 4: Envia o vendedor mais próximo */}
@@ -258,24 +229,17 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.2 }}
-                            className="group relative bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_18px_42px_rgba(37,99,235,0.2)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[240px] overflow-hidden"
+                            className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]"
                         >
-                            {/* Internal Blue Light Flares & Top Beam */}
-                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-90" />
-                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/25 via-sky-300/15 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/35 transition-all duration-500" />
-                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/10 rounded-full blur-lg pointer-events-none" />
-
-                            <div className="relative z-10 flex flex-col items-start text-left">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
-                                    <MapPin size={24} strokeWidth={2.2} />
-                                </div>
-                                <h4 style={{ color: '#0f172a' }} className="text-lg font-bold mb-2 leading-snug tracking-tight text-left">
-                                    Envia o vendedor mais próximo
-                                </h4>
-                                <p style={{ color: '#475569' }} className="text-sm leading-relaxed font-normal text-left">
-                                    Quando um cliente quer ver o produto, ela designa o vendedor da região dele.
-                                </p>
+                            <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
+                                <MapPin size={22} strokeWidth={2.2} />
                             </div>
+                            <h4 style={{ color: '#0f172a' }} className="text-[17px] font-bold mb-2 leading-snug tracking-tight text-left">
+                                Envia o vendedor mais próximo
+                            </h4>
+                            <p style={{ color: '#64748b' }} className="text-[13px] sm:text-[13.5px] leading-relaxed font-normal text-left">
+                                Quando um cliente quer ver o produto, ela designa o vendedor da região dele.
+                            </p>
                         </motion.div>
 
                         {/* Card 5: Insiste por você */}
@@ -284,24 +248,17 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.3 }}
-                            className="group relative bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_18px_42px_rgba(37,99,235,0.2)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[240px] overflow-hidden"
+                            className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]"
                         >
-                            {/* Internal Blue Light Flares & Top Beam */}
-                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-90" />
-                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/25 via-sky-300/15 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/35 transition-all duration-500" />
-                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/10 rounded-full blur-lg pointer-events-none" />
-
-                            <div className="relative z-10 flex flex-col items-start text-left">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
-                                    <RotateCcw size={24} strokeWidth={2.2} />
-                                </div>
-                                <h4 style={{ color: '#0f172a' }} className="text-lg font-bold mb-2 leading-snug tracking-tight text-left">
-                                    Insiste por você
-                                </h4>
-                                <p style={{ color: '#475569' }} className="text-sm leading-relaxed font-normal text-left">
-                                    Se um cliente não responde, a IA escreve de novo no momento certo.
-                                </p>
+                            <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
+                                <RotateCcw size={22} strokeWidth={2.2} />
                             </div>
+                            <h4 style={{ color: '#0f172a' }} className="text-[17px] font-bold mb-2 leading-snug tracking-tight text-left">
+                                Insiste por você
+                            </h4>
+                            <p style={{ color: '#64748b' }} className="text-[13px] sm:text-[13.5px] leading-relaxed font-normal text-left">
+                                Se um cliente não responde, a IA escreve de novo no momento certo.
+                            </p>
                         </motion.div>
 
                         {/* Card 6: Nota fiscal eletrônica */}
@@ -310,24 +267,17 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.4 }}
-                            className="group relative bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_18px_42px_rgba(37,99,235,0.2)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[240px] overflow-hidden"
+                            className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]"
                         >
-                            {/* Internal Blue Light Flares & Top Beam */}
-                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-90" />
-                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/25 via-sky-300/15 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/35 transition-all duration-500" />
-                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/10 rounded-full blur-lg pointer-events-none" />
-
-                            <div className="relative z-10 flex flex-col items-start text-left">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
-                                    <FileText size={24} strokeWidth={2.2} />
-                                </div>
-                                <h4 style={{ color: '#0f172a' }} className="text-lg font-bold mb-2 leading-snug tracking-tight text-left">
-                                    Nota fiscal eletrônica
-                                </h4>
-                                <p style={{ color: '#475569' }} className="text-sm leading-relaxed font-normal text-left">
-                                    Emite faturas legais (SIFEN) automaticamente a cada venda.
-                                </p>
+                            <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
+                                <FileText size={22} strokeWidth={2.2} />
                             </div>
+                            <h4 style={{ color: '#0f172a' }} className="text-[17px] font-bold mb-2 leading-snug tracking-tight text-left">
+                                Nota fiscal eletrônica
+                            </h4>
+                            <p style={{ color: '#64748b' }} className="text-[13px] sm:text-[13.5px] leading-relaxed font-normal text-left">
+                                Emite faturas legais (SIFEN) automaticamente a cada venda.
+                            </p>
                         </motion.div>
                     </div>
                 </div>
