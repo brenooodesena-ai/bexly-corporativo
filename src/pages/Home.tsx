@@ -138,47 +138,47 @@ const Home = () => {
                 </div>
             </main>
 
-            {/* Features Showcase Section (Bento Grid SaaS Style) */}
-            <section className="w-full relative z-20 pt-16 pb-24 md:pt-20 md:pb-32 overflow-hidden">
+            {/* Features Showcase Section (Centered Bento Layout with Glowing White Cards) */}
+            <section className="w-full relative z-20 pt-16 pb-24 md:pt-20 md:pb-32 overflow-hidden flex justify-center">
                 {/* Ambient Soft Glow Behind Section */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[450px] bg-blue-600/10 blur-[150px] pointer-events-none rounded-full" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-blue-600/10 blur-[160px] pointer-events-none rounded-full" />
 
-                <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10">
-                    {/* Section Header */}
+                <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center">
+                    {/* Section Header (Centered) */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
-                        className="max-w-3xl mb-14 md:mb-16"
+                        className="flex flex-col items-center text-center max-w-2xl mx-auto mb-14 md:mb-16"
                     >
                         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-5">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                             Recursos de Conversão
                         </div>
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.15] mb-4">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.2] mb-4">
                             Tudo o que seu negócio <br className="hidden sm:inline" />
                             precisa para vender mais
                         </h2>
-                        <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
+                        <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed text-center">
                             Potente por dentro, simples por fora. Você não precisa entender nada técnico.
                         </p>
                     </motion.div>
 
-                    {/* Bento Grid: 2 Large Cards on Top */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-7 mb-6 md:mb-7">
+                    {/* Bento Grid: 2 Large Cards on Top (Centered & Spacious) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-7 w-full mb-6 md:mb-7">
                         {/* Card 1: Fala como uma pessoa */}
                         <motion.div
                             initial={{ opacity: 0, y: 25 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
-                            className="group relative bg-[#0b1325]/90 hover:bg-[#0e172e] border border-white/[0.08] hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_12px_40px_rgba(59,130,246,0.15)] flex flex-col justify-between overflow-hidden min-h-[300px]"
+                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[280px]"
                         >
                             <div className="absolute top-0 right-0 w-52 h-52 bg-blue-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-blue-500/20 transition-all duration-500" />
 
                             <div>
-                                <div className="w-13 h-13 w-fit p-3.5 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 text-blue-400 mb-8 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform">
+                                <div className="w-13 h-13 w-fit p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-6 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform">
                                     <Bot size={28} strokeWidth={2.2} />
                                 </div>
                                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3.5 tracking-tight group-hover:text-blue-100 transition-colors">
@@ -188,11 +188,6 @@ const Home = () => {
                                     Sua IA conversa de forma natural, com o nome e o tom que você escolher. Conhece seus produtos de cor e nunca perde a paciência. Seus clientes jamais notam a diferença.
                                 </p>
                             </div>
-
-                            <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center gap-2 text-xs font-semibold text-blue-400/90 tracking-wide uppercase">
-                                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-                                Tom de voz humanizado &amp; Respostas instantâneas
-                            </div>
                         </motion.div>
 
                         {/* Card 2: Cobra dentro do chat */}
@@ -201,12 +196,12 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.1 }}
-                            className="group relative bg-[#0b1325]/90 hover:bg-[#0e172e] border border-white/[0.08] hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_12px_40px_rgba(59,130,246,0.15)] flex flex-col justify-between overflow-hidden min-h-[300px]"
+                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[280px]"
                         >
                             <div className="absolute top-0 right-0 w-52 h-52 bg-sky-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-sky-500/20 transition-all duration-500" />
 
                             <div>
-                                <div className="w-13 h-13 w-fit p-3.5 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-600/10 border border-sky-500/30 text-sky-400 mb-8 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform">
+                                <div className="w-13 h-13 w-fit p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 mb-6 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform">
                                     <CreditCard size={28} strokeWidth={2.2} />
                                 </div>
                                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3.5 tracking-tight group-hover:text-sky-100 transition-colors">
@@ -216,34 +211,34 @@ const Home = () => {
                                     Cartões, QR, Tigo Money, Personal Pay, MercadoPago e mais. O cliente paga sem sair da conversa e você recebe o aviso na hora.
                                 </p>
                             </div>
-
-                            <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center gap-2 text-xs font-semibold text-sky-400/90 tracking-wide uppercase">
-                                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-                                Checkout integrado sem redirecionamento
-                            </div>
                         </motion.div>
                     </div>
 
-                    {/* Bento Grid: 4 Compact Cards on Bottom */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+                    {/* Bento Grid: 4 Cards on Bottom (White Background with Radiant Blue Glow Behind) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                         {/* Card 3: Tudo em um só lugar */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.1 }}
-                            className="group bg-[#090f1d]/80 hover:bg-[#0c1527] border border-white/[0.07] hover:border-blue-500/40 rounded-2xl p-7 transition-all duration-300 shadow-md hover:shadow-xl flex flex-col justify-between min-h-[220px]"
+                            className="relative group rounded-2xl transition-all duration-300"
                         >
-                            <div>
-                                <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform duration-300">
-                                    <LayoutGrid size={22} strokeWidth={2.2} />
+                            {/* Radiant Blue Glow behind white card */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+
+                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
+                                <div>
+                                    <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
+                                        <LayoutGrid size={24} strokeWidth={2.2} />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                        Tudo em um só lugar
+                                    </h4>
+                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                        Todas as conversas de todos os canais em uma única tela.
+                                    </p>
                                 </div>
-                                <h4 className="text-lg font-bold text-white mb-2 leading-snug group-hover:text-blue-200 transition-colors">
-                                    Tudo em um só lugar
-                                </h4>
-                                <p className="text-slate-300 text-sm leading-relaxed">
-                                    Todas as conversas de todos os canais em uma única tela.
-                                </p>
                             </div>
                         </motion.div>
 
@@ -253,18 +248,23 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.2 }}
-                            className="group bg-[#090f1d]/80 hover:bg-[#0c1527] border border-white/[0.07] hover:border-blue-500/40 rounded-2xl p-7 transition-all duration-300 shadow-md hover:shadow-xl flex flex-col justify-between min-h-[220px]"
+                            className="relative group rounded-2xl transition-all duration-300"
                         >
-                            <div>
-                                <div className="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-center justify-center text-sky-400 mb-6 group-hover:scale-110 transition-transform duration-300">
-                                    <MapPin size={22} strokeWidth={2.2} />
+                            {/* Radiant Blue Glow behind white card */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+
+                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
+                                <div>
+                                    <div className="w-12 h-12 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
+                                        <MapPin size={24} strokeWidth={2.2} />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                        Envia o vendedor mais próximo
+                                    </h4>
+                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                        Quando um cliente quer ver o produto, ela designa o vendedor da região dele.
+                                    </p>
                                 </div>
-                                <h4 className="text-lg font-bold text-white mb-2 leading-snug group-hover:text-sky-200 transition-colors">
-                                    Envia o vendedor mais próximo
-                                </h4>
-                                <p className="text-slate-300 text-sm leading-relaxed">
-                                    Quando um cliente quer ver o produto, ela designa o vendedor da região dele.
-                                </p>
                             </div>
                         </motion.div>
 
@@ -274,18 +274,23 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.3 }}
-                            className="group bg-[#090f1d]/80 hover:bg-[#0c1527] border border-white/[0.07] hover:border-blue-500/40 rounded-2xl p-7 transition-all duration-300 shadow-md hover:shadow-xl flex flex-col justify-between min-h-[220px]"
+                            className="relative group rounded-2xl transition-all duration-300"
                         >
-                            <div>
-                                <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 transition-transform duration-300">
-                                    <RotateCcw size={22} strokeWidth={2.2} />
+                            {/* Radiant Blue Glow behind white card */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+
+                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
+                                <div>
+                                    <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
+                                        <RotateCcw size={24} strokeWidth={2.2} />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                        Insiste por você
+                                    </h4>
+                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                        Se um cliente não responde, a IA escreve de novo no momento certo.
+                                    </p>
                                 </div>
-                                <h4 className="text-lg font-bold text-white mb-2 leading-snug group-hover:text-indigo-200 transition-colors">
-                                    Insiste por você
-                                </h4>
-                                <p className="text-slate-300 text-sm leading-relaxed">
-                                    Se um cliente não responde, a IA escreve de novo no momento certo.
-                                </p>
                             </div>
                         </motion.div>
 
@@ -295,18 +300,23 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.4 }}
-                            className="group bg-[#090f1d]/80 hover:bg-[#0c1527] border border-white/[0.07] hover:border-blue-500/40 rounded-2xl p-7 transition-all duration-300 shadow-md hover:shadow-xl flex flex-col justify-between min-h-[220px]"
+                            className="relative group rounded-2xl transition-all duration-300"
                         >
-                            <div>
-                                <div className="w-11 h-11 rounded-xl bg-violet-500/10 border border-violet-500/25 flex items-center justify-center text-violet-400 mb-6 group-hover:scale-110 transition-transform duration-300">
-                                    <FileText size={22} strokeWidth={2.2} />
+                            {/* Radiant Blue Glow behind white card */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+
+                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
+                                <div>
+                                    <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
+                                        <FileText size={24} strokeWidth={2.2} />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                        Nota fiscal eletrônica
+                                    </h4>
+                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                        Emite faturas legais (SIFEN) automaticamente a cada venda.
+                                    </p>
                                 </div>
-                                <h4 className="text-lg font-bold text-white mb-2 leading-snug group-hover:text-violet-200 transition-colors">
-                                    Nota fiscal eletrônica
-                                </h4>
-                                <p className="text-slate-300 text-sm leading-relaxed">
-                                    Emite faturas legais (SIFEN) automaticamente a cada venda.
-                                </p>
                             </div>
                         </motion.div>
                     </div>
