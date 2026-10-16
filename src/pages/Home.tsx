@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Spotlight } from '../components/ui/spotlight';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Bot, CreditCard, LayoutGrid, MapPin, RotateCcw, FileText } from 'lucide-react';
 import { ContainerScroll } from '../components/ui/container-scroll-animation';
 
 import logoIcon from '../logotipo-5.png';
@@ -133,6 +133,111 @@ const Home = () => {
                     </ContainerScroll>
                 </div>
             </main>
+
+            {/* Features Showcase Section (Exact Design from Screenshot) */}
+            <section className="w-full bg-[#f8fafc] text-slate-900 py-20 md:py-28 relative z-20">
+                <div className="max-w-7xl mx-auto px-6 sm:px-8">
+                    <div className="max-w-3xl mb-12 md:mb-14">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15] mb-4">
+                            Tudo o que seu negócio<br />
+                            precisa para vender mais
+                        </h2>
+                        <p className="text-base sm:text-lg text-slate-500 font-normal leading-relaxed">
+                            Potente por dentro, simples por fora. Você não precisa entender nada técnico.
+                        </p>
+                    </div>
+
+                    {/* Top Row: 2 Big Dark Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-gradient-to-br from-[#0c1424] via-[#0b1220] to-[#070b14] border border-slate-800/80 rounded-[28px] p-8 md:p-10 flex flex-col justify-between shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all duration-300">
+                            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-sky-400 mb-8 border border-white/5 shadow-inner">
+                                <Bot size={26} strokeWidth={2.2} />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl md:text-[28px] font-bold text-white mb-3 tracking-tight">
+                                    Fala como uma pessoa
+                                </h3>
+                                <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+                                    Sua IA conversa de forma natural, com o nome e o tom que você escolher. Conhece seus produtos de cor e nunca perde a paciência. Seus clientes jamais notam a diferença.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-[#0c1424] via-[#0b1220] to-[#070b14] border border-slate-800/80 rounded-[28px] p-8 md:p-10 flex flex-col justify-between shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all duration-300">
+                            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-sky-400 mb-8 border border-white/5 shadow-inner">
+                                <CreditCard size={26} strokeWidth={2.2} />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl md:text-[28px] font-bold text-white mb-3 tracking-tight">
+                                    Cobra dentro do chat
+                                </h3>
+                                <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+                                    Cartões, QR, Tigo Money, Personal Pay, MercadoPago e mais. O cliente paga sem sair da conversa e você recebe o aviso na hora.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: 4 Clean White Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white border border-slate-200/80 rounded-[24px] p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between">
+                            <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center text-sky-500 mb-6 border border-sky-100/50">
+                                <LayoutGrid size={22} strokeWidth={2.2} />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                    Tudo em um só lugar
+                                </h4>
+                                <p className="text-slate-500 text-sm leading-relaxed">
+                                    Todas as conversas de todos os canais em uma única tela.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-200/80 rounded-[24px] p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between">
+                            <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center text-sky-500 mb-6 border border-sky-100/50">
+                                <MapPin size={22} strokeWidth={2.2} />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                    Envia o vendedor mais próximo
+                                </h4>
+                                <p className="text-slate-500 text-sm leading-relaxed">
+                                    Quando um cliente quer ver o produto, ela designa o vendedor da região dele.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-200/80 rounded-[24px] p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between">
+                            <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center text-sky-500 mb-6 border border-sky-100/50">
+                                <RotateCcw size={22} strokeWidth={2.2} />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                    Insiste por você
+                                </h4>
+                                <p className="text-slate-500 text-sm leading-relaxed">
+                                    Se um cliente não responde, a IA escreve de novo no momento certo.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-200/80 rounded-[24px] p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between">
+                            <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center text-sky-500 mb-6 border border-sky-100/50">
+                                <FileText size={22} strokeWidth={2.2} />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
+                                    Nota fiscal eletrônica
+                                </h4>
+                                <p className="text-slate-500 text-sm leading-relaxed">
+                                    Emite faturas legais (SIFEN) automaticamente a cada venda.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             {/* Pricing Section */}
             <section className="pricing-section w-full">
