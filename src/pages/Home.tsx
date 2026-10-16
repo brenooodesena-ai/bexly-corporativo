@@ -214,7 +214,7 @@ const Home = () => {
                         </motion.div>
                     </div>
 
-                    {/* Bento Grid: 4 Cards on Bottom (White Background with Radiant Blue Glow Behind) */}
+                    {/* Bento Grid: 4 Cards on Bottom (White Cards with Internal Blue Light Effects) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                         {/* Card 3: Tudo em um só lugar */}
                         <motion.div
@@ -222,23 +222,23 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.1 }}
-                            className="relative group rounded-2xl transition-all duration-300"
+                            className="group relative bg-gradient-to-br from-white via-white to-blue-50/80 rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_16px_40px_rgba(37,99,235,0.22)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden"
                         >
-                            {/* Radiant Blue Glow behind white card */}
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+                            {/* Internal Blue Light Flares & Top Beam */}
+                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80" />
+                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/30 via-sky-300/20 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/40 transition-all duration-500" />
+                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/15 rounded-full blur-lg pointer-events-none" />
 
-                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
-                                <div>
-                                    <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
-                                        <LayoutGrid size={24} strokeWidth={2.2} />
-                                    </div>
-                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
-                                        Tudo em um só lugar
-                                    </h4>
-                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
-                                        Todas as conversas de todos os canais em uma única tela.
-                                    </p>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
+                                    <LayoutGrid size={24} strokeWidth={2.2} />
                                 </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug tracking-tight">
+                                    Tudo em um só lugar
+                                </h4>
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                    Todas as conversas de todos os canais em uma única tela.
+                                </p>
                             </div>
                         </motion.div>
 
@@ -248,23 +248,23 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.2 }}
-                            className="relative group rounded-2xl transition-all duration-300"
+                            className="group relative bg-gradient-to-br from-white via-white to-blue-50/80 rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_16px_40px_rgba(37,99,235,0.22)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden"
                         >
-                            {/* Radiant Blue Glow behind white card */}
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+                            {/* Internal Blue Light Flares & Top Beam */}
+                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80" />
+                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/30 via-sky-300/20 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/40 transition-all duration-500" />
+                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/15 rounded-full blur-lg pointer-events-none" />
 
-                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
-                                <div>
-                                    <div className="w-12 h-12 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
-                                        <MapPin size={24} strokeWidth={2.2} />
-                                    </div>
-                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
-                                        Envia o vendedor mais próximo
-                                    </h4>
-                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
-                                        Quando um cliente quer ver o produto, ela designa o vendedor da região dele.
-                                    </p>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
+                                    <MapPin size={24} strokeWidth={2.2} />
                                 </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug tracking-tight">
+                                    Envia o vendedor mais próximo
+                                </h4>
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                    Quando um cliente quer ver o produto, ela designa o vendedor da região dele.
+                                </p>
                             </div>
                         </motion.div>
 
@@ -274,23 +274,23 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.3 }}
-                            className="relative group rounded-2xl transition-all duration-300"
+                            className="group relative bg-gradient-to-br from-white via-white to-blue-50/80 rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_16px_40px_rgba(37,99,235,0.22)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden"
                         >
-                            {/* Radiant Blue Glow behind white card */}
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+                            {/* Internal Blue Light Flares & Top Beam */}
+                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80" />
+                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/30 via-sky-300/20 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/40 transition-all duration-500" />
+                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/15 rounded-full blur-lg pointer-events-none" />
 
-                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
-                                <div>
-                                    <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
-                                        <RotateCcw size={24} strokeWidth={2.2} />
-                                    </div>
-                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
-                                        Insiste por você
-                                    </h4>
-                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
-                                        Se um cliente não responde, a IA escreve de novo no momento certo.
-                                    </p>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
+                                    <RotateCcw size={24} strokeWidth={2.2} />
                                 </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug tracking-tight">
+                                    Insiste por você
+                                </h4>
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                    Se um cliente não responde, a IA escreve de novo no momento certo.
+                                </p>
                             </div>
                         </motion.div>
 
@@ -300,23 +300,23 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.4, delay: 0.4 }}
-                            className="relative group rounded-2xl transition-all duration-300"
+                            className="group relative bg-gradient-to-br from-white via-white to-blue-50/80 rounded-2xl p-7 flex flex-col justify-between border border-blue-200/90 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_16px_40px_rgba(37,99,235,0.22)] hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden"
                         >
-                            {/* Radiant Blue Glow behind white card */}
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-sky-400/40 to-blue-600/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-500 -z-10" />
+                            {/* Internal Blue Light Flares & Top Beam */}
+                            <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80" />
+                            <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-bl from-blue-400/30 via-sky-300/20 to-transparent rounded-full blur-xl pointer-events-none group-hover:from-blue-500/40 transition-all duration-500" />
+                            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-sky-400/15 rounded-full blur-lg pointer-events-none" />
 
-                            <div className="w-full h-full bg-white rounded-2xl p-7 flex flex-col justify-between border border-blue-100/90 shadow-[0_12px_35px_rgba(37,99,235,0.18)] group-hover:shadow-[0_18px_45px_rgba(37,99,235,0.30)] group-hover:-translate-y-1 transition-all duration-300 min-h-[230px]">
-                                <div>
-                                    <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5 shadow-sm group-hover:scale-105 transition-transform">
-                                        <FileText size={24} strokeWidth={2.2} />
-                                    </div>
-                                    <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
-                                        Nota fiscal eletrônica
-                                    </h4>
-                                    <p className="text-slate-600 text-sm leading-relaxed font-normal">
-                                        Emite faturas legais (SIFEN) automaticamente a cada venda.
-                                    </p>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center mb-5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] group-hover:shadow-[0_6px_22px_rgba(37,99,235,0.6)] group-hover:scale-105 transition-all">
+                                    <FileText size={24} strokeWidth={2.2} />
                                 </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug tracking-tight">
+                                    Nota fiscal eletrônica
+                                </h4>
+                                <p className="text-slate-600 text-sm leading-relaxed font-normal">
+                                    Emite faturas legais (SIFEN) automaticamente a cada venda.
+                                </p>
                             </div>
                         </motion.div>
                     </div>
