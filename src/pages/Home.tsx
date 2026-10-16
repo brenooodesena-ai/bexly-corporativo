@@ -166,22 +166,27 @@ const Home = () => {
                     </motion.div>
 
                     {/* Bento Grid: 2 Large Cards on Top (Centered & Spacious) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-7 w-full mb-6 md:mb-7">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-7 w-full mb-10 md:mb-14">
                         {/* Card 1: Fala como uma pessoa */}
                         <motion.div
                             initial={{ opacity: 0, y: 25 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
-                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[280px]"
+                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[290px]"
                         >
                             <div className="absolute top-0 right-0 w-52 h-52 bg-blue-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-blue-500/20 transition-all duration-500" />
 
                             <div>
-                                <div className="w-13 h-13 w-fit p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-6 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform">
-                                    <Bot size={28} strokeWidth={2.2} />
+                                <div className="flex items-center justify-between mb-7">
+                                    <div className="w-13 h-13 p-3 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 text-blue-400 shadow-[0_4px_16px_rgba(59,130,246,0.25)] flex items-center justify-center group-hover:scale-105 transition-transform">
+                                        <Bot size={28} strokeWidth={2.2} />
+                                    </div>
+                                    <span className="px-3.5 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-white/70 text-xs font-semibold tracking-wide">
+                                        Atendimento Humanizado
+                                    </span>
                                 </div>
-                                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3.5 tracking-tight group-hover:text-blue-100 transition-colors">
+                                <h3 className="text-2xl sm:text-[28px] font-bold text-white mb-3.5 tracking-tight group-hover:text-blue-100 transition-colors">
                                     Fala como uma pessoa
                                 </h3>
                                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
@@ -196,15 +201,20 @@ const Home = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.1 }}
-                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[280px]"
+                            className="group relative bg-[#0b1324] hover:bg-[#0e172e] border border-slate-800/90 hover:border-blue-500/40 rounded-3xl p-8 sm:p-10 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_14px_45px_rgba(59,130,246,0.18)] flex flex-col justify-between overflow-hidden min-h-[290px]"
                         >
                             <div className="absolute top-0 right-0 w-52 h-52 bg-sky-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-sky-500/20 transition-all duration-500" />
 
                             <div>
-                                <div className="w-13 h-13 w-fit p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 mb-6 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform">
-                                    <CreditCard size={28} strokeWidth={2.2} />
+                                <div className="flex items-center justify-between mb-7">
+                                    <div className="w-13 h-13 p-3 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-600/10 border border-sky-500/30 text-sky-400 shadow-[0_4px_16px_rgba(14,165,233,0.25)] flex items-center justify-center group-hover:scale-105 transition-transform">
+                                        <CreditCard size={28} strokeWidth={2.2} />
+                                    </div>
+                                    <span className="px-3.5 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-white/70 text-xs font-semibold tracking-wide">
+                                        Checkout Nativo
+                                    </span>
                                 </div>
-                                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3.5 tracking-tight group-hover:text-sky-100 transition-colors">
+                                <h3 className="text-2xl sm:text-[28px] font-bold text-white mb-3.5 tracking-tight group-hover:text-sky-100 transition-colors">
                                     Cobra dentro do chat
                                 </h3>
                                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
