@@ -2,15 +2,35 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Spotlight } from '../components/ui/spotlight';
-import { ArrowRight, Check, Bot, CreditCard, LayoutGrid, MapPin, RotateCcw, FileText } from 'lucide-react';
+import { ArrowRight, Check, Bot, CreditCard, LayoutGrid, MapPin, RotateCcw, FileText, Plus, Minus } from 'lucide-react';
 import { ContainerScroll } from '../components/ui/container-scroll-animation';
 
-import logoIcon from '../logotipo-5.png';
+import logoIcon from '../assets/logo-bexly-one.png';
 
 import platformPreview from '../platform-preview.png';
+import heroBg from '../assets/hero-gradiente-celeste.png';
+import ondasBg from '../assets/padrao-luz-azul.png';
+import faqHorizonBg from '../assets/faq-horizon-bg.png';
 
 const Home = () => {
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
+    const [activeNav, setActiveNav] = useState<string>('recursos');
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+    const navItems = [
+        { id: 'recursos', label: 'Recursos', targetId: 'recursos' },
+        { id: 'vitrines', label: 'Vitrines', targetId: 'vitrines' },
+        { id: 'precos', label: 'Preços', targetId: 'precos' },
+        { id: 'faq', label: 'Perguntas', targetId: 'faq' },
+    ];
+
+    const handleNavClick = (id: string) => {
+        setActiveNav(id);
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
 
     const plans = [
         // ... (plans logic remains same)
@@ -58,6 +78,29 @@ const Home = () => {
         }
     ];
 
+    const faqs = [
+        {
+            q: "Como a Bexly se integra com o meu WhatsApp e redes sociais?",
+            a: "A integração é 100% oficial e rápida. Basta escanear o QR Code no painel ou conectar suas contas do Instagram e Facebook em poucos cliques, sem necessidade de conhecimentos técnicos."
+        },
+        {
+            q: "O bot realmente entende áudios dos clientes?",
+            a: "Sim! Nos planos Pro e Premium, a IA da Bexly transcreve e compreende áudios com precisão cirúrgica e responde naturalmente por texto ou com voz humanizada."
+        },
+        {
+            q: "Como funcionam as cobranças automáticas dentro da conversa?",
+            a: "A IA gera links de checkout, chaves PIX dinâmicas e QR Codes na própria conversa, identificando a confirmação do pagamento em tempo real para liberar o pedido ou acesso."
+        },
+        {
+            q: "Preciso manter o celular ou computador ligado 24h?",
+            a: "Não. A infraestrutura da Bexly opera inteiramente na nuvem em servidores de alta disponibilidade. O seu atendimento e vendas continuam funcionando mesmo com seu celular desligado."
+        },
+        {
+            q: "Posso intervir e conversar manualmente com um cliente a qualquer momento?",
+            a: "Com certeza! Você e sua equipe têm uma central única de atendimento onde podem pausar a IA, assumir a conversa em tempo real e transferir para qualquer departamento."
+        }
+    ];
+
     return (
         <div className="home-container min-h-screen relative bg-black selection:bg-blue-500/30 overflow-x-hidden">
             {/* Professional Blue Ray Background */}
@@ -80,7 +123,7 @@ const Home = () => {
             </div>
 
             {/* Navigation */}
-            <nav className="glass-nav fixed top-0 left-0 right-0 z-[100] h-[80px] flex items-center justify-between pr-8 md:pr-12 backdrop-blur-xl bg-black/40 border-b border-white/5">
+            <nav className="glass-nav fixed top-0 left-0 right-0 z-[100] h-[80px] flex items-center justify-between px-6 md:px-10 backdrop-blur-xl bg-black/40 border-b border-white/5">
                 <div style={{ width: 'var(--sidebar-width, 260px)', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
                         <img
@@ -91,55 +134,95 @@ const Home = () => {
                     </Link>
                 </div>
 
-                {/* Center: Navigation Links */}
-                <div className="hidden md:flex items-center gap-12 flex-2 justify-center absolute left-1/2 -translate-x-1/2">
-                    <span className="text-[0.7rem] font-bold text-white/50 hover:text-white transition-colors cursor-pointer tracking-[0.2em] uppercase">Preços</span>
-                    <span className="text-[0.7rem] font-bold text-white/50 hover:text-white transition-colors cursor-pointer tracking-[0.2em] uppercase">Recursos</span>
-                    <span className="text-[0.7rem] font-bold text-white/50 hover:text-white transition-colors cursor-pointer tracking-[0.2em] uppercase">Vitrines</span>
+                {/* Center: Navigation Pills (Reference style with generous padding and margins) */}
+                <div className="hidden md:flex items-center absolute left-1/2 -translate-x-1/2">
+                    <div className="nav-pill-container">
+                        {navItems.map((item) => {
+                            const isActive = activeNav === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => handleNavClick(item.id)}
+                                    className={`nav-pill-btn ${isActive ? 'active' : ''}`}
+                                >
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeNavPill"
+                                            className="nav-pill-btn-active-bg"
+                                            transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                                        />
+                                    )}
+                                    <span className="nav-pill-label">{item.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                {/* Right: Auth Links */}
-                <div className="flex-1 flex items-center justify-end gap-8">
+                {/* Right: Auth Links (shifted to the left) */}
+                <div 
+                    className="flex-1 flex items-center justify-end gap-7"
+                    style={{ marginRight: '80px' }}
+                >
                     <Link to="/login" className="text-[0.9rem] font-medium text-white/70 hover:text-white transition-all">Login</Link>
                     <Link to="/signup">
-                        <button className="premium-button text-[0.75rem] px-6 py-2.5 min-w-[130px] font-bold">
+                        <button className="glow-pill-button">
                             Criar conta
                         </button>
                     </Link>
                 </div>
             </nav>
 
-            {/* Hero Section with Exact Demo Content */}
-            <main className="relative z-10 w-full overflow-x-hidden">
-                <div className="flex flex-col items-center overflow-visible pb-0 pt-[30px] md:pt-[50px]">
-                    <ContainerScroll
-                        titleComponent={
-                            <div className="flex flex-col items-center mb-4">
-                                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-5 shadow-sm">
-                                    <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                                    Plataforma Tudo-em-Um de Vendas & IA
-                                </div>
-                                <h1 className="text-3xl md:text-5xl lg:text-6xl font-semibold text-white text-center w-full tracking-tight">
-                                    Automatize seu Atendimento e Vendas <br />
-                                    <span className="text-4xl md:text-[5.5rem] lg:text-[6.2rem] font-extrabold mt-3 leading-none bg-gradient-to-b from-white via-slate-100 to-slate-400 bg-clip-text text-transparent block">
-                                        Bexly Inteligência
-                                    </span>
-                                </h1>
-                            </div>
-                        }
-                    >
-                        <img
-                            src={platformPreview}
-                            alt="hero"
-                            className="mx-auto rounded-2xl object-cover h-full object-left-top w-full"
-                            draggable={false}
-                        />
-                    </ContainerScroll>
+            {/* ─── HERO BLOCK ─── bg + título + scroll dentro de um único container ─── */}
+            <div className="relative w-full" style={{ marginTop: '-80px' }}>
+                {/* Imagem de fundo com mask-image e overlay gradual puro */}
+                <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                    <img
+                        src={heroBg}
+                        alt=""
+                        aria-hidden="true"
+                        className="w-full h-full object-cover object-top"
+                        style={{
+                            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 50%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.2) 85%, transparent 100%)',
+                            maskImage: 'linear-gradient(to bottom, black 0%, black 50%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.2) 85%, transparent 100%)',
+                        }}
+                    />
+                    {/* Camada complementar de sombra suave para transição perfeitamente contínua */}
+                    <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                            background: 'linear-gradient(to bottom, transparent 0%, transparent 40%, rgba(0,0,0,0.3) 65%, rgba(0,0,0,0.85) 85%, #000000 100%)',
+                        }}
+                    />
                 </div>
-            </main>
 
-            {/* Features Showcase Section (Exact Match to User Reference) */}
-            <section className="w-full relative z-20 -mt-16 md:-mt-24 pt-4 md:pt-6 pb-24 md:pb-32 overflow-hidden flex justify-center">
+                {/* Conteúdo: pt-[80px] para compensar a navbar, depois título + scroll */}
+                <main className="relative z-10 w-full overflow-x-hidden pt-[80px]">
+                    <div className="flex flex-col items-center overflow-visible pb-16 md:pb-24 pt-0">
+                        <ContainerScroll
+                            titleComponent={
+                                <div className="flex flex-col items-center mb-2">
+                                    <h1 className="text-4xl md:text-[5.5rem] lg:text-[6.2rem] font-extrabold leading-none tracking-tight text-center w-full bg-gradient-to-b from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+                                        Bexly Inteligência
+                                    </h1>
+                                </div>
+                            }
+                        >
+                            <img
+                                src={platformPreview}
+                                alt="hero"
+                                className="mx-auto rounded-2xl object-cover h-full object-left-top w-full"
+                                draggable={false}
+                            />
+                        </ContainerScroll>
+                    </div>
+                </main>
+            </div>
+            {/* ─── FIM DO HERO BLOCK ─── */}
+
+            {/* Features Showcase Section (Transição limpa sobre fundo preto profundo) */}
+            <section id="recursos" className="w-full relative z-20 pt-8 md:pt-12 pb-24 md:pb-32 overflow-hidden flex justify-center bg-black scroll-mt-24">
                 {/* Ambient Soft Glow Behind Section */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-blue-600/10 blur-[160px] pointer-events-none rounded-full" />
 
@@ -284,7 +367,7 @@ const Home = () => {
             </section>
 
             {/* Pricing Section */}
-            <section className="pricing-section w-full">
+            <section id="precos" className="pricing-section w-full scroll-mt-24">
                 <div className="w-full max-w-7xl mx-auto px-6 flex flex-col items-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -323,15 +406,34 @@ const Home = () => {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                    className={`pricing-card ${plan.popular ? 'popular' : ''}`}
+                                    className={`pricing-card group ${plan.popular ? 'popular' : ''}`}
                                 >
+                                    {/* Background Image: Padrão Abstrato de Luz Azul Vertical (Bem visível e nítido) */}
+                                    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-[32px]">
+                                        <img
+                                            src={ondasBg}
+                                            alt=""
+                                            aria-hidden="true"
+                                            className="w-full h-full object-cover object-center opacity-85 group-hover:opacity-100 transition-all duration-700 transform group-hover:scale-105"
+                                        />
+                                        {/* Overlay leve e translúcido para manter o fundo bem nítido enquanto garante leitura dos textos */}
+                                        <div 
+                                            className="absolute inset-0"
+                                            style={{
+                                                background: plan.popular
+                                                    ? 'linear-gradient(180deg, rgba(3, 7, 18, 0.4) 0%, rgba(3, 7, 18, 0.65) 50%, rgba(3, 7, 18, 0.85) 100%)'
+                                                    : 'linear-gradient(180deg, rgba(2, 6, 16, 0.45) 0%, rgba(2, 6, 16, 0.7) 50%, rgba(2, 6, 16, 0.88) 100%)'
+                                            }}
+                                        />
+                                    </div>
+
                                     {plan.popular && (
-                                        <div className="pricing-badge-popular">{plan.badge}</div>
+                                        <div className="pricing-badge-popular z-10">{plan.badge}</div>
                                     )}
-                                    <h3 className="pricing-tier-name">{plan.name}</h3>
-                                    <p className="pricing-tier-desc">{plan.desc}</p>
+                                    <h3 className="pricing-tier-name z-10">{plan.name}</h3>
+                                    <p className="pricing-tier-desc z-10">{plan.desc}</p>
                                     
-                                    <div className="pricing-price-container">
+                                    <div className="pricing-price-container z-10">
                                         <span className="pricing-currency">R$</span>
                                         <motion.span 
                                             key={plan.price}
@@ -344,7 +446,7 @@ const Home = () => {
                                         <span className="pricing-period">/mês</span>
                                     </div>
 
-                                    <ul className="pricing-feature-list">
+                                    <ul className="pricing-feature-list z-10">
                                         {plan.features.map((feature, fIdx) => (
                                             <li key={fIdx} className="pricing-feature-item">
                                                 <Check size={18} strokeWidth={3} className="check" />
@@ -353,7 +455,7 @@ const Home = () => {
                                         ))}
                                     </ul>
 
-                                    <Link to="/signup" className="w-full">
+                                    <Link to="/signup" className="w-full z-10">
                                         <button className={`pricing-btn ${plan.popular ? 'primary' : ''}`}>
                                             {plan.cta}
                                             <ArrowRight size={18} />
@@ -366,16 +468,93 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Ambient Background Glows */}
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full aspect-square max-w-[1200px] pointer-events-none z-0">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08)_0%,transparent_70%)]" />
-            </div>
+            {/* FAQ Section with Blue Glow Accent & Curved Horizon Image as Background */}
+            <section 
+                id="faq" 
+                className="w-full relative z-20 pt-8 md:pt-14 pb-20 md:pb-24 overflow-hidden bg-black scroll-mt-24"
+            >
+                {/* Imagem do Horizonte Cósmico ancorada pelo topo */}
+                <div 
+                    className="absolute inset-x-0 top-0 h-[820px] md:h-[900px] overflow-hidden pointer-events-none z-0 flex items-center justify-center"
+                    style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+                >
+                    <img
+                        src={faqHorizonBg}
+                        alt=""
+                        aria-hidden="true"
+                        className="w-full max-w-[1700px] h-full object-cover object-top select-none opacity-90"
+                    />
+                    {/* Luz azul suave usando gradiente radial direto sem filtros pesados */}
+                    <div 
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[1100px] h-[75%] pointer-events-none"
+                        style={{
+                            background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.22) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 70%)',
+                            transform: 'translateZ(0)'
+                        }}
+                    />
+                </div>
+
+                <div className="faq-wrapper">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="faq-header"
+                    >
+                        <div className="faq-eyebrow">
+                            <span className="faq-eyebrow-dot" />
+                            <span>FAQ</span>
+                        </div>
+                        <h2 className="faq-title">Perguntas Frequentes</h2>
+                    </motion.div>
+
+                    <div className="faq-list">
+                        {faqs.map((faq, idx) => {
+                            const isOpen = openFaq === idx;
+                            return (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.4, delay: idx * 0.06 }}
+                                    className={`faq-card ${isOpen ? 'open' : ''}`}
+                                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                                >
+                                    <div className="faq-card-glow" />
+                                    <div className="faq-card-glow-core" />
+
+                                    <button type="button" className="faq-card-head">
+                                        <span className="faq-card-question">
+                                            <span className="faq-card-num">{String(idx + 1).padStart(2, '0')}</span>
+                                            {faq.q}
+                                        </span>
+                                        <span className="faq-card-icon">
+                                            {isOpen ? <Minus size={18} strokeWidth={2} /> : <Plus size={18} strokeWidth={2} />}
+                                        </span>
+                                    </button>
+
+                                    <div className="faq-card-collapse">
+                                        <div className="faq-card-collapse-inner">
+                                            <p className="faq-card-answer">{faq.a}</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
 
             {/* Corporate Footer */}
-            <footer className="relative z-10 py-24 px-6 text-center border-t border-white/[0.03] bg-black/20">
-                <p className="text-white/10 text-[0.7rem] max-w-2xl mx-auto leading-relaxed uppercase tracking-[0.3em] font-bold">
+            <footer 
+                className="relative z-10 px-6 text-center border-t border-white/[0.04] bg-black"
+                style={{ paddingTop: '56px', paddingBottom: '48px' }}
+            >
+                <p className="text-white/20 text-[0.72rem] max-w-2xl mx-auto leading-relaxed uppercase tracking-[0.3em] font-semibold">
                     © 2026 Bexly Enterprises. Todos os direitos reservados.
-                    <span className="block mt-2 font-medium opacity-50 tracking-wider">Fornecendo infraestrutura tecnológica de ponta para empresas modernas.</span>
+                    <span className="block mt-2 font-normal opacity-60 tracking-wider">Fornecendo infraestrutura tecnológica de ponta para empresas modernas.</span>
                 </p>
             </footer>
         </div>

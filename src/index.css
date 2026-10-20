@@ -105,6 +105,315 @@ body::before {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
 }
 
+/* Nav Pills Reference Design */
+.nav-pill-container {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(8, 12, 22, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.nav-pill-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 24px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+  line-height: 1.25;
+}
+
+.nav-pill-btn:hover {
+  color: #f1f5f9;
+}
+
+.nav-pill-btn.active {
+  color: #1e3a8a;
+  font-weight: 600;
+}
+
+.nav-pill-btn-active-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 50% 30%, #60a5fa 0%, #93c5fd 40%, #bfdbfe 75%, #dbeafe 100%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 0 25px 2px rgba(96, 165, 250, 0.45),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px 0 rgba(147, 197, 253, 0.6);
+}
+
+.nav-pill-label {
+  position: relative;
+  z-index: 10;
+  padding: 0 4px;
+}
+
+/* ===== FAQ ===== */
+.faq-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.faq-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.faq-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: #93c5fd;
+  text-transform: uppercase;
+}
+
+.faq-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #3b82f6;
+  box-shadow: 0 0 10px #3b82f6;
+}
+
+.faq-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.faq-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 0;
+}
+
+.faq-card {
+  position: relative;
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  background: linear-gradient(180deg, rgba(14, 18, 30, 0.95) 0%, rgba(8, 10, 18, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  contain: paint;
+}
+
+.faq-card:hover {
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+.faq-card.open {
+  border-color: rgba(96, 165, 250, 0.5);
+  box-shadow: 0 0 24px -4px rgba(37, 99, 235, 0.35);
+}
+
+/* Halo azul largo saindo do canto inferior esquerdo (ultra leve com gradiente nativo) */
+.faq-card-glow {
+  position: absolute;
+  left: -15%;
+  bottom: -60%;
+  width: 75%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 65% 55% at 30% 60%,
+      rgba(59, 130, 246, 0.5) 0%,
+      rgba(37, 99, 235, 0.28) 25%,
+      rgba(29, 78, 216, 0.1) 48%,
+      transparent 70%);
+  transform: rotate(-18deg) translateZ(0);
+  opacity: 0.85;
+  transition: opacity 0.25s ease;
+}
+
+/* Núcleo brilhante mais intenso colado na borda esquerda */
+.faq-card-glow-core {
+  position: absolute;
+  left: -35px;
+  bottom: -25px;
+  width: 170px;
+  height: 110px;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 50%, rgba(147, 197, 253, 0.75) 0%, rgba(59, 130, 246, 0.35) 45%, transparent 75%);
+  transform: translateZ(0);
+  opacity: 0.85;
+  transition: opacity 0.25s ease;
+}
+
+.faq-card:hover .faq-card-glow,
+.faq-card.open .faq-card-glow {
+  opacity: 1;
+  transform: rotate(-18deg) scale(1.08) translateZ(0);
+}
+
+.faq-card:hover .faq-card-glow-core,
+.faq-card.open .faq-card-glow-core {
+  opacity: 1;
+}
+
+.faq-card-head {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  background: transparent;
+  text-align: left;
+  color: #fff;
+}
+
+.faq-card-question {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #f1f5f9;
+  letter-spacing: -0.005em;
+}
+
+.faq-card-num {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #93c5fd;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.faq-card-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #bfdbfe;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.faq-card.open .faq-card-icon,
+.faq-card:hover .faq-card-icon {
+  color: #fff;
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(147, 197, 253, 0.5);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.45);
+}
+
+/* Transição de abertura 100% nativa em CSS Grid ultra-otimizada */
+.faq-card-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s ease-out;
+  position: relative;
+  z-index: 2;
+}
+
+.faq-card.open .faq-card-collapse {
+  grid-template-rows: 1fr;
+}
+
+.faq-card-collapse-inner {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.faq-card.open .faq-card-collapse-inner {
+  opacity: 1;
+}
+
+.faq-card-answer {
+  margin: 0;
+  padding: 0 28px 26px 62px;
+  font-size: 0.93rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+}
+
+/* Reference Pill Button ('Criar conta') - matching reference style and color */
+.glow-pill-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  color: #1e3a8a;
+  background: radial-gradient(circle at 50% 30%, #60a5fa 0%, #93c5fd 40%, #bfdbfe 75%, #dbeafe 100%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 0 25px 2px rgba(96, 165, 250, 0.45),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px 0 rgba(147, 197, 253, 0.6);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  transition: all 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.glow-pill-button:hover {
+  transform: translateY(-1px) scale(1.02);
+  background: radial-gradient(circle at 50% 25%, #3b82f6 0%, #60a5fa 35%, #93c5fd 70%, #dbeafe 100%);
+  color: #172554;
+  box-shadow: 
+    0 0 32px 3px rgba(59, 130, 246, 0.55),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(147, 197, 253, 0.7);
+}
+
+.glow-pill-button:active {
+  transform: translateY(0px) scale(0.98);
+}
+
 @keyframes spotlight {
   0% {
     opacity: 0;
@@ -225,7 +534,7 @@ body::before {
 .pricing-section {
   position: relative;
   z-index: 10;
-  padding: 120px 20px;
+  padding: 120px 20px 60px 20px;
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -545,4 +854,97 @@ button:active {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
+}
+/* ─── Scrollbar azul profissional ─── */
+/* Firefox apenas (Chrome 121+ ignora ::-webkit-scrollbar se scrollbar-color estiver definido) */
+@supports not selector(::-webkit-scrollbar) {
+  html, * {
+    scrollbar-width: thin;
+    scrollbar-color: #3b82f6 #03050a;
+  }
+}
+/* ─── Barra de rolagem customizada da página (componente BlueScrollbar) ─── */
+html.blue-scrollbar-root {
+  scrollbar-width: none !important;
+}
+html.blue-scrollbar-root::-webkit-scrollbar,
+html.blue-scrollbar-root body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.blue-scrollbar-track {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 100vh;
+  z-index: 99999;
+  background: transparent;
+  border: none;
+  opacity: 0.55;
+  transition: opacity 0.35s ease;
+}
+.blue-scrollbar-track:hover,
+.blue-scrollbar-track.is-active {
+  opacity: 1;
+}
+.blue-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  right: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #7dd3fc 0%, #3b82f6 45%, #1e40af 100%);
+  box-shadow:
+    inset 0 0 6px rgba(186, 230, 253, 0.55),
+    0 0 10px rgba(59, 130, 246, 0.55),
+    0 0 22px rgba(37, 99, 235, 0.35);
+  cursor: grab;
+  transition: left 0.2s ease, right 0.2s ease, box-shadow 0.25s ease, background 0.25s ease;
+  will-change: transform;
+}
+.blue-scrollbar-track:hover .blue-scrollbar-thumb {
+  left: 2px;
+  right: 2px;
+  background: linear-gradient(180deg, #bae6fd 0%, #60a5fa 45%, #2563eb 100%);
+  box-shadow:
+    inset 0 0 8px rgba(224, 242, 254, 0.7),
+    0 0 14px rgba(96, 165, 250, 0.8),
+    0 0 30px rgba(37, 99, 235, 0.5);
+}
+.blue-scrollbar-thumb.is-dragging {
+  cursor: grabbing;
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+}
+
+/* Áreas internas com rolagem (Chrome/Safari/Edge) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background: #03050a;
+}
+*::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, #02040a 0%, #050a18 50%, #02040a 100%) !important;
+  border-left: 1px solid rgba(59, 130, 246, 0.12);
+  box-shadow: inset 1px 0 0 rgba(59, 130, 246, 0.06);
+}
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7dd3fc 0%, #3b82f6 45%, #1e40af 100%) !important;
+  border-radius: 999px;
+  border: 3px solid #03050a;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 6px rgba(186, 230, 253, 0.55);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #bae6fd 0%, #60a5fa 45%, #2563eb 100%) !important;
+  background-clip: padding-box;
+  border-width: 2px;
+}
+*::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner {
+  background: #03050a;
 }

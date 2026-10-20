@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
-import logotipo from '../logotipo-5.png';
+import logotipo from '../assets/logo-bexly-one.png';
 import {
     LayoutDashboard,
     Layout as LayoutIcon,
