@@ -13,6 +13,7 @@ import {
     Zap,
     Search,
     Clock,
+    Pencil,
     Split
 } from 'lucide-react';
 import { Button, Card } from './UI';
@@ -30,7 +31,7 @@ interface FunnelStep {
 
 interface FunnelBuilderProps {
     funnelName: string;
-    onSave: (steps: FunnelStep[]) => void;
+    onSave: (steps: FunnelStep[], updatedName: string) => void;
     onBack: () => void;
 }
 
@@ -43,6 +44,7 @@ const STEP_TYPES = {
 };
 
 export const FunnelBuilder = ({ funnelName, onSave, onBack }: FunnelBuilderProps) => {
+    const [name, setName] = useState(funnelName || 'Novo Funil de Vendas');
     const [steps, setSteps] = useState<FunnelStep[]>([
         { id: '1', type: 'capture', title: 'Página de Captura - Lead Magnet', description: 'Otimizada para conversão de e-mails.' },
     ]);
@@ -70,19 +72,52 @@ export const FunnelBuilder = ({ funnelName, onSave, onBack }: FunnelBuilderProps
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', gap: '24px' }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: '300px' }}>
                     <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <ChevronLeft size={20} /> Voltar
                     </button>
-                    <div>
-                        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>Blueprint Pro: {funnelName}</h1>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Arquitete sua jornada de vendas manualmente com precisão técnica.</p>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Nome do Funil de Vendas"
+                                title="Clique para editar o nome do funil"
+                                style={{
+                                    fontSize: '1.45rem',
+                                    fontWeight: 700,
+                                    color: 'white',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    borderRadius: '10px',
+                                    padding: '6px 14px',
+                                    outline: 'none',
+                                    maxWidth: '450px',
+                                    width: '100%',
+                                    transition: 'all 0.2s ease',
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--primary-blue)';
+                                    e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.08)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                                }}
+                            />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-gray)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                                <Pencil size={14} style={{ color: 'var(--primary-blue)' }} />
+                                <span>Editar nome</span>
+                            </div>
+                        </div>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '4px' }}>Arquitete sua jornada de vendas manualmente com precisão técnica.</p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <Button variant="outline" onClick={onBack}>Descartar</Button>
-                    <Button onClick={() => onSave(steps)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Button onClick={() => onSave(steps, name.trim() || 'Funil de Vendas')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Save size={18} /> Salvar Estrutura
                     </Button>
                 </div>

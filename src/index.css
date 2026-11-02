@@ -53,6 +53,10 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: clip;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   font-weight: 400;
@@ -61,7 +65,7 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
   line-height: 1.5;
 }
 
@@ -99,10 +103,13 @@ body::before {
 }
 
 .glass-nav {
-  background: rgba(2, 6, 23, 0.6) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  background: #0c1020 !important;
+  border: 1px solid rgba(70, 95, 165, 0.35) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(59, 130, 246, 0.15) !important;
+  border-radius: 20px !important;
+  padding: 0 36px !important;
+  transform: translateZ(0);
 }
 
 /* Nav Pills Reference Design */
@@ -165,6 +172,7 @@ body::before {
 }
 
 /* ===== FAQ ===== */
+/* ===== FAQ SECTION (ULTRA PREMIUM) ===== */
 .faq-wrapper {
   position: relative;
   z-index: 10;
@@ -217,76 +225,51 @@ body::before {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 0;
 }
 
 .faq-card {
   position: relative;
   width: 100%;
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  cursor: pointer;
-  background: linear-gradient(180deg, rgba(14, 18, 30, 0.95) 0%, rgba(8, 10, 18, 0.98) 100%);
+  background: #0b0f1b;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.7);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  contain: paint;
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.6);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  transform: translateZ(0);
 }
 
 .faq-card:hover {
   border-color: rgba(96, 165, 250, 0.35);
+  background-color: #0e1322;
 }
 
 .faq-card.open {
   border-color: rgba(96, 165, 250, 0.5);
-  box-shadow: 0 0 24px -4px rgba(37, 99, 235, 0.35);
+  background-color: #0d1220;
+  box-shadow: 0 10px 30px -6px rgba(37, 99, 235, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Halo azul largo saindo do canto inferior esquerdo (ultra leve com gradiente nativo) */
-.faq-card-glow {
+/* Iluminação de topo ancorada (sem pulos ao expandir) */
+.faq-card-ambient-glow {
   position: absolute;
-  left: -15%;
-  bottom: -60%;
-  width: 75%;
-  height: 200%;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(ellipse 65% 55% at 30% 60%,
-      rgba(59, 130, 246, 0.5) 0%,
-      rgba(37, 99, 235, 0.28) 25%,
-      rgba(29, 78, 216, 0.1) 48%,
-      transparent 70%);
-  transform: rotate(-18deg) translateZ(0);
-  opacity: 0.85;
-  transition: opacity 0.25s ease;
+  background: radial-gradient(ellipse 360px 80px at 15% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 75%);
+  opacity: 0.6;
+  transition: opacity 0.18s ease;
 }
 
-/* Núcleo brilhante mais intenso colado na borda esquerda */
-.faq-card-glow-core {
-  position: absolute;
-  left: -35px;
-  bottom: -25px;
-  width: 170px;
-  height: 110px;
-  pointer-events: none;
-  z-index: 0;
-  border-radius: 9999px;
-  background: radial-gradient(circle at 40% 50%, rgba(147, 197, 253, 0.75) 0%, rgba(59, 130, 246, 0.35) 45%, transparent 75%);
-  transform: translateZ(0);
-  opacity: 0.85;
-  transition: opacity 0.25s ease;
-}
-
-.faq-card:hover .faq-card-glow,
-.faq-card.open .faq-card-glow {
+.faq-card:hover .faq-card-ambient-glow,
+.faq-card.open .faq-card-ambient-glow {
   opacity: 1;
-  transform: rotate(-18deg) scale(1.08) translateZ(0);
-}
-
-.faq-card:hover .faq-card-glow-core,
-.faq-card.open .faq-card-glow-core {
-  opacity: 1;
+  background: radial-gradient(ellipse 420px 80px at 15% 0%, rgba(59, 130, 246, 0.22) 0%, transparent 75%);
 }
 
 .faq-card-head {
@@ -296,83 +279,125 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 24px 28px;
+  gap: 20px;
+  padding: 22px 28px;
   background: transparent;
+  border: none;
+  cursor: pointer;
   text-align: left;
-  color: #fff;
+  user-select: none;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.faq-card-question {
+.faq-card-head:focus,
+.faq-card-head:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.faq-card-left {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 16px;
-  font-size: 1.02rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: #f1f5f9;
-  letter-spacing: -0.005em;
+  flex: 1;
+  min-width: 0;
 }
 
-.faq-card-num {
-  font-size: 0.78rem;
+.faq-card-num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: #93c5fd;
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  flex-shrink: 0;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.faq-card-icon {
+.faq-card.open .faq-card-num-badge {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(96, 165, 250, 0.55);
+  color: #93c5fd;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+}
+
+.faq-card-question-text {
+  font-size: 1.04rem;
+  font-weight: 600;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+  line-height: 1.45;
+}
+
+.faq-card-icon-circle {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 9999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #bfdbfe;
+  color: #94a3b8;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: all 0.18s ease;
 }
 
-.faq-card.open .faq-card-icon,
-.faq-card:hover .faq-card-icon {
-  color: #fff;
+.faq-card.open .faq-card-icon-circle,
+.faq-card:hover .faq-card-icon-circle {
+  color: #ffffff;
   background: rgba(59, 130, 246, 0.25);
   border-color: rgba(147, 197, 253, 0.5);
-  box-shadow: 0 0 16px rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.4);
 }
 
-/* Transição de abertura 100% nativa em CSS Grid ultra-otimizada */
-.faq-card-collapse {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.22s ease-out;
-  position: relative;
-  z-index: 2;
+.faq-card-plus-icon {
+  transform-origin: 50% 50%;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.faq-card.open .faq-card-collapse {
-  grid-template-rows: 1fr;
+.faq-card.open .faq-card-plus-icon {
+  transform: rotate(45deg);
 }
 
-.faq-card-collapse-inner {
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 0.2s ease-out;
+.faq-card-divider {
+  margin: 0 28px 18px 28px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.35) 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
 }
 
-.faq-card.open .faq-card-collapse-inner {
-  opacity: 1;
-}
-
-.faq-card-answer {
+.faq-card-answer-text {
   margin: 0;
-  padding: 0 28px 26px 62px;
-  font-size: 0.93rem;
+  padding: 0 28px 24px 28px;
+  font-size: 0.95rem;
   line-height: 1.7;
   color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+  .faq-card-head {
+    padding: 18px 20px;
+    gap: 14px;
+  }
+  .faq-card-left {
+    gap: 12px;
+  }
+  .faq-card-question-text {
+    font-size: 0.95rem;
+  }
+  .faq-card-answer-text {
+    padding: 0 20px 20px 20px;
+  }
+  .faq-card-divider {
+    margin: 0 20px 14px 20px;
+  }
 }
 
 /* Reference Pill Button ('Criar conta') - matching reference style and color */
@@ -452,7 +477,11 @@ body::before {
 /* Professional Hero Styles */
 .hero-beams-container {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  max-height: 980px;
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
@@ -471,7 +500,6 @@ body::before {
     rgba(59, 130, 246, 0.03) 100px,
     rgba(59, 130, 246, 0.03) 101px
   );
-  filter: blur(1px);
 }
 
 .hero-beam-glow {
@@ -534,7 +562,7 @@ body::before {
 .pricing-section {
   position: relative;
   z-index: 10;
-  padding: 120px 20px 60px 20px;
+  padding: 90px 20px 140px 20px;
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -556,19 +584,18 @@ body::before {
 .pricing-card {
   flex: 0 1 380px !important;
   min-height: 650px !important;
-  background: rgba(10, 10, 15, 0.45) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background: #0b0f1b !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 32px !important;
   padding: 56px 40px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   text-align: center !important;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   position: relative !important;
   overflow: hidden !important;
+  transform: translateZ(0);
 }
 
 .pricing-card::after {
@@ -594,23 +621,79 @@ body::before {
 }
 
 .pricing-card.popular {
-  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.25) 0%, rgba(5, 5, 10, 0.95) 100%) !important;
-  border-color: rgba(59, 130, 246, 0.6) !important;
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7), 0 0 50px rgba(37, 99, 235, 0.2) !important;
+  background: 
+    radial-gradient(circle at 18% 10%, rgba(205, 230, 255, 0.52) 0%, rgba(135, 185, 255, 0.35) 16%, transparent 48%),
+    radial-gradient(ellipse at 35% 16%, rgba(37, 99, 235, 0.72) 0%, rgba(29, 78, 216, 0.45) 44%, transparent 75%),
+    radial-gradient(ellipse at 85% 10%, rgba(30, 64, 175, 0.4) 0%, transparent 55%),
+    linear-gradient(180deg, #1d2d4a 0%, #142136 32%, #0e1625 65%, #070b13 100%) !important;
+  border: 1px solid rgba(165, 205, 255, 0.4) !important;
+  box-shadow: 
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.5),
+    inset 0 0 35px rgba(59, 130, 246, 0.22),
+    0 30px 70px -15px rgba(0, 0, 0, 0.75),
+    0 0 45px -5px rgba(37, 99, 235, 0.35) !important;
 }
 
-.pricing-card.popular::before {
+.pricing-card.popular::after {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 32px;
-  padding: 1.5px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.8));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  top: -25px;
+  left: -25px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(205, 232, 255, 0.55) 0%, rgba(96, 165, 250, 0.38) 32%, transparent 70%);
+  filter: blur(24px);
   pointer-events: none;
-  opacity: 0.8;
+  opacity: 1 !important;
+  z-index: 1;
+}
+
+.pricing-card.popular:hover {
+  background: 
+    radial-gradient(circle at 18% 10%, rgba(215, 235, 255, 0.6) 0%, rgba(145, 195, 255, 0.4) 16%, transparent 48%),
+    radial-gradient(ellipse at 35% 16%, rgba(37, 99, 235, 0.78) 0%, rgba(29, 78, 216, 0.5) 44%, transparent 75%),
+    radial-gradient(ellipse at 85% 10%, rgba(30, 64, 175, 0.45) 0%, transparent 55%),
+    linear-gradient(180deg, #1d2d4a 0%, #142136 32%, #0e1625 65%, #070b13 100%) !important;
+  transform: translateY(-16px) !important;
+  border-color: rgba(191, 219, 254, 0.6) !important;
+  box-shadow: 
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.7),
+    inset 0 0 45px rgba(59, 130, 246, 0.32),
+    0 35px 80px -15px rgba(0, 0, 0, 0.85),
+    0 0 65px -5px rgba(59, 130, 246, 0.5) !important;
+}
+
+.pricing-card.popular .pricing-btn.primary {
+  background: #ffffff !important;
+  color: #0b1120 !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.18), 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.pricing-card.popular .pricing-btn.primary:hover {
+  background: #f8fafc !important;
+  color: #020617 !important;
+  box-shadow: 0 14px 32px rgba(255, 255, 255, 0.28) !important;
+  transform: scale(1.02) !important;
+}
+
+.pricing-card.popular .pricing-tier-desc {
+  color: rgba(220, 235, 255, 0.75) !important;
+}
+
+.pricing-card.popular .pricing-period {
+  color: rgba(210, 230, 255, 0.6) !important;
+}
+
+.pricing-card.popular .pricing-feature-item {
+  color: rgba(240, 246, 255, 0.92) !important;
+}
+
+.pricing-card.popular .pricing-feature-item svg {
+  color: #93c5fd !important;
+  filter: drop-shadow(0 0 6px rgba(147, 197, 253, 0.65)) !important;
 }
 
 @media (max-width: 1024px) {
@@ -855,96 +938,85 @@ button:active {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
 }
-/* ─── Scrollbar azul profissional ─── */
-/* Firefox apenas (Chrome 121+ ignora ::-webkit-scrollbar se scrollbar-color estiver definido) */
-@supports not selector(::-webkit-scrollbar) {
-  html, * {
-    scrollbar-width: thin;
-    scrollbar-color: #3b82f6 #03050a;
-  }
-}
-/* ─── Barra de rolagem customizada da página (componente BlueScrollbar) ─── */
-html.blue-scrollbar-root {
-  scrollbar-width: none !important;
-}
-html.blue-scrollbar-root::-webkit-scrollbar,
-html.blue-scrollbar-root body::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-.blue-scrollbar-track {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 14px;
-  height: 100vh;
-  z-index: 99999;
-  background: transparent;
-  border: none;
-  opacity: 0.55;
-  transition: opacity 0.35s ease;
-}
-.blue-scrollbar-track:hover,
-.blue-scrollbar-track.is-active {
-  opacity: 1;
-}
-.blue-scrollbar-thumb {
-  position: absolute;
-  top: 0;
-  left: 3px;
-  right: 3px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #7dd3fc 0%, #3b82f6 45%, #1e40af 100%);
-  box-shadow:
-    inset 0 0 6px rgba(186, 230, 253, 0.55),
-    0 0 10px rgba(59, 130, 246, 0.55),
-    0 0 22px rgba(37, 99, 235, 0.35);
-  cursor: grab;
-  transition: left 0.2s ease, right 0.2s ease, box-shadow 0.25s ease, background 0.25s ease;
-  will-change: transform;
-}
-.blue-scrollbar-track:hover .blue-scrollbar-thumb {
-  left: 2px;
-  right: 2px;
-  background: linear-gradient(180deg, #bae6fd 0%, #60a5fa 45%, #2563eb 100%);
-  box-shadow:
-    inset 0 0 8px rgba(224, 242, 254, 0.7),
-    0 0 14px rgba(96, 165, 250, 0.8),
-    0 0 30px rgba(37, 99, 235, 0.5);
-}
-.blue-scrollbar-thumb.is-dragging {
-  cursor: grabbing;
-  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+
+/* ─── Our Working Flow Section Styles ─── */
+.title-gradient-accent {
+  background: linear-gradient(135deg, #70c4ff 0%, #2f82ff 55%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 16px rgba(47, 130, 255, 0.45));
 }
 
-/* Áreas internas com rolagem (Chrome/Safari/Edge) */
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-  background: #03050a;
+.card-border-glow {
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
-*::-webkit-scrollbar-track {
-  background: linear-gradient(180deg, #02040a 0%, #050a18 50%, #02040a 100%) !important;
-  border-left: 1px solid rgba(59, 130, 246, 0.12);
-  box-shadow: inset 1px 0 0 rgba(59, 130, 246, 0.06);
+
+.glow-card-1 {
+  background: 
+    radial-gradient(circle at 100% 55%, rgba(46, 122, 245, 0.55) 0%, rgba(20, 75, 180, 0.3) 35%, transparent 70%),
+    radial-gradient(circle at 40% 115%, rgba(65, 140, 255, 0.45) 0%, rgba(15, 60, 160, 0.25) 45%, transparent 75%),
+    #0b0f17;
 }
-*::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #7dd3fc 0%, #3b82f6 45%, #1e40af 100%) !important;
-  border-radius: 999px;
-  border: 3px solid #03050a;
-  background-clip: padding-box;
-  box-shadow: inset 0 0 6px rgba(186, 230, 253, 0.55);
+
+.glow-card-2 {
+  background: 
+    radial-gradient(circle at 35% 105%, rgba(56, 150, 255, 0.6) 0%, rgba(30, 95, 225, 0.35) 40%, transparent 70%),
+    radial-gradient(circle at 90% 90%, rgba(40, 110, 240, 0.35) 0%, transparent 60%),
+    #0b0f17;
 }
-*::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #bae6fd 0%, #60a5fa 45%, #2563eb 100%) !important;
-  background-clip: padding-box;
-  border-width: 2px;
+
+.glow-card-3 {
+  background: 
+    radial-gradient(circle at 95% 10%, rgba(165, 230, 255, 0.85) 0%, rgba(68, 150, 255, 0.75) 30%, rgba(10, 60, 190, 0.5) 60%, transparent 85%),
+    radial-gradient(circle at 5% 0%, rgba(50, 120, 240, 0.35) 0%, transparent 50%),
+    #0b0f17;
 }
-*::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
-  background-clip: padding-box;
+
+.emblem-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-*::-webkit-scrollbar-corner {
-  background: #03050a;
+
+.emblem-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(56, 145, 255, 0.7), transparent 70%) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ===== INFINITE GLASS CARDS MARQUEE ===== */
+@keyframes marquee-scroll-slow {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.marquee-glass-track {
+  display: flex;
+  width: max-content;
+  gap: 24px;
+  animation: marquee-scroll-slow 50s linear infinite;
+  will-change: transform;
+}
+
+.marquee-glass-track:hover {
+  animation-play-state: paused;
+}
+
+@media (max-width: 768px) {
+  .marquee-glass-track {
+    animation-duration: 38s;
+    gap: 16px;
+  }
 }

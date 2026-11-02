@@ -33,3 +33,8 @@ dist-ssr
 server/data/*.db*
 .vercel
 .env*
+
+# Temporary screenshots & visual references
+src/assets/ref-*
+src/assets/user-screenshot*
+src/assets/lasy-ref*
