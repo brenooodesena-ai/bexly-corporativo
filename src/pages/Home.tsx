@@ -7,7 +7,7 @@ import { ContainerScroll } from '../components/ui/container-scroll-animation';
 import logoIcon from '../assets/logo-bexly-one.png';
 
 import platformPreview from '../platform-preview.webp';
-import heroBg from '../assets/moldura-futurista-neon-azul.png';
+import heroGradientLight from '../assets/hero-gradient-light.jpg';
 
 import cardCubes from '../assets/card-cubes.webp';
 import cardPlates from '../assets/card-plates.webp';
@@ -321,29 +321,32 @@ const Home = () => {
     ];
 
     return (
-        <div className="home-container min-h-screen relative bg-black selection:bg-blue-500/30 overflow-x-clip">
+        <div className="home-container min-h-screen relative bg-white selection:bg-blue-500/30 overflow-x-clip">
             {/* Header com navegação desacoplada (zero re-render da página no scroll) */}
             <HeaderNavigation activeNav={activeNav} onNavClick={handleNavClick} />
 
-            {/* Fundo de luz suave do topo acelerado por GPU */}
-            <div className="hero-beams-container">
-                <div className="hero-beam-glow" />
+            {/* ─── EFEITO GRID BACKGROUND NO FUNDO DA PÁGINA (Com textura matte/fosca) ─── */}
+            <div className="bexly-page-grid-container" aria-hidden="true">
+                <div className="bexly-page-grid-pattern" />
+                <div className="bexly-page-grid-matte" />
+                <div className="bexly-hero-matte" />
             </div>
 
-            {/* ─── HERO BLOCK ─── Fundo Moldura Futurista com o scroll centralizado no lugar do texto ─── */}
-            <div id="vitrines" className="relative w-full overflow-hidden scroll-mt-24">
-                {/* Imagem de fundo exibida por inteiro, com transição suave na base para o preto */}
+            {/* ─── HERO BLOCK: Topo com gradiente azul/celeste transicionando para branco puro na base ─── */}
+            <div id="vitrines" className="relative w-full overflow-hidden scroll-mt-24 min-h-[960px] lg:min-h-[1020px] bg-transparent">
+                {/* Imagem de Fundo (enviada pelo usuário: topo escuro, arco azul celeste e transição para branco) */}
                 <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
                     <img
-                        src={heroBg}
+                        src={heroGradientLight}
                         alt=""
                         aria-hidden="true"
-                        className="w-full h-full object-cover object-center select-none"
+                        className="w-full h-full object-cover object-top select-none"
                     />
+                    {/* Transição suave na base garantindo que termine em branco puro */}
                     <div
                         className="absolute inset-0 pointer-events-none"
                         style={{
-                            background: 'linear-gradient(to bottom, transparent 0%, transparent 72%, rgba(0,0,0,0.85) 90%, #000000 100%)',
+                            background: 'linear-gradient(to bottom, transparent 0%, transparent 72%, rgba(255, 255, 255, 0.75) 88%, #ffffff 100%)',
                         }}
                     />
                 </div>
@@ -351,14 +354,15 @@ const Home = () => {
                 {/* Conteúdo Central: O scroll posicionado no lugar onde estava o texto */}
                 <main 
                     className="relative z-10 w-full overflow-hidden pb-20 sm:pb-28 md:pb-36 flex flex-col items-center justify-start"
-                    style={{ paddingTop: 'clamp(190px, 22vh, 230px)' }}
+                    style={{ paddingTop: 'clamp(152px, 17vh, 185px)' }}
                 >
                     <div className="w-full max-w-7xl mx-auto flex flex-col items-center justify-start px-4 relative">
                         <ContainerScroll
+                            spacerHeight="40px"
                             titleComponent={
                                 <div className="w-full flex flex-col items-center justify-center text-center">
                                     <h1 
-                                        className="w-full text-3xl sm:text-4xl md:text-5xl lg:text-[58px] tracking-[-0.03em] leading-[1.1] text-center select-none mb-2"
+                                        className="w-full text-3xl sm:text-4xl md:text-5xl lg:text-[54px] tracking-[-0.03em] leading-[1.15] text-center select-none"
                                         style={{
                                             fontWeight: 500,
                                             fontFamily: "'Inter', sans-serif",
@@ -368,27 +372,15 @@ const Home = () => {
                                             filter: 'drop-shadow(0 0 32px rgba(59, 130, 246, 0.35)) drop-shadow(0 0 10px rgba(147, 197, 253, 0.25))',
                                         }}
                                     >
-                                        Sua operação digital
+                                        Sua operação digital em outro nível
                                     </h1>
-                                    <p 
-                                        className="w-full text-lg sm:text-xl md:text-2xl lg:text-[30px] tracking-[-0.02em] font-normal text-center select-none"
-                                        style={{
-                                            fontFamily: "'Inter', sans-serif",
-                                            background: 'linear-gradient(90deg, #7db5fb 0%, #ffffff 35%, #ffffff 65%, #7db5fb 100%)',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                            filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.3))',
-                                        }}
-                                    >
-                                        Em outro nível.
-                                    </p>
                                 </div>
                             }
                         >
                             <img
                                 src={platformPreview}
                                 alt="Dashboard Preview"
-                                className="mx-auto rounded-2xl object-cover h-full object-left-top w-full"
+                                className="mx-auto rounded-2xl object-cover h-full object-left-top w-full shadow-2xl"
                                 draggable={false}
                             />
                         </ContainerScroll>
@@ -397,16 +389,10 @@ const Home = () => {
             </div>
             {/* ─── FIM DO HERO BLOCK ─── */}
 
-            {/* Features Showcase Section (Transição limpa sobre fundo preto profundo) */}
-            <section id="recursos" className="w-full relative z-20 pt-6 md:pt-10 pb-20 md:pb-28 overflow-hidden flex justify-center bg-black scroll-mt-24">
-                {/* Ambient Soft Glow Behind Section acelerado por GPU */}
-                <div 
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] pointer-events-none rounded-full"
-                    style={{ background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.12) 0%, transparent 70%)' }}
-                />
-
+            {/* Features Showcase Section */}
+            <section id="recursos" className="w-full relative z-20 pt-10 md:pt-16 pb-20 md:pb-28 overflow-hidden flex justify-center bg-transparent scroll-mt-24">
                 <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-start">
-                    {/* Section Header (Left-Aligned, No Pill Badge, Matching Screenshot) */}
+                    {/* Section Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -414,11 +400,11 @@ const Home = () => {
                         transition={{ duration: 0.6 }}
                         className="w-full flex flex-col items-start text-left mb-8 md:mb-10"
                     >
-                        <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-white tracking-tight leading-[1.18] mb-3 text-left">
+                        <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-slate-900 tracking-tight leading-[1.18] mb-3 text-left">
                             Tudo o que seu negócio <br className="hidden sm:inline" />
                             precisa para vender mais
                         </h2>
-                        <p className="text-sm sm:text-base text-slate-400 font-normal leading-relaxed max-w-2xl text-left">
+                        <p className="text-sm sm:text-base text-slate-600 font-normal leading-relaxed max-w-2xl text-left">
                             Potente por dentro, simples por fora. Você não precisa entender nada técnico.
                         </p>
                     </motion.div>
@@ -426,7 +412,7 @@ const Home = () => {
                     {/* Bento Grid: 2 Large Cards on Top */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full mb-5">
                         {/* Card 1: Fala como uma pessoa */}
-                        <div className="relative bg-gradient-to-br from-[#0b1324] via-[#0d162a] to-[#101b33] border border-slate-800/90 rounded-[22px] p-7 sm:p-8 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.35)] flex flex-col justify-start min-h-[250px]">
+                        <div className="relative bg-gradient-to-br from-[#0b1324] via-[#0d162a] to-[#101b33] border border-slate-800/90 rounded-[22px] p-7 sm:p-8 transition-all duration-300 shadow-[0_12px_36px_rgba(15,23,42,0.12)] flex flex-col justify-start min-h-[250px]">
                             <div className="w-11 h-11 rounded-xl bg-[#142138] border border-sky-400/20 text-sky-400 flex items-center justify-center mb-6">
                                 <Bot size={22} strokeWidth={2.2} />
                             </div>
@@ -439,7 +425,7 @@ const Home = () => {
                         </div>
 
                         {/* Card 2: Cobra dentro do chat */}
-                        <div className="relative bg-gradient-to-br from-[#0b1324] via-[#0d162a] to-[#101b33] border border-slate-800/90 rounded-[22px] p-7 sm:p-8 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.35)] flex flex-col justify-start min-h-[250px]">
+                        <div className="relative bg-gradient-to-br from-[#0b1324] via-[#0d162a] to-[#101b33] border border-slate-800/90 rounded-[22px] p-7 sm:p-8 transition-all duration-300 shadow-[0_12px_36px_rgba(15,23,42,0.12)] flex flex-col justify-start min-h-[250px]">
                             <div className="w-11 h-11 rounded-xl bg-[#142138] border border-sky-400/20 text-sky-400 flex items-center justify-center mb-6">
                                 <CreditCard size={22} strokeWidth={2.2} />
                             </div>
@@ -452,10 +438,10 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* Bento Grid: 4 Cards on Bottom (White Cards Matching Reference Photo) */}
+                    {/* Bento Grid: 4 Cards on Bottom (Design limpo sobre fundo branco) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
                         {/* Card 3: Tudo em um só lugar */}
-                        <div className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]">
+                        <div className="relative bg-slate-50/80 backdrop-blur-md rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-200/90 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-all min-h-[220px]">
                             <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
                                 <LayoutGrid size={22} strokeWidth={2.2} />
                             </div>
@@ -468,7 +454,7 @@ const Home = () => {
                         </div>
 
                         {/* Card 4: Envia o vendedor mais próximo */}
-                        <div className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]">
+                        <div className="relative bg-slate-50/80 backdrop-blur-md rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-200/90 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-all min-h-[220px]">
                             <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
                                 <MapPin size={22} strokeWidth={2.2} />
                             </div>
@@ -481,7 +467,7 @@ const Home = () => {
                         </div>
 
                         {/* Card 5: Insiste por você */}
-                        <div className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]">
+                        <div className="relative bg-slate-50/80 backdrop-blur-md rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-200/90 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-all min-h-[220px]">
                             <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
                                 <RotateCcw size={22} strokeWidth={2.2} />
                             </div>
@@ -494,7 +480,7 @@ const Home = () => {
                         </div>
 
                         {/* Card 6: Nota fiscal eletrônica */}
-                        <div className="relative bg-white rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] min-h-[220px]">
+                        <div className="relative bg-slate-50/80 backdrop-blur-md rounded-[22px] p-6 sm:p-7 flex flex-col justify-start border border-slate-200/90 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-all min-h-[220px]">
                             <div className="w-11 h-11 rounded-xl bg-[#edf5ff] border border-sky-100 text-sky-600 flex items-center justify-center mb-6">
                                 <FileText size={22} strokeWidth={2.2} />
                             </div>
@@ -510,11 +496,11 @@ const Home = () => {
             </section>
 
             {/* ─── SEÇÃO: Carrossel de Cards 3D (Passando devagar automaticamente) ─── */}
-            <section className="w-full relative z-20 pt-10 md:pt-16 pb-20 md:pb-28 overflow-hidden bg-black flex flex-col items-center">
+            <section className="w-full relative z-20 pt-10 md:pt-16 pb-20 md:pb-28 overflow-hidden bg-transparent flex flex-col items-center">
                 {/* Luz ambiente azul suave no fundo */}
                 <div 
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-[1100px] h-[380px] pointer-events-none"
-                    style={{ background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.09) 0%, transparent 70%)' }}
+                    style={{ background: 'radial-gradient(ellipse at center, rgba(0, 102, 255, 0.12) 0%, rgba(37, 99, 235, 0.06) 45%, transparent 70%)', filter: 'blur(50px)' }}
                 />
 
                 {/* Marquee Track com Fade Gradiente nas Laterais Esquerda e Direita */}
@@ -560,11 +546,17 @@ const Home = () => {
             </section>
 
             {/* ─── SEÇÃO: Our Working Flow (3 Cards com gradientes e emblemas) ─── */}
-            <section className="w-full relative z-20 py-20 md:py-32 overflow-hidden bg-black flex flex-col items-center justify-center">
+            <section className="w-full relative z-20 py-20 md:py-32 overflow-hidden bg-transparent flex flex-col items-center justify-center">
+                {/* Luz ambiente azul central */}
+                <div 
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[950px] h-[450px] pointer-events-none rounded-full"
+                    style={{ background: 'radial-gradient(ellipse at center, rgba(0, 102, 255, 0.12) 0%, rgba(37, 99, 235, 0.05) 45%, transparent 70%)', filter: 'blur(60px)' }}
+                />
+
                 {/* Conteúdo: Título e os 3 cards com efeitos de gradiente */}
                 <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 font-['Plus_Jakarta_Sans',sans-serif]">
                     <header className="mb-10 sm:mb-14 text-center">
-                        <h2 className="text-3xl sm:text-4xl md:text-[46px] font-extrabold tracking-tight text-white leading-tight inline-flex items-center justify-center flex-wrap">
+                        <h2 className="text-3xl sm:text-4xl md:text-[46px] font-extrabold tracking-tight text-slate-900 leading-tight inline-flex items-center justify-center flex-wrap">
                             <span>Our Wor</span>
                             <span className="title-gradient-accent">king</span>
                             <span>&nbsp;Flow</span>
@@ -635,8 +627,14 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Pricing Section (Limpo, sem fundo de vidro por trás dos cards) */}
-            <section id="precos" className="pricing-section w-full scroll-mt-24 relative overflow-hidden bg-black">
+            {/* Pricing Section (Limpo, integrado com o grid e luzes de fundo) */}
+            <section id="precos" className="pricing-section w-full scroll-mt-24 relative overflow-hidden bg-transparent">
+                {/* Luz ambiente azul suave no fundo da tabela de preços */}
+                <div 
+                    className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[1100px] max-w-[95vw] h-[550px] pointer-events-none rounded-full"
+                    style={{ background: 'radial-gradient(ellipse at center, rgba(0, 102, 255, 0.12) 0%, rgba(37, 99, 235, 0.06) 45%, transparent 70%)', filter: 'blur(70px)' }}
+                />
+
                 <div className="w-full max-w-7xl mx-auto px-6 flex flex-col items-center relative z-10">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -645,28 +643,28 @@ const Home = () => {
                         transition={{ duration: 0.6 }}
                         className="mb-10 text-center w-full flex flex-col items-center"
                     >
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+                        <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
                             Planos que cabem no seu negócio
                         </h2>
-                        <p className="text-slate-300 text-base md:text-lg max-w-2xl mx-auto text-center font-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                        <p className="text-slate-600 text-base md:text-lg max-w-2xl mx-auto text-center font-normal">
                             Escolha a melhor opção para impulsionar o seu atendimento com inteligência artificial.
                         </p>
                     </motion.div>
 
-                    {/* Toggle com pílula de vidro para máxima legibilidade */}
-                    <div className="flex items-center justify-center gap-4 mb-14 px-5 py-2.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-                        <span className={`text-sm font-medium transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-white/50'}`}>Mensal</span>
+                    {/* Toggle com estilo limpo e de alto contraste */}
+                    <div className="flex items-center justify-center gap-4 mb-14 px-5 py-2.5 rounded-full bg-slate-100 border border-slate-200/90 shadow-sm">
+                        <span className={`text-sm font-medium transition-colors ${billingCycle === 'monthly' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>Mensal</span>
                         <button 
                             onClick={() => setBillingCycle(prev => prev === 'monthly' ? 'annually' : 'monthly')}
-                            className="w-14 h-7 rounded-full bg-white/10 border border-white/15 p-1 flex items-center transition-all"
+                            className="w-14 h-7 rounded-full bg-slate-200 border border-slate-300/80 p-1 flex items-center transition-all"
                         >
                             <motion.div 
                                 animate={{ x: billingCycle === 'monthly' ? 0 : 28 }}
-                                className="w-5 h-5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.6)]"
+                                className="w-5 h-5 rounded-full bg-blue-600 shadow-[0_2px_8px_rgba(37,99,235,0.4)]"
                             />
                         </button>
-                        <span className={`text-sm font-medium transition-colors ${billingCycle === 'annually' ? 'text-white' : 'text-white/50'}`}>
-                            Trimestral <span className="ml-1 text-[0.6rem] bg-blue-500/25 text-blue-300 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold border border-blue-400/30">20% OFF</span>
+                        <span className={`text-sm font-medium transition-colors ${billingCycle === 'annually' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                            Trimestral <span className="ml-1 text-[0.6rem] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold border border-blue-200">20% OFF</span>
                         </span>
                     </div>
 
@@ -730,8 +728,11 @@ const Home = () => {
 
             {/* Corporate Footer (Estilo Lasy Expandido, Mais Alto e Bem Afastado do FAQ) */}
             <footer 
-                className="w-full relative z-20 pb-32 pt-36 sm:pt-44 md:pt-56 px-3 sm:px-6 lg:px-8 bg-transparent flex flex-col items-center justify-center"
-                style={{ marginTop: 'clamp(80px, 12vh, 180px)' }}
+                className="w-full relative z-20 pt-36 sm:pt-44 md:pt-56 px-3 sm:px-6 lg:px-8 bg-transparent flex flex-col items-center justify-center"
+                style={{ 
+                    marginTop: 'clamp(80px, 12vh, 180px)',
+                    paddingBottom: 'clamp(140px, 22vh, 260px)'
+                }}
             >
                 {/* Wrapper relativo com efeito de luz azul radiante no quadrado final */}
                 <div className="relative w-full max-w-[1380px] flex justify-center">
@@ -744,47 +745,28 @@ const Home = () => {
                         }}
                     />
 
-                    {/* Efeito de luz azul neon vibrante e pulsante embaixo do quadrado */}
-                    <div 
-                        className="absolute -bottom-14 left-1/2 -translate-x-1/2 w-[92%] max-w-[1200px] h-[190px] pointer-events-none -z-10"
-                        style={{
-                            background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.58) 0%, rgba(59, 130, 246, 0.32) 36%, rgba(37, 99, 235, 0.12) 60%, transparent 75%)',
-                            filter: 'blur(40px)',
-                        }}
-                    />
 
-                    {/* O quadrado do rodapé com estilo futurista e efeitos luminosos */}
+                    {/* O quadrado do rodapé com estilo futurista e efeitos luminosos perfeitamente alinhados à borda */}
                     <div 
-                        className="w-full rounded-[28px] sm:rounded-[36px] bg-[#07090e] border border-blue-500/25 relative overflow-hidden shadow-[0_0_60px_-15px_rgba(59,130,246,0.3)] flex flex-col"
+                        className="w-full rounded-[28px] sm:rounded-[36px] bg-[#07090e] border border-blue-500/30 relative overflow-hidden flex flex-col"
                         style={{
                             paddingTop: '36px',
                             paddingBottom: '28px',
                             paddingLeft: 'clamp(24px, 4vw, 56px)',
                             paddingRight: 'clamp(24px, 4vw, 56px)',
+                            boxShadow: '0 0 50px -10px rgba(59, 130, 246, 0.35), inset 0 2px 0 0 rgba(96, 165, 250, 0.9), inset 0 -2px 0 0 rgba(96, 165, 250, 0.9), inset 0 8px 18px -4px rgba(59, 130, 246, 0.35), inset 0 -8px 18px -4px rgba(59, 130, 246, 0.35)'
                         }}
                     >
-                        {/* Feixe laser luminoso neon no topo do quadrado */}
+                        {/* Linha de borda iluminada de alta definição perfeitamente acoplada à geometria e cantos do quadrado */}
                         <div 
-                            className="absolute top-0 inset-x-0 h-[2px] z-20 pointer-events-none"
+                            className="absolute inset-0 rounded-[28px] sm:rounded-[36px] pointer-events-none z-20"
                             style={{
-                                background: 'linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.25) 15%, rgba(96, 165, 250, 0.95) 50%, rgba(59, 130, 246, 0.25) 85%, transparent 100%)',
-                                boxShadow: '0 0 24px rgba(96, 165, 250, 0.8), 0 0 8px rgba(59, 130, 246, 0.9)'
-                            }}
-                        />
-
-                        {/* Luz ambiente interna azul sutil no topo do quadrado */}
-                        <div 
-                            className="absolute top-0 inset-x-0 h-[140px] pointer-events-none"
-                            style={{ 
-                                background: 'radial-gradient(ellipse at top center, rgba(59, 130, 246, 0.22) 0%, rgba(37, 99, 235, 0.06) 50%, transparent 75%)' 
-                            }}
-                        />
-
-                        {/* Luz ambiente interna azul sutil na base do quadrado */}
-                        <div 
-                            className="absolute bottom-0 inset-x-0 h-[100px] pointer-events-none"
-                            style={{ 
-                                background: 'radial-gradient(ellipse at bottom center, rgba(37, 99, 235, 0.22) 0%, rgba(59, 130, 246, 0.06) 50%, transparent 75%)' 
+                                border: '1.5px solid transparent',
+                                background: 'linear-gradient(180deg, rgba(96, 165, 250, 0.95) 0%, rgba(59, 130, 246, 0.3) 12%, transparent 32%, transparent 68%, rgba(59, 130, 246, 0.3) 88%, rgba(96, 165, 250, 0.95) 100%) border-box',
+                                WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+                                WebkitMaskComposite: 'xor',
+                                maskComposite: 'exclude',
+                                filter: 'drop-shadow(0 0 6px rgba(96, 165, 250, 0.6))',
                             }}
                         />
 
@@ -908,8 +890,13 @@ const FaqSection = React.memo(() => {
     return (
         <section 
             id="faq" 
-            className="w-full relative z-20 pt-16 md:pt-24 pb-36 md:pb-48 overflow-hidden bg-black scroll-mt-24"
+            className="w-full relative z-20 pt-16 md:pt-24 pb-36 md:pb-48 overflow-hidden bg-transparent scroll-mt-24"
         >
+            {/* Luz ambiente azul sutil atrás do FAQ */}
+            <div 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[450px] pointer-events-none rounded-full"
+                style={{ background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.10) 0%, rgba(0, 102, 255, 0.05) 35%, transparent 70%)', filter: 'blur(60px)' }}
+            />
             <div className="faq-wrapper relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

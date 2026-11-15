@@ -18,6 +18,7 @@
     "@paper-design/shaders": "^0.0.71",
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.12.69",
+    "@supabase/supabase-js": "^2.118.0",
     "axios": "^1.20.0",
     "better-sqlite3": "^13.0.3",
     "clsx": "^2.1.1",

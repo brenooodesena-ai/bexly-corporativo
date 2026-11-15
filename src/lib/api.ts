@@ -4,15 +4,38 @@
  */
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://bexly-api-bfo0.onrender.com/api' : '/api');
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
-    'x-organization-id': 'org_default',
   },
-  timeout: 10000,
+  timeout: 60000,
+});
+
+// Dynamic Interceptor: Automatically attaches authenticated user & organization identity
+apiClient.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const currentSessionStr = localStorage.getItem('bexly_current_user');
+    if (currentSessionStr) {
+      try {
+        const parsed = JSON.parse(currentSessionStr);
+        if (parsed.id) {
+          config.headers['x-user-id'] = parsed.id;
+        }
+        if (parsed.email) {
+          config.headers['x-user-email'] = parsed.email;
+        }
+        if (parsed.organization_id) {
+          config.headers['x-organization-id'] = parsed.organization_id;
+        }
+      } catch {
+        // Ignored
+      }
+    }
+  }
+  return config;
 });
 
 export const api = {
@@ -23,8 +46,8 @@ export const api = {
   },
 
   // Instagram
-  async getAuthUrl() {
-    const res = await apiClient.get('/instagram/auth-url');
+  async getAuthUrl(params?: { mode?: 'facebook' | 'instagram'; redirect_uri?: string }) {
+    const res = await apiClient.get('/instagram/auth-url', { params });
     return res.data;
   },
 
@@ -132,6 +155,22 @@ export const api = {
 
   async addLeadTag(id: string, tag: string) {
     const res = await apiClient.post(`/leads/${id}/tags`, { tag });
+    return res.data;
+  },
+
+  // Auth & Multi-Tenancy (Bexly Database sync)
+  async syncUser(userData: { id: string; email: string; name?: string }) {
+    const res = await apiClient.post('/auth/sync-user', userData);
+    return res.data;
+  },
+
+  async getCurrentUser() {
+    const res = await apiClient.get('/auth/me');
+    return res.data;
+  },
+
+  async getAdminUsers() {
+    const res = await apiClient.get('/auth/admin/users');
     return res.data;
   },
 };

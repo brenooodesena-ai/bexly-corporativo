@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import logotipo from '../assets/logo-bexly-one.png';
+import { useAuth } from '../context/AuthContext';
 import {
     LayoutDashboard,
     Layout as LayoutIcon,
@@ -13,7 +14,8 @@ import {
     Settings,
     LogOut,
     Bell,
-    Search
+    Search,
+    ShieldCheck
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -45,6 +47,21 @@ const SidebarItem = ({ to, icon: Icon, label }: SidebarItemProps) => (
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate();
+    const { user, dbUser, isAdmin, signOut } = useAuth();
+
+    const displayName = user?.user_metadata?.full_name || dbUser?.name || (isAdmin ? 'Breno Silva' : user?.email?.split('@')[0] || 'Usuário');
+    const displayRole = isAdmin ? 'Administrador' : 'Workspace Individual';
+    const initials = displayName
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p: string) => p[0]?.toUpperCase())
+        .join('') || (isAdmin ? 'BS' : 'US');
+
+    const handleLogout = async () => {
+        await signOut();
+        navigate('/login');
+    };
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
@@ -115,7 +132,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 </nav>
 
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={handleLogout}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -176,11 +193,37 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         </button>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingLeft: '20px', borderLeft: '1px solid var(--border-color)' }}>
                             <div style={{ textAlign: 'right' }}>
-                                <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>Breno Silva</p>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Administrador</p>
+                                <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                                    {displayName}
+                                </p>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '2px' }}>
+                                    {isAdmin && <ShieldCheck size={12} color="#3b82f6" />}
+                                    <p style={{
+                                        fontSize: '0.72rem',
+                                        color: isAdmin ? '#3b82f6' : 'var(--text-secondary)',
+                                        fontWeight: isAdmin ? 600 : 400,
+                                        margin: 0
+                                    }}>
+                                        {displayRole}
+                                    </p>
+                                </div>
                             </div>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, boxShadow: '0 0 15px rgba(59, 130, 246, 0.3)' }}>
-                                BS
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '12px',
+                                background: isAdmin
+                                    ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
+                                    : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                boxShadow: isAdmin ? '0 0 15px rgba(59, 130, 246, 0.3)' : 'none'
+                            }}>
+                                {initials}
                             </div>
                         </div>
                     </div>

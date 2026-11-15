@@ -14,6 +14,8 @@ export const config = {
 
   // Meta/Instagram — NEVER expose these to frontend
   get META_APP_ID() { return process.env.META_APP_ID || ''; },
+  get INSTAGRAM_APP_ID() { return process.env.INSTAGRAM_APP_ID || '1734960207599537'; },
+  get INSTAGRAM_APP_SECRET() { return process.env.INSTAGRAM_APP_SECRET || '1474c6eaa7396f0016fe59ecef4617c9'; },
   get META_APP_SECRET() { return process.env.META_APP_SECRET || ''; },
   get META_REDIRECT_URI() { return process.env.META_REDIRECT_URI || 'https://localhost:5173/integrations/instagram/callback'; },
   get META_VERIFY_TOKEN() { return process.env.META_VERIFY_TOKEN || ''; },

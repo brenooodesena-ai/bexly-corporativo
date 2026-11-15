@@ -17,6 +17,7 @@ import { instagramRouter } from './routes/instagram.js';
 import { automationsRouter } from './routes/automations.js';
 import { leadsRouter } from './routes/leads.js';
 import { healthRouter } from './routes/health.js';
+import { authRouter } from './routes/auth.js';
 import { logger } from './utils/logger.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -65,6 +66,7 @@ app.use(requestLogger);
 
 // ── Routes ──
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/webhooks', webhookRouter);
 app.use('/api/instagram', instagramRouter);
 app.use('/api/automations', automationsRouter);

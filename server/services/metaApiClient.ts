@@ -80,72 +80,124 @@ export type MessagingResult =
  *
  * Official flow: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/get-access-tokens-and-permissions
  */
-export function buildOAuthUrl(state: string): string {
+export interface BuildOAuthUrlOptions {
+  mode?: 'facebook' | 'instagram';
+  redirectUri?: string;
+}
+
+/**
+ * Build the Meta/Instagram OAuth authorization URL.
+ * Supports:
+ * - 'facebook' mode (Default): Uses https://www.facebook.com/v21.0/dialog/oauth with Meta App ID.
+ *   Matches the app configuration "Login do Facebook para Empresas" + "Gerenciar mensagens e conteúdo no Instagram".
+ * - 'instagram' mode: Uses https://www.instagram.com/oauth/authorize with direct Instagram credentials.
+ */
+export function buildOAuthUrl(state: string, options?: BuildOAuthUrlOptions): string {
   if (!isMetaConfigured()) {
     throw new Error('META_APP_ID, META_APP_SECRET, and META_REDIRECT_URI must be configured to use Instagram integration.');
   }
 
+  const redirectUri = options?.redirectUri || config.META_REDIRECT_URI;
+  const appId = config.META_APP_ID || '28710878855238960';
+  const instagramAppId = config.INSTAGRAM_APP_ID || '1734960207599537';
+  const mode = options?.mode || 'facebook';
+
+  if (mode === 'instagram') {
+    const params = new URLSearchParams({
+      force_authentication: '1',
+      client_id: instagramAppId,
+      redirect_uri: redirectUri,
+      scope: [
+        'instagram_business_basic',
+        'instagram_business_manage_messages',
+        'instagram_business_manage_comments',
+      ].join(','),
+      response_type: 'code',
+      state,
+    });
+    return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
+  }
+
+  // Official Facebook Login for Business dialog connecting Instagram Professional accounts
+  // Matches "Login do Facebook para Empresas" + "Gerenciar mensagens e conteúdo no Instagram"
   const params = new URLSearchParams({
-    enable_fb_login: '0',
-    force_authentication: '1',
-    client_id: config.META_APP_ID,
-    redirect_uri: config.META_REDIRECT_URI,
-    scope: [
-      'instagram_business_basic',
-      'instagram_business_manage_messages',
-      'instagram_business_manage_comments',
-    ].join(','),
+    client_id: appId,
+    redirect_uri: redirectUri,
     response_type: 'code',
+    scope: [
+      'instagram_basic',
+      'instagram_manage_comments',
+      'instagram_manage_messages',
+      'pages_show_list',
+      'pages_read_engagement',
+      'pages_manage_metadata',
+      'business_management',
+    ].join(','),
     state,
   });
 
-  return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
+  return `https://www.facebook.com/${config.META_API_VERSION}/dialog/oauth?${params.toString()}`;
 }
 
 /**
  * Exchange the authorization code for an access token.
- * Tries both https://api.instagram.com/oauth/access_token and https://graph.facebook.com/v21.0/oauth/access_token
+ * Tries both https://graph.facebook.com/v21.0/oauth/access_token and https://api.instagram.com/oauth/access_token
  */
-export async function exchangeCodeForToken(code: string): Promise<MetaTokenResponse> {
+export async function exchangeCodeForToken(code: string, customRedirectUri?: string): Promise<MetaTokenResponse> {
   assertMetaConfigured();
 
+  let redirectUri = customRedirectUri || config.META_REDIRECT_URI;
+  if (!redirectUri || redirectUri.startsWith('http://localhost') || redirectUri.startsWith('http://127.0.0.1')) {
+    redirectUri = config.META_REDIRECT_URI || 'https://bexly-two.vercel.app/integrations/instagram/callback';
+  }
+  const appId = config.META_APP_ID || '28710878855238960';
+
   const params = new URLSearchParams({
-    client_id: config.META_APP_ID,
+    client_id: appId,
     client_secret: config.META_APP_SECRET,
     grant_type: 'authorization_code',
-    redirect_uri: config.META_REDIRECT_URI,
+    redirect_uri: redirectUri,
     code,
   });
 
-  // Try 1: Instagram Login for Business endpoint
-  try {
-    const response = await axios.post<MetaTokenResponse>(
-      `${OAUTH_BASE}/access_token`,
-      params.toString(),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 12000 }
-    );
-    return response.data;
-  } catch (err: any) {
-    logger.warn(`Instagram OAuth token exchange failed on ${OAUTH_BASE}/access_token: ${err.message}. Trying Facebook Graph API...`);
-  }
-
-  // Try 2: Facebook Graph API oauth endpoint
+  // Try 1: Facebook Graph API oauth endpoint (Primary for Facebook Login for Business)
   try {
     const fbResponse = await axios.get<MetaTokenResponse>(
       `https://graph.facebook.com/${config.META_API_VERSION}/oauth/access_token`,
       {
         params: {
-          client_id: config.META_APP_ID,
+          client_id: appId,
           client_secret: config.META_APP_SECRET,
-          redirect_uri: config.META_REDIRECT_URI,
+          redirect_uri: redirectUri,
           code,
         },
         timeout: 12000,
       }
     );
-    return fbResponse.data;
+    if (fbResponse.data && fbResponse.data.access_token) {
+      return fbResponse.data;
+    }
   } catch (fbErr: any) {
-    throw translateMetaError(fbErr, 'exchangeCodeForToken');
+    logger.warn(`Facebook Graph API oauth token exchange failed: ${fbErr.response?.data?.error?.message || fbErr.message}. Trying Instagram OAuth endpoint...`);
+  }
+
+  // Try 2: Instagram Login for Business endpoint
+  try {
+    const igParams = new URLSearchParams({
+      client_id: config.INSTAGRAM_APP_ID || '1734960207599537',
+      client_secret: config.INSTAGRAM_APP_SECRET || '1474c6eaa7396f0016fe59ecef4617c9',
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri,
+      code,
+    });
+    const response = await axios.post<MetaTokenResponse>(
+      `https://api.instagram.com/oauth/access_token`,
+      igParams.toString(),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 12000 }
+    );
+    return response.data;
+  } catch (err: any) {
+    throw translateMetaError(err, 'exchangeCodeForToken');
   }
 }
 

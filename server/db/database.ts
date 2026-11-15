@@ -34,10 +34,18 @@ export async function initializeDatabase(): Promise<void> {
 
   runMigrations();
 
-  // Ensure default organization exists
+  // Ensure default/admin organization exists (dedicated to admin Breno)
   db.prepare(`
-    INSERT OR IGNORE INTO organizations (id, name, plan)
-    VALUES ('org_default', 'Bexly Workspace', 'pro')
+    INSERT INTO organizations (id, name, plan)
+    VALUES ('org_default', 'Bexly Admin Workspace', 'enterprise')
+    ON CONFLICT(id) DO UPDATE SET name = 'Bexly Admin Workspace', plan = 'enterprise'
+  `).run();
+
+  // Ensure admin user exists for brenooodesena@gmail.com
+  db.prepare(`
+    INSERT INTO users (id, email, name, role, organization_id)
+    VALUES ('usr_admin_breno', 'brenooodesena@gmail.com', 'Breno Silva', 'admin', 'org_default')
+    ON CONFLICT(email) DO UPDATE SET role = 'admin', organization_id = 'org_default'
   `).run();
 
   logger.info(`Database initialized: ${dbPath}`);
@@ -49,6 +57,7 @@ function runMigrations(): void {
     migration_002_automation_engine,
     migration_003_attribution,
     migration_004_media_cache,
+    migration_005_users,
   ];
 
   for (const migration of migrations) {
@@ -355,5 +364,23 @@ function migration_004_media_cache(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_media_cache_user ON instagram_media_cache(instagram_user_id);
     CREATE INDEX IF NOT EXISTS idx_media_cache_story ON instagram_media_cache(is_story);
     CREATE INDEX IF NOT EXISTS idx_media_cache_time ON instagram_media_cache(timestamp);
+  `);
+}
+
+// ── Migration 005: Multi-Tenant Users & Admin Partitioning ──
+function migration_005_users(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      name TEXT,
+      role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('admin', 'user')),
+      organization_id TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_users_org ON users(organization_id);
   `);
 }

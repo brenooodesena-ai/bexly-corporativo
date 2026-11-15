@@ -5,9 +5,11 @@ import { useScroll, useTransform, motion, MotionValue } from "framer-motion";
 export const ContainerScroll = ({
   titleComponent,
   children,
+  spacerHeight = '16px',
 }: {
   titleComponent?: string | React.ReactNode;
   children: React.ReactNode;
+  spacerHeight?: string | number;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -47,7 +49,11 @@ export const ContainerScroll = ({
         }}
       >
         {titleComponent && <Header titleComponent={titleComponent} />}
-        <div style={{ height: '42px' }} className="w-full shrink-0 pointer-events-none" aria-hidden="true" />
+        <div 
+          style={{ height: typeof spacerHeight === 'number' ? `${spacerHeight}px` : spacerHeight }} 
+          className="w-full shrink-0 pointer-events-none" 
+          aria-hidden="true" 
+        />
         <Card rotate={rotate} scale={scale}>
           {children}
         </Card>

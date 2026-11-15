@@ -10,8 +10,46 @@ export default function InstagramCallback() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    const accParam = searchParams.get('acc');
+    if (accParam) {
+      try {
+        const parsedAcc = JSON.parse(decodeURIComponent(accParam));
+        const userRaw = localStorage.getItem('bexly_current_user');
+        const currentUserId = userRaw ? JSON.parse(userRaw)?.id : 'guest';
+        const prefix = `bexly_u_${currentUserId}_`;
+
+        localStorage.setItem('bexly_ig_account', JSON.stringify(parsedAcc));
+        localStorage.setItem(`${prefix}ig_account`, JSON.stringify(parsedAcc));
+        if (parsedAcc.accessToken) {
+          localStorage.setItem('bexly_meta_access_token', parsedAcc.accessToken);
+          localStorage.setItem(`${prefix}meta_access_token`, parsedAcc.accessToken);
+        }
+        setStatus('success');
+        setTimeout(() => {
+          navigate('/marketing?connected=true');
+        }, 1200);
+        return;
+      } catch (err) {
+        console.warn('Erro ao processar conta recebida:', err);
+      }
+    }
+
     const code = searchParams.get('code');
     const state = searchParams.get('state');
+
+    // 1. If this OAuth flow was initiated from localhost, bounce back to localhost immediately
+    if (state && code) {
+      try {
+        const decoded = JSON.parse(atob(state));
+        if (decoded.origin && decoded.origin.includes('localhost') && !window.location.origin.includes('localhost')) {
+          window.location.href = `${decoded.origin}/integrations/instagram/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+          return;
+        }
+      } catch (e) {
+        console.warn('Erro ao decodificar state:', e);
+      }
+    }
+
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
@@ -31,10 +69,33 @@ export default function InstagramCallback() {
       try {
         const res = await api.handleCallback(code!, state || undefined);
         if (res && res.success && res.account) {
+          const userRaw = localStorage.getItem('bexly_current_user');
+          const currentUserId = userRaw ? JSON.parse(userRaw)?.id : 'guest';
+          const prefix = `bexly_u_${currentUserId}_`;
+
           localStorage.setItem('bexly_ig_account', JSON.stringify(res.account));
+          localStorage.setItem(`${prefix}ig_account`, JSON.stringify(res.account));
           if (res.account.accessToken) {
             localStorage.setItem('bexly_meta_access_token', res.account.accessToken);
+            localStorage.setItem(`${prefix}meta_access_token`, res.account.accessToken);
           }
+
+          // If the OAuth flow was triggered from localhost, bounce back to localhost seamlessly
+          let targetOrigin = '';
+          if (state) {
+            try {
+              const decoded = JSON.parse(atob(state));
+              if (decoded.origin && decoded.origin.includes('localhost')) {
+                targetOrigin = decoded.origin;
+              }
+            } catch {}
+          }
+
+          if (targetOrigin && window.location.origin !== targetOrigin) {
+            window.location.href = `${targetOrigin}/integrations/instagram/callback?acc=${encodeURIComponent(JSON.stringify(res.account))}`;
+            return;
+          }
+
           setStatus('success');
           setTimeout(() => {
             navigate('/marketing?connected=true');

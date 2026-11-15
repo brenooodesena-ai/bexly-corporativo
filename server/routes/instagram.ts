@@ -17,11 +17,12 @@ import {
 import { encryptToken, decryptToken } from '../services/tokenEncryption.js';
 import { isMetaConfigured } from '../config/index.js';
 import { logger } from '../utils/logger.js';
+import { resolveTenant } from '../middleware/auth.js';
 
 export const instagramRouter = Router();
 
 function getOrgId(req: Request): string {
-  return (req.headers['x-organization-id'] as string) || 'org_default';
+  return resolveTenant(req).organizationId;
 }
 
 /**
@@ -38,10 +39,27 @@ instagramRouter.get('/auth-url', (req: Request, res: Response) => {
     }
 
     const orgId = getOrgId(req);
-    const state = Buffer.from(JSON.stringify({ orgId, timestamp: Date.now() })).toString('base64');
-    const url = buildOAuthUrl(state);
+    const mode = (req.query.mode as 'facebook' | 'instagram') || 'instagram';
+    let clientRedirect = (req.query.redirect_uri as string) || (req.headers.origin ? `${req.headers.origin}/integrations/instagram/callback` : undefined);
 
-    res.json({ url, state });
+    // Instagram OAuth strictly requires an HTTPS callback URL; unencrypted http:// (e.g. localhost) causes 'Invalid redirect_uri'
+    if (!clientRedirect || clientRedirect.startsWith('http://localhost') || clientRedirect.startsWith('http://127.0.0.1')) {
+      clientRedirect = config.META_REDIRECT_URI || 'https://bexly-two.vercel.app/integrations/instagram/callback';
+    }
+
+    const stateObj = {
+      orgId,
+      redirectUri: clientRedirect,
+      mode,
+      timestamp: Date.now(),
+    };
+    const state = Buffer.from(JSON.stringify(stateObj)).toString('base64');
+    const url = buildOAuthUrl(state, {
+      mode,
+      redirectUri: clientRedirect,
+    });
+
+    res.json({ url, state, mode });
   } catch (error: any) {
     logger.error('Erro ao gerar URL de autorização OAuth:', error);
     res.status(500).json({
@@ -63,18 +81,21 @@ instagramRouter.post('/callback', async (req: Request, res: Response) => {
   }
 
   let orgId = getOrgId(req);
+  let customRedirectUri: string | undefined;
+
   if (state) {
     try {
       const parsed = JSON.parse(Buffer.from(state, 'base64').toString('utf8'));
       if (parsed.orgId) orgId = parsed.orgId;
+      if (parsed.redirectUri) customRedirectUri = parsed.redirectUri;
     } catch {
       // ignore invalid state decode
     }
   }
 
   try {
-    // 1. Exchange code for short-lived token
-    const shortTokenRes = await exchangeCodeForToken(code);
+    // 1. Exchange code for short-lived token using matching redirect_uri
+    const shortTokenRes = await exchangeCodeForToken(code, customRedirectUri);
 
     // 2. Exchange for long-lived token (60 days)
     const longTokenRes = await getLongLivedToken(shortTokenRes.access_token);

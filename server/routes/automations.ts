@@ -6,11 +6,12 @@ import { randomUUID } from 'crypto';
 import { getDb } from '../db/database.js';
 import { automationEngine } from '../services/automationEngine.js';
 import { logger } from '../utils/logger.js';
+import { resolveTenant } from '../middleware/auth.js';
 
 export const automationsRouter = Router();
 
 function getOrgId(req: Request): string {
-  return (req.headers['x-organization-id'] as string) || 'org_default';
+  return resolveTenant(req).organizationId;
 }
 
 /**

@@ -4,11 +4,12 @@
 import { Router, Request, Response } from 'express';
 import { getDb } from '../db/database.js';
 import { leadService } from '../services/leadService.js';
+import { resolveTenant } from '../middleware/auth.js';
 
 export const leadsRouter = Router();
 
 function getOrgId(req: Request): string {
-  return (req.headers['x-organization-id'] as string) || 'org_default';
+  return resolveTenant(req).organizationId;
 }
 
 /**

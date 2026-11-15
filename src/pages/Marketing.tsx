@@ -292,48 +292,29 @@ export default function Marketing() {
                         {/* CTA Buttons */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '420px', alignItems: 'center' }}>
                             <button
-                                onClick={reconnectInstagram}
+                                onClick={() => reconnectInstagram(undefined, 'instagram')}
                                 style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                                    padding: '14px 32px', borderRadius: '14px', border: 'none', cursor: 'pointer',
+                                    padding: '14px 28px', borderRadius: '14px', border: 'none', cursor: 'pointer',
                                     background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)',
                                     color: '#ffffff', fontWeight: 700, fontSize: '0.95rem',
                                     boxShadow: '0 8px 32px rgba(168,85,247,0.45)',
                                     transition: 'all 0.2s', width: '100%'
                                 }}
+                                title="Login direto com credenciais oficiais do Instagram"
                             >
-                                <Instagram size={18} />
+                                <Instagram size={19} />
                                 Conectar com Instagram (Login Oficial)
                             </button>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', margin: '4px 0' }}>
                                 <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
-                                <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ou conexão direta</span>
+                                <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ou conexão direta sem burocracia</span>
                                 <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
                             </div>
 
                             {/* Direct connection buttons */}
                             <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                                {!showTokenInput && (
-                                    <button
-                                        onClick={() => {
-                                            setShowTokenInput(true);
-                                            setShowDirectInput(false);
-                                        }}
-                                        style={{
-                                            flex: 1,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                                            padding: '10px 14px', borderRadius: '12px',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            color: '#cbd5e1', fontSize: '0.78rem', fontWeight: 600,
-                                            cursor: 'pointer', transition: 'all 0.15s'
-                                        }}
-                                    >
-                                        <Sparkles size={13} color="#38bdf8" />
-                                        Via Token Meta
-                                    </button>
-                                )}
                                 {!showDirectInput && (
                                     <button
                                         onClick={() => {
@@ -343,15 +324,33 @@ export default function Marketing() {
                                         style={{
                                             flex: 1,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                                            padding: '10px 14px', borderRadius: '12px',
+                                            padding: '11px 16px', borderRadius: '12px',
+                                            backgroundColor: 'rgba(168, 85, 247, 0.12)',
+                                            border: '1px solid rgba(168, 85, 247, 0.35)',
+                                            color: '#e9d5ff', fontSize: '0.82rem', fontWeight: 600,
+                                            cursor: 'pointer', transition: 'all 0.15s'
+                                        }}
+                                    >
+                                        <Users size={14} color="#c084fc" />
+                                        Vincular @username agora (Instantâneo)
+                                    </button>
+                                )}
+                                {!showTokenInput && (
+                                    <button
+                                        onClick={() => {
+                                            setShowTokenInput(true);
+                                            setShowDirectInput(false);
+                                        }}
+                                        style={{
+                                            padding: '11px 16px', borderRadius: '12px',
                                             backgroundColor: 'rgba(255, 255, 255, 0.04)',
                                             border: '1px solid rgba(255, 255, 255, 0.1)',
                                             color: '#cbd5e1', fontSize: '0.78rem', fontWeight: 600,
                                             cursor: 'pointer', transition: 'all 0.15s'
                                         }}
                                     >
-                                        <Users size={13} color="#a78bfa" />
-                                        Vincular @username
+                                        <Sparkles size={13} color="#38bdf8" />
+                                        Token Meta
                                     </button>
                                 )}
                             </div>
@@ -1639,7 +1638,7 @@ export default function Marketing() {
                         </div>
 
                         <button
-                            onClick={reconnectInstagram}
+                            onClick={() => reconnectInstagram()}
                             style={{
                                 width: '100%',
                                 padding: '12px',
