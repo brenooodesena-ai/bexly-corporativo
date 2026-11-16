@@ -335,7 +335,7 @@ const Home = () => {
                 {/* Conteúdo Central: O scroll posicionado no lugar onde estava o texto */}
                 <main 
                     className="relative z-10 w-full overflow-hidden pb-20 sm:pb-28 md:pb-36 flex flex-col items-center justify-start"
-                    style={{ paddingTop: 'clamp(152px, 17vh, 185px)' }}
+                    style={{ paddingTop: 'clamp(134px, 15vh, 165px)' }}
                 >
                     <div className="w-full max-w-7xl mx-auto flex flex-col items-center justify-start px-4 relative">
                         <ContainerScroll
