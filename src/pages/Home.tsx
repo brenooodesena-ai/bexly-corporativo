@@ -79,7 +79,7 @@ const NavIsland = ({
     return (
         <nav className="bexly-island-nav relative w-full h-[54px] md:h-[56px] flex items-center justify-between">
             {/* Lado Esquerdo: Logo Bexly com recuo confortável para não colar na curva */}
-            <div className="flex items-center flex-shrink-0 pl-7 sm:pl-9 md:pl-10">
+            <div className="flex items-center flex-shrink-0 pl-10 sm:pl-14 md:pl-16">
                 <Link to="/" className="flex items-center justify-center" aria-label="Bexly Início">
                     <img
                         src={logoIcon}
@@ -111,7 +111,7 @@ const NavIsland = ({
             </div>
 
             {/* Lado Direito: Login + Botão Começar agora com efeito azul e branco */}
-            <div className="flex items-center gap-4 sm:gap-5 flex-shrink-0 pr-6 sm:pr-8 md:pr-10">
+            <div className="flex items-center gap-4 sm:gap-5 flex-shrink-0 pr-10 sm:pr-14 md:pr-16">
                 <Link 
                     to="/login" 
                     className="text-[0.875rem] font-medium text-white/75 hover:text-white transition-all"
