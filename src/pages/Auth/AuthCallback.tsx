@@ -24,28 +24,40 @@ const AuthCallback: React.FC = () => {
           const intent = sessionStorage.getItem('bexly_auth_intent') || 'login';
           sessionStorage.removeItem('bexly_auth_intent');
 
-          const isAccountRegistered = Boolean(sessionUser.user_metadata?.bexly_account_created);
+          const isAdminUser = sessionUser.email === 'brenooodesena@gmail.com';
+          const isAccountRegistered = Boolean(sessionUser.user_metadata?.bexly_account_created) || isAdminUser;
           const createdAt = new Date(sessionUser.created_at).getTime();
           const now = Date.now();
           // Conta recém-criada neste exato OAuth (menos de 25 segundos atrás)
           const isBrandNewAccount = Math.abs(now - createdAt) < 25000;
 
-          if (intent === 'signup') {
-            // Fluxo de Cadastro: marcamos o usuário como registrado oficialmente e criamos seu tenant no banco
+          const saveUserLocally = (dbUserResult?: any) => {
+            const fallbackUser = {
+              id: sessionUser.id,
+              email: sessionUser.email,
+              name: sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'Usuário',
+              role: isAdminUser ? 'admin' : 'user',
+              organization_id: isAdminUser ? 'org_default' : `org_${sessionUser.id.slice(0, 12)}`,
+            };
+            const finalUser = dbUserResult?.user || fallbackUser;
+            localStorage.setItem('bexly_current_user', JSON.stringify(finalUser));
+          };
+
+          if (intent === 'signup' || isAdminUser) {
+            // Fluxo de Cadastro ou Admin: marcamos o usuário como registrado oficialmente e criamos seu tenant no banco
             await supabase.auth.updateUser({
               data: { bexly_account_created: true },
-            });
+            }).catch(() => {});
             try {
               const res = await api.syncUser({
                 id: sessionUser.id,
                 email: sessionUser.email,
                 name: sessionUser.user_metadata?.full_name,
               });
-              if (res?.user) {
-                localStorage.setItem('bexly_current_user', JSON.stringify(res.user));
-              }
+              saveUserLocally(res);
             } catch (err) {
               console.error('[AuthCallback] Erro ao sincronizar usuário no banco Bexly:', err);
+              saveUserLocally();
             }
             if (isMounted) {
               navigate('/dashboard', { replace: true });
@@ -68,11 +80,10 @@ const AuthCallback: React.FC = () => {
                 email: sessionUser.email,
                 name: sessionUser.user_metadata?.full_name,
               });
-              if (res?.user) {
-                localStorage.setItem('bexly_current_user', JSON.stringify(res.user));
-              }
+              saveUserLocally(res);
             } catch (err) {
               console.error('[AuthCallback] Erro ao sincronizar usuário no banco Bexly:', err);
+              saveUserLocally();
             }
             if (isMounted) {
               navigate('/dashboard', { replace: true });
