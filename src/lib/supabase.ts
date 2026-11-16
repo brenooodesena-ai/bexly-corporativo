@@ -19,3 +19,31 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
   },
 });
+
+export async function syncAutomationsToCloud(account: any, automations: any[]) {
+  const token = account?.accessToken || (typeof window !== 'undefined' ? localStorage.getItem('bexly_meta_access_token') : null);
+  if (!account || !token) return;
+
+  try {
+    const accId = account.id || account.instagramUserId || 'default';
+    await fetch(`${supabaseUrl}/rest/v1/bexly_automations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        id: String(accId),
+        instagram_user_id: String(account.instagramUserId || accId),
+        username: account.username || 'instagram_user',
+        access_token: token,
+        rules: automations,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch (err) {
+    console.warn('[Sync] Erro ao sincronizar regras no Supabase:', err);
+  }
+}

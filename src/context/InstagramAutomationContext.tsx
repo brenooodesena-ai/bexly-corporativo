@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from './AuthContext';
+import { syncAutomationsToCloud } from '../lib/supabase';
 import type {
     InstagramAccount,
     InstagramPost,
@@ -351,8 +352,11 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
     useEffect(() => {
         if (automations.length > 0) {
             localStorage.setItem(getKey('ig_automations'), JSON.stringify(automations));
+            if (account) {
+                syncAutomationsToCloud(account, automations);
+            }
         }
-    }, [automations, getKey]);
+    }, [automations, account, getKey]);
 
     useEffect(() => {
         if (leads.length > 0) {
