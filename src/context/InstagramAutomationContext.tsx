@@ -428,7 +428,7 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             // Instagram OAuth strictly rejects http:// protocols (such as localhost). Always use a secure HTTPS callback.
             const redirectUri = customRedirect || (window.location.protocol === 'https:'
                 ? `${window.location.origin}/integrations/instagram/callback`
-                : 'https://bexly-two.vercel.app/integrations/instagram/callback');
+                : 'https://bexly.com.br/integrations/instagram/callback');
 
             try {
                 const data = await api.getAuthUrl({ mode, redirect_uri: redirectUri });
