@@ -115,15 +115,16 @@ body::before {
 /* Island Dock Navigation (Design flutuante em azul escuro com efeitos sutis de luz branca) */
 .bexly-island-nav {
   position: relative;
-  height: 54px;
+  height: 62px;
+  padding: 0 44px;
   background: linear-gradient(180deg, #0e1738 0%, #060c20 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-top: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow: 
-    0 14px 30px -8px rgba(0, 0, 0, 0.75),
+    0 14px 32px -8px rgba(0, 0, 0, 0.75),
     0 0 20px -4px rgba(30, 58, 138, 0.25),
     inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
-  border-radius: 18px;
+  border-radius: 22px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   transform: translateZ(0);
@@ -132,8 +133,9 @@ body::before {
 
 @media (min-width: 768px) {
   .bexly-island-nav {
-    height: 56px;
-    border-radius: 20px;
+    height: 64px;
+    padding: 0 48px;
+    border-radius: 22px;
   }
 }
 
@@ -455,9 +457,10 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 22px;
-  font-size: 0.85rem;
+  padding: 8px 24px;
+  font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.25;
   border-radius: 9999px;
   color: #1e3a8a;
   background: radial-gradient(circle at 50% 30%, #60a5fa 0%, #93c5fd 40%, #bfdbfe 75%, #dbeafe 100%);

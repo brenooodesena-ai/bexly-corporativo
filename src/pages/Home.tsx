@@ -68,7 +68,7 @@ const NAV_ITEMS: NavItem[] = [
     { id: 'faq', label: 'Perguntas', targetId: 'faq' },
 ];
 
-// Componente de navegação em ilha flutuante estilo moderno (Dock mais fino e elegante)
+// Componente de navegação em ilha flutuante estilo moderno (Dock)
 const NavIsland = ({
     activeNav,
     onNavClick,
@@ -77,20 +77,24 @@ const NavIsland = ({
     onNavClick: (id: string) => void;
 }) => {
     return (
-        <nav className="bexly-island-nav relative w-full h-[54px] md:h-[56px] flex items-center justify-between">
-            {/* Lado Esquerdo: Logo Bexly com recuo confortável para não colar na curva */}
-            <div className="flex items-center flex-shrink-0 pl-10 sm:pl-14 md:pl-16">
+        <nav 
+            className="bexly-island-nav relative w-full flex items-center justify-between"
+            style={{ paddingLeft: '48px', paddingRight: '48px' }}
+        >
+            {/* Lado Esquerdo: Logo Bexly com recuo confortável e centralizada */}
+            <div className="flex items-center flex-shrink-0">
                 <Link to="/" className="flex items-center justify-center" aria-label="Bexly Início">
                     <img
                         src={logoIcon}
                         alt="Bexly"
-                        className="h-[25px] sm:h-[28px] w-auto object-contain block select-none"
+                        style={{ height: '32px', width: 'auto', display: 'block' }}
+                        className="object-contain select-none"
                     />
                 </Link>
             </div>
 
             {/* Centro: Links de Navegação Originais */}
-            <div className="hidden md:flex items-center gap-6 lg:gap-8 absolute left-1/2 -translate-x-1/2">
+            <div className="hidden md:flex items-center gap-7 lg:gap-8 absolute left-1/2 -translate-x-1/2">
                 {NAV_ITEMS.map((item) => {
                     const isActive = activeNav === item.id;
                     return (
@@ -110,18 +114,19 @@ const NavIsland = ({
                 })}
             </div>
 
-            {/* Lado Direito: Login + Botão Começar agora com efeito azul e branco */}
-            <div className="flex items-center gap-4 sm:gap-5 flex-shrink-0 pr-10 sm:pr-14 md:pr-16">
+            {/* Lado Direito: Login + Botão Começar agora com efeito azul e branco centralizado */}
+            <div className="flex items-center gap-5 sm:gap-6 flex-shrink-0">
                 <Link 
                     to="/login" 
                     className="text-[0.875rem] font-medium text-white/75 hover:text-white transition-all"
                 >
                     Login
                 </Link>
-                <Link to="/signup">
-                    <button className="glow-pill-button">
-                        Começar agora
-                    </button>
+                <Link 
+                    to="/signup"
+                    className="glow-pill-button"
+                >
+                    Começar agora
                 </Link>
             </div>
         </nav>
