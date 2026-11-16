@@ -260,70 +260,121 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
         }
     };
 
-    // Fetch connected Instagram account from backend for current tenant
+    // Fetch connected Instagram account from backend or persistent cloud storage
     const refreshAccount = async () => {
         setAccountLoading(true);
         try {
-            const data = await api.getAccounts();
-            const rawAccounts: any[] = Array.isArray(data) ? data : data?.accounts || [];
-            const raw = rawAccounts.find((a: any) => (a.connectionStatus === 'connected' || a.connection_status === 'connected')) || rawAccounts[0] || null;
-            if (raw) {
-                const acc: InstagramAccount = {
-                    id: raw.id,
-                    username: raw.username,
-                    name: raw.name || raw.username,
-                    profilePictureUrl: raw.profilePictureUrl || raw.profile_picture_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
-                    followersCount: raw.followersCount ?? raw.followers_count ?? 0,
-                    mediaCount: raw.mediaCount ?? raw.media_count ?? 0,
-                    connectionStatus: raw.connectionStatus || raw.connection_status || 'connected',
-                    tokenExpiresAt: raw.tokenExpiresAt || raw.token_expires_at || '',
-                    connectedAt: raw.connectedAt || raw.connected_at || new Date().toISOString(),
-                    instagramBusinessId: raw.instagramBusinessId || raw.instagram_user_id || raw.id
-                };
-                setAccount(acc);
-                localStorage.setItem(getKey('ig_account'), JSON.stringify(acc));
-
-                // Load real account media, automations and leads
-                refreshPosts(acc.id);
-                refreshAutomations();
-                refreshLeads();
-                setAccountLoading(false);
-                return;
-            } else {
-                setAccount(null);
-                setPosts([]);
-                setAutomations([]);
-                setLeads([]);
-            }
-        } catch {
-            // Backend offline or no accounts
-        }
-
-        // Fallback: check localStorage for THIS user only
-        const savedAccount = localStorage.getItem(getKey('ig_account'));
-        const savedToken = localStorage.getItem(getKey('meta_access_token'));
-        if (savedAccount) {
+            // 1. Check local Express backend API
             try {
-                const parsed = JSON.parse(savedAccount);
-                setAccount(parsed);
-                // Synchronize to backend database with real token
-                api.syncLocalAccount({
-                    ...parsed,
-                    accessToken: savedToken || undefined
-                }).catch(() => {});
-
-                if (parsed?.id) {
-                    refreshPosts(parsed.id);
+                const data = await api.getAccounts();
+                const rawAccounts: any[] = Array.isArray(data) ? data : data?.accounts || [];
+                const raw = rawAccounts.find((a: any) => (a.connectionStatus === 'connected' || a.connection_status === 'connected')) || null;
+                if (raw) {
+                    const acc: InstagramAccount = {
+                        id: raw.id,
+                        username: raw.username,
+                        name: raw.name || raw.username,
+                        profilePictureUrl: raw.profilePictureUrl || raw.profile_picture_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+                        followersCount: raw.followersCount ?? raw.followers_count ?? 0,
+                        mediaCount: raw.mediaCount ?? raw.media_count ?? 0,
+                        connectionStatus: 'connected',
+                        tokenExpiresAt: raw.tokenExpiresAt || raw.token_expires_at || '',
+                        connectedAt: raw.connectedAt || raw.connected_at || new Date().toISOString(),
+                        instagramBusinessId: raw.instagramBusinessId || raw.instagram_user_id || raw.id,
+                        accessToken: raw.accessToken
+                    };
+                    setAccount(acc);
+                    localStorage.setItem(getKey('ig_account'), JSON.stringify(acc));
+                    localStorage.setItem('bexly_ig_account', JSON.stringify(acc));
+                    refreshPosts(acc.id);
                     refreshAutomations();
                     refreshLeads();
+                    setAccountLoading(false);
+                    return;
                 }
             } catch {
-                setAccount(null);
+                // Backend offline, proceed to persistent storage
             }
-        } else {
-            setAccount(null);
+
+            // 2. Check localStorage (persistent for this device)
+            const savedAccount = localStorage.getItem(getKey('ig_account')) || localStorage.getItem('bexly_ig_account');
+            const savedToken = localStorage.getItem(getKey('meta_access_token')) || localStorage.getItem('bexly_meta_access_token');
+            if (savedAccount) {
+                try {
+                    const parsed = JSON.parse(savedAccount);
+                    if (parsed && parsed.username) {
+                        const acc: InstagramAccount = {
+                            ...parsed,
+                            connectionStatus: 'connected',
+                            accessToken: parsed.accessToken || savedToken || undefined
+                        };
+                        setAccount(acc);
+                        localStorage.setItem(getKey('ig_account'), JSON.stringify(acc));
+                        localStorage.setItem('bexly_ig_account', JSON.stringify(acc));
+                        refreshPosts(acc.id);
+                        refreshAutomations();
+                        refreshLeads();
+                        setAccountLoading(false);
+                        return;
+                    }
+                } catch {
+                    // Ignore parse error
+                }
+            }
+
+            // 3. Check Supabase Cloud Storage (bexly_automations)
+            try {
+                const supaRes = await fetch(
+                    `https://cltxvvjbukzjktsdrknc.supabase.co/rest/v1/bexly_automations?select=*&order=updated_at.desc&limit=1`,
+                    {
+                        headers: {
+                            apikey: 'sb_publishable_lypigBq62VpJTg2OzGjahQ_SGho2dlD',
+                            Authorization: 'Bearer sb_publishable_lypigBq62VpJTg2OzGjahQ_SGho2dlD'
+                        }
+                    }
+                );
+                if (supaRes.ok) {
+                    const rows = await supaRes.json();
+                    if (rows && rows[0] && rows[0].username) {
+                        const cloudRow = rows[0];
+                        const cloudAcc: InstagramAccount = {
+                            id: String(cloudRow.id || cloudRow.instagram_user_id),
+                            instagramBusinessId: String(cloudRow.instagram_user_id || cloudRow.id),
+                            username: cloudRow.username,
+                            name: cloudRow.username,
+                            profilePictureUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(cloudRow.username)}&background=833ab4&color=fff&size=150`,
+                            followersCount: 0,
+                            mediaCount: 0,
+                            connectionStatus: 'connected',
+                            connectedAt: cloudRow.updated_at || new Date().toISOString(),
+                            tokenExpiresAt: '',
+                            accessToken: cloudRow.access_token
+                        };
+                        setAccount(cloudAcc);
+                        localStorage.setItem(getKey('ig_account'), JSON.stringify(cloudAcc));
+                        localStorage.setItem('bexly_ig_account', JSON.stringify(cloudAcc));
+                        if (cloudRow.access_token) {
+                            localStorage.setItem(getKey('meta_access_token'), cloudRow.access_token);
+                            localStorage.setItem('bexly_meta_access_token', cloudRow.access_token);
+                        }
+
+                        if (Array.isArray(cloudRow.rules) && cloudRow.rules.length > 0) {
+                            setAutomations(cloudRow.rules);
+                            localStorage.setItem(getKey('ig_automations'), JSON.stringify(cloudRow.rules));
+                        }
+
+                        refreshPosts(cloudAcc.id);
+                        refreshLeads();
+                        setAccountLoading(false);
+                        return;
+                    }
+                }
+            } catch (supaErr) {
+                console.warn('Erro ao restaurar do Supabase:', supaErr);
+            }
+        } finally {
+            setAccountLoading(false);
         }
-        setAccountLoading(false);
     };
 
     // When the authenticated user changes, load user-specific cached state and re-sync

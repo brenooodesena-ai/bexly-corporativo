@@ -47,3 +47,71 @@ export async function syncAutomationsToCloud(account: any, automations: any[]) {
     console.warn('[Sync] Erro ao sincronizar regras no Supabase:', err);
   }
 }
+
+export async function pauseCloudAutomations() {
+  try {
+    const supaRes = await fetch(`${supabaseUrl}/rest/v1/bexly_automations?select=*&order=updated_at.desc&limit=1`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+    });
+    if (supaRes.ok) {
+      const rows = await supaRes.json();
+      if (rows && rows[0]) {
+        const row = rows[0];
+        const pausedRules = Array.isArray(row.rules)
+          ? row.rules.map((r: any) => ({ ...r, status: 'paused' }))
+          : [];
+        await fetch(`${supabaseUrl}/rest/v1/bexly_automations?id=eq.${row.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            rules: pausedRules,
+            updated_at: new Date().toISOString(),
+          }),
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[Sync] Erro ao pausar regras no logout:', err);
+  }
+}
+
+export async function resumeCloudAutomations() {
+  try {
+    const supaRes = await fetch(`${supabaseUrl}/rest/v1/bexly_automations?select=*&order=updated_at.desc&limit=1`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+    });
+    if (supaRes.ok) {
+      const rows = await supaRes.json();
+      if (rows && rows[0]) {
+        const row = rows[0];
+        const activeRules = Array.isArray(row.rules)
+          ? row.rules.map((r: any) => ({ ...r, status: 'active' }))
+          : [];
+        await fetch(`${supabaseUrl}/rest/v1/bexly_automations?id=eq.${row.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            rules: activeRules,
+            updated_at: new Date().toISOString(),
+          }),
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[Sync] Erro ao reativar regras no login:', err);
+  }
+}

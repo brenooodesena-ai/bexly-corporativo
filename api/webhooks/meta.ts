@@ -94,18 +94,22 @@ export default async function handler(req: Request, res: Response) {
             // Check matching automation rule
             let matchedRule: any = null;
             if (automations.length > 0) {
+              const cleanComment = commentText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
               matchedRule = automations.find((a: any) => {
                 if (a.status !== 'active') return false;
-                // Post match (or 'all' posts)
-                const targetPost = String(a.trigger?.postId || 'all');
-                const postMatch = targetPost === 'all' || targetPost === mediaId;
-                if (!postMatch) return false;
 
                 const conditions = Array.isArray(a.conditions) ? a.conditions : [];
-                return conditions.some((cond: any) => {
-                  const kw = (cond.keyword || '').trim().toLowerCase();
-                  return kw && commentText.toLowerCase().includes(kw);
+                const keywordMatches = conditions.some((cond: any) => {
+                  const rawKw = (cond.keyword || '').trim();
+                  if (!rawKw) return false;
+                  const cleanKw = rawKw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                  return cleanComment.includes(cleanKw);
                 });
+                if (!keywordMatches) return false;
+
+                const targetPost = String(a.trigger?.postId || 'all');
+                return targetPost === 'all' || targetPost === mediaId || automations.length === 1;
               });
             }
 

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, pauseCloudAutomations, resumeCloudAutomations } from '../lib/supabase';
 import { api } from '../lib/api';
 
 export const ADMIN_EMAIL = 'brenooodesena@gmail.com';
@@ -76,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentUser);
       if (currentUser) {
         syncDatabaseUser(currentUser);
+        resumeCloudAutomations().catch(() => {});
       }
       setLoading(false);
     }).catch((err) => {
@@ -90,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentUser);
       if (currentUser) {
         syncDatabaseUser(currentUser);
+        resumeCloudAutomations().catch(() => {});
       } else {
         setDbUser(null);
         if (typeof window !== 'undefined') {
@@ -199,6 +201,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    try {
+      await pauseCloudAutomations();
+    } catch {}
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
