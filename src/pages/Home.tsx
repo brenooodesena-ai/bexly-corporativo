@@ -55,25 +55,73 @@ const SHOWCASE_CARDS: ShowcaseCard[] = [
     },
 ];
 
-interface NavItem {
-    id: string;
-    label: string;
-    targetId: string;
-}
+// Componente de navegação em ilha flutuante estilo moderno (Dock)
+const NavIsland = ({
+    onNavClick,
+}: {
+    onNavClick: (id: string) => void;
+}) => {
+    return (
+        <nav className="bexly-island-nav relative w-full h-[64px] sm:h-[68px] flex items-center justify-between px-3.5 sm:px-6 md:px-7">
+            {/* Lado Esquerdo: Logo Bexly + Badge YC */}
+            <div className="relative z-10 flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+                <Link to="/" className="flex items-center" aria-label="Bexly Início">
+                    <img
+                        src={logoIcon}
+                        alt="Bexly"
+                        className="h-[28px] sm:h-[32px] w-auto object-contain block select-none"
+                    />
+                </Link>
 
-const NAV_ITEMS: NavItem[] = [
-    { id: 'recursos', label: 'Recursos', targetId: 'recursos' },
-    { id: 'vitrines', label: 'Vitrines', targetId: 'vitrines' },
-    { id: 'precos', label: 'Preços', targetId: 'precos' },
-    { id: 'faq', label: 'Perguntas', targetId: 'faq' },
-];
+                {/* Badge Apoiada pela YC (Spring 26) */}
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-orange-500/40 bg-orange-500/10 text-orange-400 text-xs font-medium select-none shadow-xs">
+                    <span className="w-3.5 h-3.5 rounded-[3px] bg-[#ff6600] text-white flex items-center justify-center font-bold text-[9px] leading-none shrink-0 shadow-xs">
+                        Y
+                    </span>
+                    <span className="whitespace-nowrap font-medium text-[11px] sm:text-xs tracking-tight">
+                        Apoiada pela YC (Spring 26)
+                    </span>
+                </div>
+            </div>
+
+            {/* Lado Direito: 3 Botões de Ação */}
+            <div className="relative z-10 flex items-center gap-2 sm:gap-2.5 shrink-0">
+                {/* Botão 1: Contorno com seta (Recursos) */}
+                <button
+                    type="button"
+                    onClick={() => onNavClick('recursos')}
+                    className="hidden md:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-[13px] font-medium text-slate-200 hover:text-white border border-white/20 hover:border-white/35 bg-white/[0.04] hover:bg-white/[0.08] transition-all cursor-pointer"
+                >
+                    <span>Recursos</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-300" />
+                </button>
+
+                {/* Botão 2: Fundo escuro com seta (Entrar) */}
+                <Link
+                    to="/login"
+                    className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-[13px] font-medium text-white bg-[#060a14] hover:bg-[#0e162a] border border-white/15 hover:border-white/25 transition-all shadow-sm"
+                >
+                    <span>Entrar</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-white/80" />
+                </Link>
+
+                {/* Botão 3: Verde Vibrante CTA com seta (Começar Agora) */}
+                <Link
+                    to="/signup"
+                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-[13px] font-bold text-[#022c15] bg-[#22c55e] hover:bg-[#16a34a] transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                >
+                    <span>Começar Agora</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#022c15] stroke-[2.5]" />
+                </Link>
+            </div>
+        </nav>
+    );
+};
 
 // HeaderNavigation 100% isolado: alterações no scroll NÃO re-renderizam a página Home
 const HeaderNavigation = ({
-    activeNav,
     onNavClick,
 }: {
-    activeNav: string;
     onNavClick: (id: string) => void;
 }) => {
     const [showTopNav, setShowTopNav] = useState<boolean>(true);
@@ -154,49 +202,7 @@ const HeaderNavigation = ({
                 }}
             >
                 <div className="w-full max-w-6xl">
-                    <nav className="glass-nav relative h-[68px] md:h-[72px] flex items-center justify-between rounded-[20px]" style={{ paddingLeft: '36px', paddingRight: '36px' }}>
-                        {/* Left: Logo Bexly */}
-                        <div className="flex items-center flex-shrink-0" style={{ marginLeft: '12px' }}>
-                            <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
-                                <img
-                                    src={logoIcon}
-                                    alt="Bexly Logo"
-                                    style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block' }}
-                                />
-                            </Link>
-                        </div>
-
-                        {/* Center: Navigation Links */}
-                        <div className="hidden md:flex items-center gap-7 lg:gap-9 absolute left-1/2 -translate-x-1/2">
-                            {NAV_ITEMS.map((item) => {
-                                const isActive = activeNav === item.id;
-                                return (
-                                    <button
-                                        key={item.id}
-                                        type="button"
-                                        onClick={() => handleItemClick(item.id)}
-                                        className={`text-sm lg:text-[0.925rem] font-medium transition-colors ${
-                                            isActive
-                                                ? 'text-white font-semibold'
-                                                : 'text-slate-300 hover:text-white'
-                                        }`}
-                                    >
-                                        {item.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Right: Auth Links */}
-                        <div className="flex items-center gap-5 sm:gap-6 flex-shrink-0" style={{ marginRight: '12px' }}>
-                            <Link to="/login" className="text-[0.9rem] font-medium text-white/70 hover:text-white transition-all">Login</Link>
-                            <Link to="/signup">
-                                <button className="glow-pill-button">
-                                    Criar conta
-                                </button>
-                            </Link>
-                        </div>
-                    </nav>
+                    <NavIsland onNavClick={handleItemClick} />
                 </div>
             </div>
 
@@ -214,49 +220,7 @@ const HeaderNavigation = ({
                     }}
                     className={`w-full max-w-6xl ${showFloatingNav ? 'pointer-events-auto' : 'pointer-events-none'}`}
                 >
-                    <nav className="glass-nav relative h-[68px] md:h-[72px] flex items-center justify-between rounded-[20px]" style={{ paddingLeft: '36px', paddingRight: '36px' }}>
-                        {/* Left: Logo Bexly */}
-                        <div className="flex items-center flex-shrink-0" style={{ marginLeft: '12px' }}>
-                            <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
-                                <img
-                                    src={logoIcon}
-                                    alt="Bexly Logo"
-                                    style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block' }}
-                                />
-                            </Link>
-                        </div>
-
-                        {/* Center: Navigation Links */}
-                        <div className="hidden md:flex items-center gap-7 lg:gap-9 absolute left-1/2 -translate-x-1/2">
-                            {NAV_ITEMS.map((item) => {
-                                const isActive = activeNav === item.id;
-                                return (
-                                    <button
-                                        key={item.id}
-                                        type="button"
-                                        onClick={() => handleItemClick(item.id)}
-                                        className={`text-sm lg:text-[0.925rem] font-medium transition-colors ${
-                                            isActive
-                                                ? 'text-white font-semibold'
-                                                : 'text-slate-300 hover:text-white'
-                                        }`}
-                                    >
-                                        {item.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Right: Auth Links */}
-                        <div className="flex items-center gap-5 sm:gap-6 flex-shrink-0" style={{ marginRight: '12px' }}>
-                            <Link to="/login" className="text-[0.9rem] font-medium text-white/70 hover:text-white transition-all">Login</Link>
-                            <Link to="/signup">
-                                <button className="glow-pill-button">
-                                    Criar conta
-                                </button>
-                            </Link>
-                        </div>
-                    </nav>
+                    <NavIsland onNavClick={handleItemClick} />
                 </motion.header>
             </div>
         </>
@@ -265,10 +229,8 @@ const HeaderNavigation = ({
 
 const Home = () => {
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
-    const [activeNav, setActiveNav] = useState<string>('recursos');
 
     const handleNavClick = (id: string) => {
-        setActiveNav(id);
         const element = document.getElementById(id);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
@@ -323,7 +285,7 @@ const Home = () => {
     return (
         <div className="home-container min-h-screen relative bg-white selection:bg-blue-500/30 overflow-x-clip">
             {/* Header com navegação desacoplada (zero re-render da página no scroll) */}
-            <HeaderNavigation activeNav={activeNav} onNavClick={handleNavClick} />
+            <HeaderNavigation onNavClick={handleNavClick} />
 
             {/* ─── EFEITO GRID BACKGROUND NO FUNDO DA PÁGINA (Com textura matte/fosca) ─── */}
             <div className="bexly-page-grid-container" aria-hidden="true">
