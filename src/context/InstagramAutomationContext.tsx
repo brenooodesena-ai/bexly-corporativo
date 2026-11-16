@@ -78,7 +78,58 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
         const accId = targetAccountId || account?.id || 'ig_acc_bexlybr';
         setPostsLoading(true);
         try {
-            const data = await api.getAccountMedia(accId);
+            let rawMediaList: any[] = [];
+
+            // 1. Try Bexly Backend API
+            try {
+                const data = await api.getAccountMedia(accId);
+                if (data && Array.isArray(data.media) && data.media.length > 0) {
+                    rawMediaList = data.media;
+                }
+            } catch (backendErr) {
+                console.warn('Backend getAccountMedia offline ou indisponível, tentando chamada direta à Meta API:', backendErr);
+            }
+
+            // 2. Direct Meta Graph API Fallback (client-side) using stored access token
+            if (rawMediaList.length === 0) {
+                const token = localStorage.getItem('bexly_meta_access_token') ||
+                              localStorage.getItem(getKey('meta_access_token')) ||
+                              account?.accessToken;
+
+                if (token && !token.startsWith('custom_') && !token.startsWith('saved_')) {
+                    try {
+                        const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count';
+                        const [mediaRes, storiesRes] = await Promise.all([
+                            fetch(`https://graph.instagram.com/v21.0/me/media?fields=${fields}&limit=50&access_token=${token}`).catch(() => null),
+                            fetch(`https://graph.instagram.com/v21.0/me/stories?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&access_token=${token}`).catch(() => null)
+                        ]);
+
+                        let directMedia: any[] = [];
+                        let directStories: any[] = [];
+
+                        if (mediaRes && mediaRes.ok) {
+                            const mData = await mediaRes.json();
+                            directMedia = Array.isArray(mData.data) ? mData.data : [];
+                        } else if (mediaRes) {
+                            const errBody = await mediaRes.json().catch(() => ({}));
+                            console.warn('[Meta API] Resposta de erro ao buscar posts:', errBody);
+                        }
+
+                        if (storiesRes && storiesRes.ok) {
+                            const sData = await storiesRes.json();
+                            directStories = (Array.isArray(sData.data) ? sData.data : []).map((s: any) => ({
+                                ...s,
+                                is_story: true,
+                                media_type: 'STORY'
+                            }));
+                        }
+
+                        rawMediaList = [...directStories, ...directMedia];
+                    } catch (directErr) {
+                        console.warn('[Meta API] Falha na consulta direta ao Graph API:', directErr);
+                    }
+                }
+            }
 
             // Load existing saved posts to ensure feed and reels are NEVER lost from history
             const savedRaw = localStorage.getItem(getKey('ig_posts'));
@@ -92,8 +143,8 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             // Existing permanent feed posts and reels are preserved forever
             const permanentExisting = existingPosts.filter(p => !p.isStory && p.mediaType !== 'STORY');
 
-            if (data && Array.isArray(data.media)) {
-                const incomingMapped: InstagramPost[] = data.media.map((m: any) => ({
+            if (rawMediaList.length > 0) {
+                const incomingMapped: InstagramPost[] = rawMediaList.map((m: any) => ({
                     id: m.id,
                     caption: m.caption || (m.is_story || m.media_type === 'STORY' ? 'Story Ativo' : 'Sem legenda'),
                     mediaType: (m.media_type as any) || (m.is_story ? 'STORY' : 'IMAGE'),

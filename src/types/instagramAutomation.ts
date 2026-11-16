@@ -13,6 +13,7 @@ export interface InstagramAccount {
     tokenExpiresAt: string;
     connectedAt: string;
     instagramBusinessId: string;
+    accessToken?: string;
 }
 
 export interface InstagramPost {

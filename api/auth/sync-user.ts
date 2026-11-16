@@ -41,3 +41,4 @@ export default async function handler(req: Request, res: Response) {
     message: 'Usuário sincronizado com sucesso!',
   });
 }
+

@@ -77,7 +77,12 @@ export const api = {
   },
 
   async getAccountMedia(accountId: string) {
-    const res = await apiClient.get(`/instagram/accounts/${accountId}/media`);
+    const token = typeof window !== 'undefined'
+      ? (localStorage.getItem('bexly_meta_access_token') || '')
+      : '';
+    const res = await apiClient.get(`/instagram/accounts/${accountId}/media`, {
+      params: token ? { access_token: token } : undefined,
+    });
     return res.data;
   },
 

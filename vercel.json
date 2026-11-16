@@ -3,6 +3,18 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/instagram/accounts/(.*)/media",
+      "destination": "/api/instagram/media"
+    },
+    {
+      "source": "/api/instagram/accounts/(.*)",
+      "destination": "/api/instagram/accounts"
+    },
+    {
+      "source": "/api/instagram/accounts",
+      "destination": "/api/instagram/accounts"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
