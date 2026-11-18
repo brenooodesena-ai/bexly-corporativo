@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Bot, CreditCard, LayoutGrid, MapPin, RotateCcw, FileText, Plus, Instagram } from 'lucide-react';
@@ -133,7 +133,7 @@ const NavIsland = ({
     );
 };
 
-// HeaderNavigation 100% isolado: alterações no scroll NÃO re-renderizam a página Home
+// HeaderNavigation: Sempre fixo no topo da tela, visível em qualquer rolagem
 const HeaderNavigation = ({
     activeNav,
     onNavClick,
@@ -141,106 +141,12 @@ const HeaderNavigation = ({
     activeNav: string;
     onNavClick: (id: string) => void;
 }) => {
-    const [showTopNav, setShowTopNav] = useState<boolean>(true);
-    const [showFloatingNav, setShowFloatingNav] = useState<boolean>(false);
-    const isNavigatingRef = useRef<boolean>(false);
-
-    useEffect(() => {
-        let lastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-        let ticking = false;
-
-        const updateNav = () => {
-            if (isNavigatingRef.current) return;
-            const currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
-
-            // No topo absoluto da página (<= 15px):
-            if (currentY <= 15) {
-                setShowFloatingNav(false);
-                setShowTopNav(true);
-                lastScrollY = currentY;
-                return;
-            }
-
-            const diff = currentY - lastScrollY;
-
-            // Rolando para baixo: recolhe flutuante imediatamente e esconde a do topo se passou de 140px
-            if (diff > 8) {
-                setShowFloatingNav(prev => prev ? false : prev);
-                if (currentY > 140) {
-                    setShowTopNav(prev => prev ? false : prev);
-                }
-                lastScrollY = currentY;
-            } 
-            // Rolando para cima: ativa flutuante se passou de 140px
-            else if (diff < -8) {
-                if (currentY > 140) {
-                    setShowFloatingNav(prev => !prev ? true : prev);
-                    setShowTopNav(prev => prev ? false : prev);
-                } else {
-                    setShowFloatingNav(prev => prev ? false : prev);
-                    setShowTopNav(prev => !prev ? true : prev);
-                }
-                lastScrollY = currentY;
-            }
-        };
-
-        const handleScroll = () => {
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    updateNav();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const handleItemClick = (id: string) => {
-        isNavigatingRef.current = true;
-        setShowFloatingNav(true);
-        setShowTopNav(false);
-        onNavClick(id);
-        setTimeout(() => {
-            isNavigatingRef.current = false;
-        }, 850);
-    };
-
     return (
-        <>
-            {/* 1. Barra do Topo: Fixada na página (absolute). Desvanece ao sair da visão */}
-            <div 
-                className="absolute top-4 md:top-5 inset-x-0 z-40 flex justify-center px-4 sm:px-6 transition-opacity duration-300 ease-out"
-                style={{
-                    opacity: showTopNav ? 1 : 0,
-                    pointerEvents: showTopNav ? 'auto' : 'none',
-                }}
-            >
-                <div className="w-full max-w-6xl">
-                    <NavIsland activeNav={activeNav} onNavClick={handleItemClick} />
-                </div>
+        <header className="fixed top-4 md:top-5 inset-x-0 z-[100] flex justify-center px-4 sm:px-6 pointer-events-auto">
+            <div className="w-full max-w-6xl">
+                <NavIsland activeNav={activeNav} onNavClick={onNavClick} />
             </div>
-
-            {/* 2. Barra Flutuante Dinâmica: Desliza suavemente sem travar */}
-            <div className="fixed top-4 md:top-5 inset-x-0 z-[100] flex justify-center pointer-events-none px-4 sm:px-6">
-                <motion.header
-                    initial={{ y: -70, opacity: 0 }}
-                    animate={{
-                        y: showFloatingNav ? 0 : -70,
-                        opacity: showFloatingNav ? 1 : 0,
-                    }}
-                    transition={{
-                        duration: 0.35,
-                        ease: [0.22, 1, 0.36, 1],
-                    }}
-                    className={`w-full max-w-6xl ${showFloatingNav ? 'pointer-events-auto' : 'pointer-events-none'}`}
-                >
-                    <NavIsland activeNav={activeNav} onNavClick={handleItemClick} />
-                </motion.header>
-            </div>
-        </>
+        </header>
     );
 };
 
