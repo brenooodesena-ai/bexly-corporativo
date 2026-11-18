@@ -21,6 +21,7 @@ interface AuthContextType {
   loading: boolean;
   isConfigured: boolean;
   signInWithGoogle: () => Promise<{ data?: any; error: any }>;
+  signInWithGoogleIdToken: (idToken: string) => Promise<{ data?: any; error: any }>;
   signInWithFacebook: () => Promise<{ data?: any; error: any }>;
   signInWithEmail: (email: string, password: string) => Promise<{ data?: any; error: any }>;
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<{ data?: any; error: any }>;
@@ -131,6 +132,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { data, error };
   };
 
+  const signInWithGoogleIdToken = async (idToken: string) => {
+    if (!isSupabaseConfigured) {
+      return {
+        error: new Error(
+          'Supabase ainda não configurado. Por favor, adicione sua VITE_SUPABASE_ANON_KEY no arquivo .env.'
+        ),
+      };
+    }
+
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: idToken,
+    });
+
+    return { data, error };
+  };
+
   const signInWithFacebook = async () => {
     if (!isSupabaseConfigured) {
       return {
@@ -228,6 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         isConfigured: isSupabaseConfigured,
         signInWithGoogle,
+        signInWithGoogleIdToken,
         signInWithFacebook,
         signInWithEmail,
         signUpWithEmail,
