@@ -1,16 +1,38 @@
 import type { Request, Response } from 'express';
 
 const META_API_VERSION = process.env.META_API_VERSION || 'v21.0';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://cltxvvjbukzjktsdrknc.supabase.co';
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_lypigBq62VpJTg2OzGjahQ_SGho2dlD';
 
 export default async function handler(req: Request, res: Response) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const token = (req.query.access_token as string) ||
+  let token = (req.query.access_token as string) ||
     req.headers.authorization?.replace('Bearer ', '') ||
     process.env.META_ACCESS_TOKEN ||
     process.env.INSTAGRAM_ACCESS_TOKEN;
+
+  // Fallback: se não veio na requisição, busca o token no Supabase
+  if (!token) {
+    try {
+      const supaRes = await fetch(`${SUPABASE_URL}/rest/v1/bexly_automations?select=access_token&order=updated_at.desc&limit=1`, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+      });
+      if (supaRes.ok) {
+        const rows = await supaRes.json();
+        if (rows?.[0]?.access_token) {
+          token = rows[0].access_token;
+        }
+      }
+    } catch {
+      // Ignora erro de fallback
+    }
+  }
 
   if (!token) {
     return res.status(200).json({
@@ -67,4 +89,3 @@ export default async function handler(req: Request, res: Response) {
     });
   }
 }
-
