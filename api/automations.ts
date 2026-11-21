@@ -88,7 +88,38 @@ export default async function handler(req: Request, res: Response) {
       return res.status(200).json({ automations });
     }
 
-    // ── 2. POST /api/automations (Create) ──
+    // ── 2. POST /api/automations/test-trigger ──
+    if (method === 'POST' && targetId === 'test-trigger') {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      const commentText = String(body.comment_text || '').trim().toLowerCase();
+      const postId = String(body.post_id || 'all');
+
+      const matched = existingRules.find((r: any) => {
+        if (r.status !== 'active') return false;
+        const targetPost = String(r.trigger?.postId || r.trigger?.post_id || 'all');
+        const postMatches = targetPost === 'all' || postId === 'all' || targetPost === postId || existingRules.length === 1;
+        if (!postMatches) return false;
+
+        const conditions = Array.isArray(r.conditions) ? r.conditions : [];
+        if (conditions.length === 0) return true;
+
+        return conditions.some((c: any) => {
+          const kw = String(c.keyword || c.value || '').trim().toLowerCase();
+          return !kw || commentText.includes(kw);
+        });
+      });
+
+      return res.status(200).json({
+        success: true,
+        matched: Boolean(matched),
+        rule: matched ? { id: matched.id, name: matched.name, actions: matched.actions } : null,
+        message: matched
+          ? `Regra "${matched.name}" identificou o gatilho com sucesso!`
+          : 'Nenhuma regra ativa correspondeu a esta palavra-chave/publicação.',
+      });
+    }
+
+    // ── 3. POST /api/automations (Create) ──
     if (method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const id = body.id || `auto_${Date.now()}`;

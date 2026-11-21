@@ -144,8 +144,8 @@ export default async function handler(req: Request, res: Response) {
       const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       console.log('[Bexly Webhook] Payload recebido da Meta:', JSON.stringify(payload).substring(0, 300));
 
-      if (!payload || payload.object !== 'instagram') {
-        console.log('[Bexly Webhook] Objeto ignorado (não é instagram):', payload?.object);
+      if (!payload || (payload.object !== 'instagram' && payload.object !== 'page')) {
+        console.log('[Bexly Webhook] Objeto ignorado (não é instagram nem page):', payload?.object);
         return res.status(200).send('EVENT_RECEIVED');
       }
 
@@ -202,13 +202,12 @@ export default async function handler(req: Request, res: Response) {
 
             console.log(`[Bexly Webhook] Comentário recebido de @${commenterUsername} (${commenterId}) no post ${mediaId}: "${commentText}"`);
 
-            // Meta restriction: não responder ao próprio dono do post comentando no seu post
-            if (commenterId && commenterId === instagramUserId) {
-              console.log(`[Bexly Webhook] Ignorando comentário do próprio dono (@${commenterUsername})`);
-              continue;
-            }
-
             if (!commentId) continue;
+
+            const isSelfComment = Boolean(commenterId && commenterId === instagramUserId);
+            if (isSelfComment) {
+              console.log(`[Bexly Webhook] Comentário do próprio dono da conta (@${commenterUsername}). DM requer conta diferente, mas prosseguindo com resposta pública.`);
+            }
 
             const cleanComment = normalizeText(commentText);
 
@@ -236,7 +235,7 @@ export default async function handler(req: Request, res: Response) {
                 if (!keywordMatches) return false;
 
                 const targetPost = String(a.trigger?.postId || a.trigger?.post_id || 'all');
-                return targetPost === 'all' || targetPost === mediaId || automations.length === 1;
+                return targetPost === 'all' || !mediaId || targetPost === mediaId || mediaId.includes(targetPost) || targetPost.includes(mediaId) || automations.length === 1;
               });
             }
 
@@ -274,39 +273,55 @@ export default async function handler(req: Request, res: Response) {
               console.log(`[Bexly Webhook] Resposta pública postada com sucesso no comentário ${commentId}`);
             }
 
-            // 2. Envia Private Reply / Direct Message
-            // Tenta primeiro via comment_id (API oficial de Private Reply)
-            let dmRes = await sendInstagramMessage(
-              instagramUserId,
-              { comment_id: commentId },
-              dmText,
-              token
-            );
-
-            // Se falhar via comment_id e tivermos o commenterId (IGSID), tenta direto via ID
-            if (!dmRes.success && commenterId) {
-              console.log(`[Bexly Webhook] Tentando envio direto para IGSID @${commenterUsername} (${commenterId})...`);
+            // 2. Envia Private Reply / Direct Message (se não for a própria conta)
+            let dmRes: { success: boolean; data?: any; error?: string } = { success: false, error: 'Self comment' };
+            if (!isSelfComment) {
+              // Tenta primeiro via comment_id (API oficial de Private Reply)
               dmRes = await sendInstagramMessage(
                 instagramUserId,
-                { id: commenterId },
+                { comment_id: commentId },
                 dmText,
                 token
               );
+
+              // Se falhar via comment_id e tivermos o commenterId (IGSID), tenta direto via ID
+              if (!dmRes.success && commenterId) {
+                console.log(`[Bexly Webhook] Tentando envio direto para IGSID @${commenterUsername} (${commenterId})...`);
+                dmRes = await sendInstagramMessage(
+                  instagramUserId,
+                  { id: commenterId },
+                  dmText,
+                  token
+                );
+              }
             }
 
-            // Se enviou com sucesso e temos a regra, atualiza métricas no Supabase
-            if (dmRes.success && matchedRowId && matchedRule) {
+            // 3. Atualiza Métricas e Auditoria no Supabase
+            if (matchedRowId) {
               try {
+                const targetRuleId = matchedRule?.id || automations[0]?.id;
                 const updatedRules = automations.map((r: any) => {
-                  if (r.id === matchedRule.id) {
+                  if (r.id === targetRuleId) {
                     const metrics = r.metrics || {};
                     return {
                       ...r,
                       metrics: {
                         ...metrics,
                         commentsDetected: (metrics.commentsDetected || 0) + 1,
-                        dmsSent: (metrics.dmsSent || 0) + 1,
+                        dmsSent: dmRes.success ? (metrics.dmsSent || 0) + 1 : (metrics.dmsSent || 0),
                         keywordMatches: (metrics.keywordMatches || 0) + 1,
+                        lastWebhookLog: {
+                          timestamp: new Date().toISOString(),
+                          sender: `@${commenterUsername}`,
+                          senderId: commenterId,
+                          comment: commentText,
+                          mediaId,
+                          rule: r.name,
+                          publicReply: publicRes.success ? 'Enviada' : (publicRes.error || 'Falha'),
+                          dm: isSelfComment
+                            ? 'Aviso: Comentário feito pela própria conta dona do post. O Instagram proíbe envio de Direct para si mesmo. Teste com outra conta.'
+                            : (dmRes.success ? 'Enviada' : (dmRes.error || 'Falha')),
+                        },
                       },
                     };
                   }
@@ -325,6 +340,7 @@ export default async function handler(req: Request, res: Response) {
                     updated_at: new Date().toISOString(),
                   }),
                 });
+                console.log('[Bexly Webhook] Auditoria e métricas salvas com sucesso no Supabase.');
               } catch (metricErr) {
                 console.warn('[Bexly Webhook] Erro ao atualizar métricas no Supabase:', metricErr);
               }
