@@ -190,56 +190,47 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
     const refreshAutomations = async () => {
         try {
             const data = await api.getAutomations();
-            if (data && Array.isArray(data.automations) && data.automations.length > 0) {
-                const mapped: Automation[] = data.automations.map((a: any) => ({
-                    id: a.id,
-                    organizationId: a.organization_id || a.organizationId || 'org_default',
-                    name: a.name,
-                    campaignName: a.campaign_id || a.campaignName || a.name,
-                    status: (a.status as 'active' | 'paused') || 'active',
-                    trigger: a.trigger || a.trigger_config || { type: 'instagram_comment', postId: 'all' },
-                    conditions: a.conditions || a.conditions_config || [],
-                    actions: a.actions || a.actions_config || [],
-                    createdAt: a.created_at || a.createdAt || new Date().toISOString(),
-                    updatedAt: a.updated_at || a.updatedAt || new Date().toISOString(),
-                    metrics: a.metrics || {
-                        commentsDetected: a.total_runs || 0,
-                        keywordMatches: a.successful_runs || 0,
-                        dmsSent: a.successful_runs || 0,
-                        leadsGenerated: a.leads_generated || 0,
-                        conversionRate: 0,
-                        attributedRevenue: 0
-                    }
-                }));
-                setAutomations(mapped);
-                localStorage.setItem(getKey('ig_automations'), JSON.stringify(mapped));
-                return;
-            } else if (data && Array.isArray(data.automations) && data.automations.length === 0) {
-                // Se a API retornou explicitamente vazio, verifica se há algo no localStorage antes de zerar
-                const saved = localStorage.getItem(getKey('ig_automations'));
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            setAutomations(parsed);
-                            return;
+            if (data && Array.isArray(data.automations)) {
+                if (data.automations.length > 0) {
+                    const mapped: Automation[] = data.automations.map((a: any) => ({
+                        id: a.id,
+                        organizationId: a.organization_id || a.organizationId || 'org_default',
+                        name: a.name,
+                        campaignName: a.campaign_id || a.campaignName || a.name,
+                        status: (a.status as 'active' | 'paused') || 'active',
+                        trigger: a.trigger || a.trigger_config || { type: 'instagram_comment', postId: 'all' },
+                        conditions: a.conditions || a.conditions_config || [],
+                        actions: a.actions || a.actions_config || [],
+                        createdAt: a.created_at || a.createdAt || new Date().toISOString(),
+                        updatedAt: a.updated_at || a.updatedAt || new Date().toISOString(),
+                        metrics: a.metrics || {
+                            commentsDetected: a.total_runs || 0,
+                            keywordMatches: a.successful_runs || 0,
+                            dmsSent: a.successful_runs || 0,
+                            leadsGenerated: a.leads_generated || 0,
+                            conversionRate: 0,
+                            attributedRevenue: 0
                         }
-                    } catch {}
+                    }));
+                    setAutomations(mapped);
+                    localStorage.setItem(getKey('ig_automations'), JSON.stringify(mapped));
+                } else {
+                    // O servidor confirmou que não há automações (ex: usuário excluiu todas)
+                    setAutomations([]);
+                    localStorage.setItem(getKey('ig_automations'), '[]');
                 }
-                setAutomations([]);
-                localStorage.removeItem(getKey('ig_automations'));
                 return;
             }
         } catch (err) {
             console.warn('Erro ao carregar automações do backend, mantendo cache local:', err);
         }
 
-        // Fallback: mantém o que está salvo localmente para NUNCA perder os dados
+        // Fallback apenas se a API falhar completamente (rede offline)
         const saved = localStorage.getItem(getKey('ig_automations'));
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) {
+                if (Array.isArray(parsed)) {
                     setAutomations(parsed);
                 }
             } catch {}
@@ -382,7 +373,7 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
                             localStorage.setItem('bexly_meta_access_token', cloudRow.access_token);
                         }
 
-                        if (Array.isArray(cloudRow.rules) && cloudRow.rules.length > 0) {
+                        if (Array.isArray(cloudRow.rules)) {
                             setAutomations(cloudRow.rules);
                             localStorage.setItem(getKey('ig_automations'), JSON.stringify(cloudRow.rules));
                         }
@@ -425,11 +416,9 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
     }, [account, getKey]);
 
     useEffect(() => {
-        if (automations.length > 0) {
-            localStorage.setItem(getKey('ig_automations'), JSON.stringify(automations));
-            if (account) {
-                syncAutomationsToCloud(account, automations);
-            }
+        localStorage.setItem(getKey('ig_automations'), JSON.stringify(automations));
+        if (account) {
+            syncAutomationsToCloud(account, automations);
         }
     }, [automations, account, getKey]);
 

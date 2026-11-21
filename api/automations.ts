@@ -198,3 +198,4 @@ export default async function handler(req: Request, res: Response) {
     return res.status(500).json({ error: 'Erro interno ao processar automações', message: err.message });
   }
 }
+
