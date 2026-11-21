@@ -225,54 +225,61 @@ export default async function handler(req: Request, res: Response) {
               matchedRule = automations.find((a: any) => {
                 if (a.status !== 'active') return false;
 
-                const conditions = Array.isArray(a.conditions) ? a.conditions : [];
+                // 1. Validação de Post
+                const targetPost = String(a.trigger?.postId || a.trigger?.post_id || 'all');
+                const postMatches = targetPost === 'all' || !mediaId || targetPost === mediaId || mediaId.includes(targetPost) || targetPost.includes(mediaId);
+                if (!postMatches) return false;
 
-                // Se não há condições definidas, aceita qualquer comentário
-                let keywordMatches = conditions.length === 0;
-                if (!keywordMatches) {
-                  keywordMatches = conditions.some((cond: any) => {
-                    const rawKw = (cond.keyword || cond.value || '').trim();
-                    if (!rawKw) return true; // sem palavra-chave específica = qualquer
-                    const cleanKw = normalizeText(rawKw);
-                    const op = cond.operator || 'contains';
+                // 2. Validação de Palavra-Chave (OBRIGATÓRIA)
+                const conditions = Array.isArray(a.conditions) ? a.conditions : [];
+                if (conditions.length === 0) {
+                  return false;
+                }
+
+                return conditions.some((cond: any) => {
+                  const rawKw = (cond.keyword || cond.value || '').trim();
+                  if (!rawKw) return false;
+                  // Suporta múltiplas palavras-chave separadas por vírgula, barra ou linha
+                  const keywordList = rawKw.split(/[,;\n/]+/).map((k: string) => normalizeText(k)).filter(Boolean);
+                  const op = cond.operator || 'contains';
+
+                  return keywordList.some((cleanKw: string) => {
                     if (op === 'exact') return cleanComment === cleanKw;
                     return cleanComment.includes(cleanKw);
                   });
-                }
-
-                if (!keywordMatches) return false;
-
-                const targetPost = String(a.trigger?.postId || a.trigger?.post_id || 'all');
-                return targetPost === 'all' || !mediaId || targetPost === mediaId || mediaId.includes(targetPost) || targetPost.includes(mediaId) || automations.length === 1;
+                });
               });
             }
 
-            // Mensagens padrão caso não haja automação ou regra customizada
+            // SE NENHUMA REGRA OU PALAVRA-CHAVE CORRESPONDEU, NÃO DISPARA NADA
+            if (!matchedRule) {
+              console.log(`[Bexly Webhook] Comentário "${commentText}" de @${commenterUsername} ignorado: nenhuma palavra-chave correspondida.`);
+              continue;
+            }
+
+            console.log(`[Bexly Webhook] Regra correspondida: "${matchedRule.name}" para comentário "${commentText}"`);
+
+            // Mensagens da regra correspondida
             let publicReplyText = 'Acabei de te enviar no direct! 🚀 Dá uma olhada lá!';
             let dmText = `Olá, @${commenterUsername}! 👋 Conforme solicitado no comentário, aqui está o seu acesso prioritário da Bexly: https://bexly.com.br/acesso-vip`;
 
-            if (matchedRule) {
-              console.log(`[Bexly Webhook] Regra correspondida: "${matchedRule.name}" para comentário "${commentText}"`);
-              const action = matchedRule.actions?.[0];
-              if (action) {
-                // Resposta pública configurada
-                if (action.publicCommentReply?.enabled && Array.isArray(action.publicCommentReply?.replyTemplates) && action.publicCommentReply.replyTemplates.length > 0) {
-                  publicReplyText = action.publicCommentReply.replyTemplates[0];
-                } else if (action.config?.replyMessage) {
-                  publicReplyText = action.config.replyMessage;
-                }
-
-                // Template do Direct
-                const rawTemplate = action.messageTemplate || action.config?.dmMessage || action.config?.message_template || dmText;
-                const ctaUrl = action.ctaButton?.url || action.config?.link || 'https://bexly.com.br';
-                dmText = rawTemplate
-                  .replace(/\{\{nome\}\}/gi, `@${commenterUsername}`)
-                  .replace(/\{\{name\}\}/gi, `@${commenterUsername}`)
-                  .replace(/\{\{username\}\}/gi, `@${commenterUsername}`)
-                  .replace(/\{\{link\}\}/gi, ctaUrl);
+            const action = matchedRule.actions?.[0];
+            if (action) {
+              // Resposta pública configurada
+              if (action.publicCommentReply?.enabled && Array.isArray(action.publicCommentReply?.replyTemplates) && action.publicCommentReply.replyTemplates.length > 0) {
+                publicReplyText = action.publicCommentReply.replyTemplates[0];
+              } else if (action.config?.replyMessage) {
+                publicReplyText = action.config.replyMessage;
               }
-            } else {
-              console.log(`[Bexly Webhook] Nenhuma regra específica filtrada para o post ${mediaId}. Usando disparo automático.`);
+
+              // Template do Direct
+              const rawTemplate = action.messageTemplate || action.config?.dmMessage || action.config?.message_template || dmText;
+              const ctaUrl = action.ctaButton?.url || action.config?.link || 'https://bexly.com.br';
+              dmText = rawTemplate
+                .replace(/\{\{nome\}\}/gi, `@${commenterUsername}`)
+                .replace(/\{\{name\}\}/gi, `@${commenterUsername}`)
+                .replace(/\{\{username\}\}/gi, `@${commenterUsername}`)
+                .replace(/\{\{link\}\}/gi, ctaUrl);
             }
 
             // 1. Envia Resposta Pública no Comentário
@@ -388,35 +395,38 @@ export default async function handler(req: Request, res: Response) {
               }
 
               const conditions = Array.isArray(a.conditions) ? a.conditions : [];
-              let keywordMatches = conditions.length === 0;
-              if (!keywordMatches) {
-                keywordMatches = conditions.some((cond: any) => {
-                  const rawKw = (cond.keyword || cond.value || '').trim();
-                  if (!rawKw) return true;
-                  const cleanKw = normalizeText(rawKw);
-                  const op = cond.operator || 'contains';
+              if (conditions.length === 0) return false;
+
+              return conditions.some((cond: any) => {
+                const rawKw = (cond.keyword || cond.value || '').trim();
+                if (!rawKw) return false;
+                const keywordList = rawKw.split(/[,;\n/]+/).map((k: string) => normalizeText(k)).filter(Boolean);
+                const op = cond.operator || 'contains';
+
+                return keywordList.some((cleanKw: string) => {
                   if (op === 'exact') return cleanText === cleanKw;
                   return cleanText.includes(cleanKw);
                 });
-              }
-
-              return keywordMatches;
+              });
             });
           }
 
-          let dmText = `Olá! 👋 Vi sua mensagem sobre o Bexly. Aqui está o seu link prioritário: https://bexly.com.br/acesso-vip`;
+          if (!matchedRule) {
+            console.log(`[Bexly Webhook] Mensagem de ${senderId} ignorada: nenhuma palavra-chave correspondida.`);
+            continue;
+          }
 
-          if (matchedRule) {
-            console.log(`[Bexly Webhook] Regra correspondida para mensagem de ${senderId}: "${matchedRule.name}"`);
-            const action = matchedRule.actions?.[0];
-            if (action) {
-              const rawTemplate = action.messageTemplate || action.config?.dmMessage || action.config?.message_template || dmText;
-              const ctaUrl = action.ctaButton?.url || action.config?.link || 'https://bexly.com.br';
-              dmText = rawTemplate
-                .replace(/\{\{nome\}\}/gi, 'você')
-                .replace(/\{\{name\}\}/gi, 'você')
-                .replace(/\{\{link\}\}/gi, ctaUrl);
-            }
+          console.log(`[Bexly Webhook] Regra correspondida para mensagem de ${senderId}: "${matchedRule.name}"`);
+
+          let dmText = `Olá! 👋 Vi sua mensagem sobre o Bexly. Aqui está o seu link prioritário: https://bexly.com.br/acesso-vip`;
+          const action = matchedRule.actions?.[0];
+          if (action) {
+            const rawTemplate = action.messageTemplate || action.config?.dmMessage || action.config?.message_template || dmText;
+            const ctaUrl = action.ctaButton?.url || action.config?.link || 'https://bexly.com.br';
+            dmText = rawTemplate
+              .replace(/\{\{nome\}\}/gi, 'você')
+              .replace(/\{\{name\}\}/gi, 'você')
+              .replace(/\{\{link\}\}/gi, ctaUrl);
           }
 
           // Envia DM em resposta ao Story / Mensagem usando o IGSID do remetente

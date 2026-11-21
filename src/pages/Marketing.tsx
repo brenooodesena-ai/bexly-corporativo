@@ -154,12 +154,16 @@ export default function Marketing() {
                     : (selectedPost ? `${selectedPost.mediaType === 'STORY' ? '⏳ Story' : selectedPost.mediaType === 'VIDEO' ? '🎬 Reel' : '📸 Feed'}: ${selectedPost.caption.substring(0, 50)}` : 'Publicação Selecionada'),
                 mediaType: selectedPost?.mediaType,
             },
-            conditions: [{
-                field: 'comment_text',
-                operator: 'contains',
-                keyword: formKeyword.trim().toUpperCase(),
-                caseSensitive: false
-            }],
+            conditions: formKeyword
+                .split(/[,;\n/]+/)
+                .map(k => k.trim())
+                .filter(Boolean)
+                .map(kw => ({
+                    field: 'comment_text',
+                    operator: 'contains',
+                    keyword: kw.toUpperCase(),
+                    caseSensitive: false
+                })),
             actions: [{
                 type: 'send_instagram_dm',
                 messageTemplate: formMessage,
@@ -2356,12 +2360,12 @@ export default function Marketing() {
                             </div>
 
                             <div>
-                                <label style={{ color: '#cbd5e1', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Palavra-Chave Gatilho</label>
+                                <label style={{ color: '#cbd5e1', fontWeight: 500, display: 'block', marginBottom: '6px' }}>Palavras-Chave Gatilho (uma ou várias separadas por vírgula)</label>
                                 <input
                                     type="text"
                                     value={formKeyword}
                                     onChange={(e) => setFormKeyword(e.target.value)}
-                                    placeholder="Ex: QUERO ou ABRIR"
+                                    placeholder="Ex: QUERO, EU QUERO, PREÇO, INFO"
                                     style={{
                                         width: '100%',
                                         backgroundColor: '#020617',
@@ -2375,6 +2379,9 @@ export default function Marketing() {
                                         outline: 'none'
                                     }}
                                 />
+                                <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '5px' }}>
+                                    💡 Digite uma ou várias palavras-chave separadas por vírgula. Apenas comentários contendo pelo menos uma dessas palavras ativarão o envio.
+                                </p>
                             </div>
 
                             <div>

@@ -101,11 +101,17 @@ export default async function handler(req: Request, res: Response) {
         if (!postMatches) return false;
 
         const conditions = Array.isArray(r.conditions) ? r.conditions : [];
-        if (conditions.length === 0) return true;
+        if (conditions.length === 0) return false;
 
         return conditions.some((c: any) => {
-          const kw = String(c.keyword || c.value || '').trim().toLowerCase();
-          return !kw || commentText.includes(kw);
+          const rawKw = String(c.keyword || c.value || '').trim().toLowerCase();
+          if (!rawKw) return false;
+          const kwList = rawKw.split(/[,;\n/]+/).map(k => k.trim()).filter(Boolean);
+          const op = c.operator || 'contains';
+          return kwList.some(kw => {
+            if (op === 'exact') return commentText === kw;
+            return commentText.includes(kw);
+          });
         });
       });
 
