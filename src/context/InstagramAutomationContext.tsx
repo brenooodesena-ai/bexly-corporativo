@@ -193,32 +193,56 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             if (data && Array.isArray(data.automations) && data.automations.length > 0) {
                 const mapped: Automation[] = data.automations.map((a: any) => ({
                     id: a.id,
-                    organizationId: a.organization_id || 'org_default',
+                    organizationId: a.organization_id || a.organizationId || 'org_default',
                     name: a.name,
-                    campaignName: a.campaign_id || a.name,
+                    campaignName: a.campaign_id || a.campaignName || a.name,
                     status: (a.status as 'active' | 'paused') || 'active',
-                    trigger: a.trigger_config || { type: 'instagram_comment', postId: 'all' },
-                    conditions: a.conditions_config || [],
-                    actions: a.actions_config || [],
-                    createdAt: a.created_at,
-                    updatedAt: a.updated_at,
-                    metrics: {
+                    trigger: a.trigger || a.trigger_config || { type: 'instagram_comment', postId: 'all' },
+                    conditions: a.conditions || a.conditions_config || [],
+                    actions: a.actions || a.actions_config || [],
+                    createdAt: a.created_at || a.createdAt || new Date().toISOString(),
+                    updatedAt: a.updated_at || a.updatedAt || new Date().toISOString(),
+                    metrics: a.metrics || {
                         commentsDetected: a.total_runs || 0,
                         keywordMatches: a.successful_runs || 0,
                         dmsSent: a.successful_runs || 0,
                         leadsGenerated: a.leads_generated || 0,
-                        conversionRate: a.total_runs ? Math.round((a.successful_runs / a.total_runs) * 100) : 0,
+                        conversionRate: 0,
                         attributedRevenue: 0
                     }
                 }));
                 setAutomations(mapped);
                 localStorage.setItem(getKey('ig_automations'), JSON.stringify(mapped));
-            } else {
+                return;
+            } else if (data && Array.isArray(data.automations) && data.automations.length === 0) {
+                // Se a API retornou explicitamente vazio, verifica se há algo no localStorage antes de zerar
+                const saved = localStorage.getItem(getKey('ig_automations'));
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setAutomations(parsed);
+                            return;
+                        }
+                    } catch {}
+                }
                 setAutomations([]);
                 localStorage.removeItem(getKey('ig_automations'));
+                return;
             }
         } catch (err) {
-            console.warn('Erro ao carregar automações do backend:', err);
+            console.warn('Erro ao carregar automações do backend, mantendo cache local:', err);
+        }
+
+        // Fallback: mantém o que está salvo localmente para NUNCA perder os dados
+        const saved = localStorage.getItem(getKey('ig_automations'));
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setAutomations(parsed);
+                }
+            } catch {}
         }
     };
 
@@ -621,45 +645,66 @@ export const InstagramAutomationProvider: React.FC<{ children: React.ReactNode }
             }
         };
 
-        setAutomations(prev => [newAuto, ...prev]);
+        setAutomations(prev => {
+            const updated = [newAuto, ...prev];
+            localStorage.setItem(getKey('ig_automations'), JSON.stringify(updated));
+            if (account) {
+                syncAutomationsToCloud(account, updated);
+            }
+            return updated;
+        });
 
-        if (account?.id) {
-            api.createAutomation({
-                name: newAuto.name,
-                instagram_account_id: account.id,
-                campaign_id: newAuto.campaignName,
-                trigger_config: newAuto.trigger,
-                conditions_config: newAuto.conditions,
-                actions_config: newAuto.actions
-            }).then(res => {
-                if (res?.id) {
-                    setAutomations(prev => prev.map(a => a.id === newAuto.id ? { ...a, id: res.id } : a));
-                }
-            }).catch(console.warn);
-        }
+        api.createAutomation({
+            id: newAuto.id,
+            name: newAuto.name,
+            status: newAuto.status || 'active',
+            instagram_account_id: account?.id || 'ig_acc_bexlybr',
+            campaign_id: newAuto.campaignName,
+            trigger_config: newAuto.trigger,
+            conditions_config: newAuto.conditions,
+            actions_config: newAuto.actions,
+            trigger: newAuto.trigger,
+            conditions: newAuto.conditions,
+            actions: newAuto.actions
+        }).catch(console.warn);
 
         return newAuto;
     };
 
     const toggleAutomationStatus = (id: string) => {
-        const current = automations.find(a => a.id === id);
-        const nextStatus = current?.status === 'active' ? 'paused' : 'active';
-        setAutomations(prev => prev.map(a => {
-            if (a.id === id) {
-                return {
-                    ...a,
-                    status: nextStatus,
-                    updatedAt: new Date().toISOString()
-                };
+        setAutomations(prev => {
+            const current = prev.find(a => a.id === id);
+            const nextStatus: 'active' | 'paused' = current?.status === 'active' ? 'paused' : 'active';
+            const updated: Automation[] = prev.map(a => {
+                if (a.id === id) {
+                    return {
+                        ...a,
+                        status: nextStatus,
+                        updatedAt: new Date().toISOString()
+                    };
+                }
+                return a;
+            });
+
+            localStorage.setItem(getKey('ig_automations'), JSON.stringify(updated));
+            if (account) {
+                syncAutomationsToCloud(account, updated);
             }
-            return a;
-        }));
-        api.toggleAutomationStatus(id, nextStatus).catch(console.warn);
+            api.toggleAutomationStatus(id, nextStatus).catch(console.warn);
+            return updated;
+        });
     };
 
     const deleteAutomation = (id: string) => {
-        setAutomations(prev => prev.filter(a => a.id !== id));
-        api.deleteAutomation(id).catch(console.warn);
+        setAutomations(prev => {
+            const updated = prev.filter(a => a.id !== id);
+            localStorage.setItem(getKey('ig_automations'), JSON.stringify(updated));
+            if (account) {
+                syncAutomationsToCloud(account, updated);
+            }
+            api.deleteAutomation(id).catch(console.warn);
+            return updated;
+        });
     };
 
     // Idempotent Event Processor: Webhook simulation and evaluation
