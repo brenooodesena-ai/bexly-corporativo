@@ -34,12 +34,17 @@ async function sendInstagramMessage(
   messageText: string,
   accessToken: string
 ): Promise<{ success: boolean; data?: any; error?: string }> {
-  const endpoints = [
-    `https://graph.instagram.com/${META_API_VERSION}/${targetUserId}/messages`,
-    `https://graph.instagram.com/${META_API_VERSION}/me/messages`,
-    `https://graph.facebook.com/${META_API_VERSION}/${targetUserId}/messages`,
-    `https://graph.facebook.com/${META_API_VERSION}/me/messages`,
-  ];
+  const isInstagramToken = accessToken.startsWith('IGAA') || accessToken.startsWith('IG');
+  const endpoints = isInstagramToken
+    ? [
+        `https://graph.instagram.com/${META_API_VERSION}/me/messages`,
+        `https://graph.instagram.com/${META_API_VERSION}/${targetUserId}/messages`,
+      ]
+    : [
+        `https://graph.facebook.com/${META_API_VERSION}/${targetUserId}/messages`,
+        `https://graph.facebook.com/${META_API_VERSION}/me/messages`,
+        `https://graph.instagram.com/${META_API_VERSION}/me/messages`,
+      ];
 
   let lastErr: any = null;
 
@@ -84,10 +89,13 @@ async function sendPublicCommentReply(
   replyText: string,
   accessToken: string
 ): Promise<{ success: boolean; data?: any; error?: string }> {
-  const endpoints = [
-    `https://graph.instagram.com/${META_API_VERSION}/${commentId}/replies`,
-    `https://graph.facebook.com/${META_API_VERSION}/${commentId}/replies`,
-  ];
+  const isInstagramToken = accessToken.startsWith('IGAA') || accessToken.startsWith('IG');
+  const endpoints = isInstagramToken
+    ? [`https://graph.instagram.com/${META_API_VERSION}/${commentId}/replies`]
+    : [
+        `https://graph.facebook.com/${META_API_VERSION}/${commentId}/replies`,
+        `https://graph.instagram.com/${META_API_VERSION}/${commentId}/replies`,
+      ];
 
   let lastErr: any = null;
 
