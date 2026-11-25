@@ -15,7 +15,6 @@ import {
     ShoppingCart,
     Settings,
     LogOut,
-    Bell,
     Search,
     ShieldCheck,
     ChevronLeft,
@@ -666,7 +665,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 </div>
             </motion.aside>
 
-            {/* Main Content Area */}
+            {/* Main Content Area — Full Screen Height */}
             <motion.main
                 initial={false}
                 animate={{ marginLeft: sidebarW + GAP * 2 }}
@@ -680,34 +679,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     minWidth: 0
                 }}
             >
-                {/* Header */}
-                <header style={{
-                    height: 'var(--header-height)',
-                    background: 'var(--background)',
-                    backdropFilter: 'blur(10px)',
-                    borderBottom: '1px solid var(--border-color)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    padding: '0 32px',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 40
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        <button style={{ background: 'none', color: 'var(--text-secondary)', position: 'relative', border: 'none', cursor: 'pointer' }}>
-                            <Bell size={20} />
-                            <div style={{ position: 'absolute', top: '0px', right: '0px', width: '6px', height: '6px', backgroundColor: 'var(--primary-blue)', borderRadius: '50%' }} />
-                        </button>
-                        <div style={{ textAlign: 'right', paddingLeft: '20px', borderLeft: '1px solid var(--border-color)' }}>
-                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{displayName}</p>
-                            <p style={{ fontSize: '0.72rem', color: isAdmin ? '#3b82f6' : 'var(--text-secondary)', fontWeight: isAdmin ? 600 : 400, margin: '2px 0 0 0' }}>{displayRole}</p>
-                        </div>
-                    </div>
-                </header>
-
                 {/* Dynamic Content */}
-                <div style={{ padding: '32px' }}>
+                <div style={{ padding: '24px 32px' }}>
                     {children}
                 </div>
             </motion.main>
