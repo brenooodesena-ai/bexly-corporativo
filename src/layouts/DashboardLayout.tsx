@@ -47,7 +47,7 @@ const HoverPill = () => (
     />
 );
 
-/* ── Pílula ativa com borda brilhante (efeito vidro) ── */
+/* ── Pílula ativa com borda brilhante (efeito vidro) e indicador lateral ── */
 const ActivePill = () => (
     <motion.div
         layoutId="sidebar-active-pill"
@@ -56,12 +56,26 @@ const ActivePill = () => (
             position: 'absolute',
             inset: 0,
             borderRadius: '14px',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.22)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px -6px rgba(0,0,0,0.6)',
-            zIndex: 1
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 6px 18px -6px rgba(0,0,0,0.5)',
+            zIndex: 1,
+            overflow: 'hidden'
         }}
-    />
+    >
+        {/* Notch indicador lateral estilo referência */}
+        <div style={{
+            position: 'absolute',
+            right: 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '4px',
+            height: '18px',
+            borderRadius: '4px 0 0 4px',
+            background: '#0066FF',
+            boxShadow: '0 0 8px rgba(0, 102, 255, 0.8)'
+        }} />
+    </motion.div>
 );
 
 interface ItemProps {
@@ -96,29 +110,43 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                     zIndex: 2,
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: collapsed ? 'center' : 'flex-start',
                     gap: '12px',
                     width: '100%',
                     transformOrigin: collapsed ? 'center center' : 'left center'
                 }}
             >
+                {/* Ícone com efeito circular luminoso na aba selecionada (estilo referência) */}
                 <motion.div
                     animate={{
-                        scale: isHovered ? 1.22 : 1,
+                        scale: isHovered ? 1.2 : 1,
                     }}
                     transition={{ type: 'spring', stiffness: 500, damping: 22 }}
                     style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        background: active
+                            ? '#ffffff'
+                            : (isHovered ? 'rgba(255, 255, 255, 0.08)' : 'transparent'),
+                        boxShadow: active
+                            ? '0 0 16px rgba(255, 255, 255, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35)'
+                            : 'none',
+                        transition: 'background 0.25s ease, box-shadow 0.25s ease'
                     }}
                 >
                     <Icon
-                        size={19}
-                        strokeWidth={active || isHovered ? 2.1 : 1.8}
+                        size={18}
+                        strokeWidth={active ? 2.4 : (isHovered ? 2.1 : 1.8)}
                         style={{
-                            color: active ? '#ffffff' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
-                            filter: isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none',
+                            color: active ? '#0066FF' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
+                            filter: active
+                                ? 'drop-shadow(0 1px 2px rgba(0, 102, 255, 0.3))'
+                                : (isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none'),
                             transition: 'color 0.2s ease, filter 0.2s ease'
                         }}
                     />
@@ -132,7 +160,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                             transition={{ duration: 0.18 }}
                             style={{ flex: 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}
                         >
-                            <span style={{ color: active || isHovered ? '#ffffff' : 'rgba(255,255,255,0.85)' }}>{label}</span>
+                            <span style={{ color: active || isHovered ? '#ffffff' : 'rgba(255,255,255,0.85)', fontWeight: active ? 600 : 500 }}>{label}</span>
                             {badge}
                             {trailing}
                         </motion.span>
@@ -146,8 +174,9 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: collapsed ? 'center' : 'flex-start',
         height: '42px',
-        padding: collapsed ? '0 15px' : '0 14px',
+        padding: collapsed ? '0 12px' : '0 14px',
         marginBottom: '3px',
         borderRadius: '14px',
         color: active ? '#ffffff' : 'rgba(255,255,255,0.82)',
@@ -291,34 +320,43 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     overflow: 'visible'
                 }}
             >
-                {/* Botão recolher/expandir */}
+                {/* Botão recolher/expandir — apenas a seta, sem círculo branco, posicionada mais à direita */}
                 <motion.button
                     type="button"
                     onClick={() => setCollapsed(c => !c)}
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
+                    whileHover={{ scale: 1.25, x: 2 }}
+                    whileTap={{ scale: 0.9 }}
                     animate={{ rotate: collapsed ? 180 : 0 }}
                     transition={spring}
                     aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
                     style={{
                         position: 'absolute',
                         top: '26px',
-                        right: '-14px',
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '50%',
-                        background: '#ffffff',
-                        color: '#0b0d12',
+                        right: '-28px',
+                        width: '32px',
+                        height: '32px',
+                        background: 'transparent',
+                        color: 'rgba(255, 255, 255, 0.75)',
                         border: 'none',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        boxShadow: '0 6px 16px rgba(0,0,0,0.45)',
-                        zIndex: 5
+                        padding: 0,
+                        zIndex: 5,
+                        outline: 'none',
+                        transition: 'color 0.2s ease, filter 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.8))';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)';
+                        e.currentTarget.style.filter = 'none';
                     }}
                 >
-                    <ChevronLeft size={16} strokeWidth={2.4} />
+                    <ChevronLeft size={20} strokeWidth={2.4} />
                 </motion.button>
 
                 {/* Cabeçalho: logo transparente + workspace */}
