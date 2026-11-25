@@ -47,7 +47,7 @@ const HoverPill = () => (
     />
 );
 
-/* ── Pílula ativa com borda brilhante e linhazinha azul externa ── */
+/* ── Pílula ativa com borda brilhante (efeito vidro) ── */
 const ActivePill = () => (
     <motion.div
         layoutId="sidebar-active-pill"
@@ -56,29 +56,12 @@ const ActivePill = () => (
             position: 'absolute',
             inset: 0,
             borderRadius: '14px',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 6px 18px -6px rgba(0,0,0,0.5)',
-            zIndex: 1,
-            overflow: 'visible'
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.22)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px -6px rgba(0,0,0,0.6)',
+            zIndex: 1
         }}
-    >
-        {/* Linhazinha azul posicionada DO LADO DE FORA da sidebar, centralizada verticalmente com o ícone */}
-        <div
-            style={{
-                position: 'absolute',
-                right: '-22px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '4px',
-                height: '24px',
-                borderRadius: '999px',
-                background: '#0066FF',
-                boxShadow: '0 0 14px #0066FF, 0 0 6px rgba(0, 102, 255, 0.9)',
-                pointerEvents: 'none'
-            }}
-        />
-    </motion.div>
+    />
 );
 
 interface ItemProps {
@@ -184,8 +167,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
 
     const handlers = {
         onMouseEnter: () => setHovered(id),
-        title: collapsed ? label : undefined,
-        'data-sidebar-active': active ? 'true' : undefined
+        title: collapsed ? label : undefined
     };
 
     if (to) {
@@ -484,7 +466,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 <LayoutGroup>
                     <nav
                         onMouseLeave={() => setHovered(null)}
-                        style={{ flex: 1, overflow: 'visible', padding: '0 14px' }}
+                        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 14px' }}
                         className="bexly-sidebar-nav"
                     >
                         <SectionLabel collapsed={collapsed}>Principal</SectionLabel>
@@ -549,7 +531,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                                 <div style={{ position: 'absolute', left: 0, top: '20px', width: '12px', height: '1px', background: 'rgba(255,255,255,0.14)' }} />
                                                 <NavLink
                                                     to={sub.to}
-                                                    data-sidebar-active={subActive ? 'true' : undefined}
                                                     onMouseEnter={() => setHovered(sub.id)}
                                                     style={{
                                                         position: 'relative',
