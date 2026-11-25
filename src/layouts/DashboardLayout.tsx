@@ -47,7 +47,7 @@ const HoverPill = () => (
     />
 );
 
-/* ── Pílula ativa com linhazinha azul no canto ── */
+/* ── Pílula ativa com borda brilhante (efeito vidro) ── */
 const ActivePill = () => (
     <motion.div
         layoutId="sidebar-active-pill"
@@ -59,23 +59,9 @@ const ActivePill = () => (
             background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)',
             border: '1px solid rgba(255, 255, 255, 0.18)',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 6px 18px -6px rgba(0,0,0,0.5)',
-            zIndex: 1,
-            overflow: 'hidden'
+            zIndex: 1
         }}
-    >
-        {/* Linhazinha azul no canto para identificar a aba ativa */}
-        <div style={{
-            position: 'absolute',
-            right: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '3.5px',
-            height: '20px',
-            borderRadius: '3px 0 0 3px',
-            background: '#0066FF',
-            boxShadow: '0 0 10px rgba(0, 102, 255, 0.9), 0 0 4px #0066FF'
-        }} />
-    </motion.div>
+    />
 );
 
 interface ItemProps {
@@ -181,7 +167,8 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
 
     const handlers = {
         onMouseEnter: () => setHovered(id),
-        title: collapsed ? label : undefined
+        title: collapsed ? label : undefined,
+        'data-sidebar-active': active ? 'true' : undefined
     };
 
     if (to) {
@@ -226,6 +213,34 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const [search, setSearch] = useState('');
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState<boolean>(false);
     const searchRef = useRef<HTMLInputElement>(null);
+    const asideRef = useRef<HTMLElement>(null);
+    const [indicatorY, setIndicatorY] = useState<number | null>(null);
+
+    const updateIndicator = () => {
+        if (!asideRef.current) return;
+        const activeItem = asideRef.current.querySelector<HTMLElement>('[data-sidebar-active="true"]');
+        if (activeItem) {
+            const asideRect = asideRef.current.getBoundingClientRect();
+            const itemRect = activeItem.getBoundingClientRect();
+            setIndicatorY(itemRect.top - asideRect.top + itemRect.height / 2);
+        } else {
+            setIndicatorY(null);
+        }
+    };
+
+    useEffect(() => {
+        updateIndicator();
+        const t1 = setTimeout(updateIndicator, 40);
+        const t2 = setTimeout(updateIndicator, 160);
+        const t3 = setTimeout(updateIndicator, 320);
+        window.addEventListener('resize', updateIndicator);
+        return () => {
+            clearTimeout(t1);
+            clearTimeout(t2);
+            clearTimeout(t3);
+            window.removeEventListener('resize', updateIndicator);
+        };
+    }, [location.pathname, collapsed, builderOpen]);
 
     useEffect(() => {
         localStorage.setItem('bexly_sidebar_collapsed', collapsed ? '1' : '0');
@@ -286,6 +301,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
             {/* ── Sidebar flutuante em vidro ── */}
             <motion.aside
+                ref={asideRef as any}
                 initial={false}
                 animate={{ width: sidebarW }}
                 transition={spring}
@@ -345,6 +361,34 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 >
                     <ChevronLeft size={20} strokeWidth={2.4} />
                 </motion.button>
+
+                {/* Linhazinha azul externa que acompanha o centro do ícone da aba escolhida */}
+                <AnimatePresence>
+                    {indicatorY !== null && (
+                        <motion.div
+                            initial={false}
+                            animate={{
+                                top: indicatorY,
+                                opacity: 1,
+                                scaleY: 1
+                            }}
+                            exit={{ opacity: 0, scaleY: 0.5 }}
+                            transition={spring}
+                            style={{
+                                position: 'absolute',
+                                right: '-8px',
+                                width: '4px',
+                                height: '22px',
+                                borderRadius: '999px',
+                                background: 'linear-gradient(180deg, #3b82f6 0%, #0066FF 100%)',
+                                boxShadow: '0 0 14px rgba(0, 102, 255, 0.95), 0 0 5px #0066FF',
+                                transform: 'translateY(-50%)',
+                                zIndex: 6,
+                                pointerEvents: 'none'
+                            }}
+                        />
+                    )}
+                </AnimatePresence>
 
                 {/* Cabeçalho: logo transparente + workspace */}
                 <Link to="/dashboard" style={{
@@ -479,6 +523,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 {/* Navegação */}
                 <LayoutGroup>
                     <nav
+                        onScroll={updateIndicator}
                         onMouseLeave={() => setHovered(null)}
                         style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 14px' }}
                         className="bexly-sidebar-nav"
@@ -545,6 +590,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                                 <div style={{ position: 'absolute', left: 0, top: '20px', width: '12px', height: '1px', background: 'rgba(255,255,255,0.14)' }} />
                                                 <NavLink
                                                     to={sub.to}
+                                                    data-sidebar-active={subActive ? 'true' : undefined}
                                                     onMouseEnter={() => setHovered(sub.id)}
                                                     style={{
                                                         position: 'relative',
