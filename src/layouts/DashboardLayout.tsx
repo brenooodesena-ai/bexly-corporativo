@@ -399,14 +399,15 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                     alignItems: 'center',
                                     overflow: 'hidden',
                                     whiteSpace: 'nowrap',
-                                    marginLeft: '8px'
+                                    marginLeft: '6px',
+                                    transform: 'translateY(2px)'
                                 }}
                             >
                                 <img
                                     src={bexlyWordmark}
                                     alt="Bexly"
                                     style={{
-                                        height: '24px',
+                                        height: '18px',
                                         width: 'auto',
                                         objectFit: 'contain',
                                         display: 'block'
