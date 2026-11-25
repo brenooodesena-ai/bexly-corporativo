@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import logotipo from '../assets/logo-bexly-one.png';
+import bexlyMark from '../assets/bexly-mark.png';
 import { useAuth } from '../context/AuthContext';
 import {
     LayoutDashboard,
@@ -78,12 +78,50 @@ interface ItemProps {
 }
 
 const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered, active, badge, trailing, onClick }: ItemProps) => {
+    const isHovered = hovered === id;
+
     const content = (
         <>
-            {hovered === id && !active && <HoverPill />}
+            {isHovered && !active && <HoverPill />}
             {active && <ActivePill />}
-            <span style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-                <Icon size={18} strokeWidth={1.8} style={{ flexShrink: 0, color: active ? '#ffffff' : 'rgba(255,255,255,0.78)' }} />
+            <motion.span
+                animate={{
+                    scale: isHovered ? 1.04 : 1,
+                    x: isHovered && !collapsed ? 2 : 0
+                }}
+                transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                style={{
+                    position: 'relative',
+                    zIndex: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    width: '100%',
+                    transformOrigin: collapsed ? 'center center' : 'left center'
+                }}
+            >
+                <motion.div
+                    animate={{
+                        scale: isHovered ? 1.22 : 1,
+                    }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                    }}
+                >
+                    <Icon
+                        size={19}
+                        strokeWidth={active || isHovered ? 2.1 : 1.8}
+                        style={{
+                            color: active ? '#ffffff' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
+                            filter: isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none',
+                            transition: 'color 0.2s ease, filter 0.2s ease'
+                        }}
+                    />
+                </motion.div>
                 <AnimatePresence initial={false}>
                     {!collapsed && (
                         <motion.span
@@ -93,13 +131,13 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                             transition={{ duration: 0.18 }}
                             style={{ flex: 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}
                         >
-                            <span>{label}</span>
+                            <span style={{ color: active || isHovered ? '#ffffff' : 'rgba(255,255,255,0.85)' }}>{label}</span>
                             {badge}
                             {trailing}
                         </motion.span>
                     )}
                 </AnimatePresence>
-            </span>
+            </motion.span>
         </>
     );
 
@@ -281,7 +319,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     <ChevronLeft size={16} strokeWidth={2.4} />
                 </motion.button>
 
-                {/* Cabeçalho: logo + workspace */}
+                {/* Cabeçalho: logo transparente + workspace */}
                 <Link to="/dashboard" style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -291,20 +329,30 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     textDecoration: 'none',
                     color: '#fff'
                 }}>
-                    <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(180deg, #2b7bff 0%, #0050e0 100%)',
-                        boxShadow: '0 6px 16px -4px rgba(0, 102, 255, 0.6), inset 0 1px 0 rgba(255,255,255,0.35)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        overflow: 'hidden'
-                    }}>
-                        <img src={logotipo} alt="Bexly" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
-                    </div>
+                    <motion.div
+                        whileHover={{ scale: 1.1, rotate: 2 }}
+                        transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+                        style={{
+                            width: '38px',
+                            height: '38px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}
+                    >
+                        <img
+                            src={bexlyMark}
+                            alt="Bexly"
+                            style={{
+                                height: '36px',
+                                width: 'auto',
+                                objectFit: 'contain',
+                                display: 'block',
+                                filter: 'drop-shadow(0 4px 12px rgba(0, 102, 255, 0.45))'
+                            }}
+                        />
+                    </motion.div>
                     <AnimatePresence initial={false}>
                         {!collapsed && (
                             <motion.div
@@ -314,7 +362,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 transition={{ duration: 0.18 }}
                                 style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, whiteSpace: 'nowrap' }}
                             >
-                                <span style={{ fontWeight: 700, fontSize: '1.02rem', letterSpacing: '-0.3px' }}>Bexly</span>
+                                <span style={{ fontWeight: 700, fontSize: '1.05rem', letterSpacing: '-0.3px', color: '#ffffff' }}>Bexly</span>
                                 <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)' }}>{displayRole}</span>
                             </motion.div>
                         )}
@@ -464,6 +512,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         { id: 'funnels', to: '/funnels', label: 'Funis de Venda', color: '#f97316', icon: GitMerge }
                                     ].map(sub => {
                                         const subActive = isActive(sub.to);
+                                        const subHovered = hovered === sub.id;
                                         return (
                                             <div key={sub.id} style={{ position: 'relative', paddingLeft: '14px' }}>
                                                 <div style={{ position: 'absolute', left: 0, top: '20px', width: '12px', height: '1px', background: 'rgba(255,255,255,0.14)' }} />
@@ -485,10 +534,38 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                                         color: subActive ? '#fff' : 'rgba(255,255,255,0.75)'
                                                     }}
                                                 >
-                                                    {hovered === sub.id && !subActive && <HoverPill />}
+                                                    {subHovered && !subActive && <HoverPill />}
                                                     {subActive && <ActivePill />}
-                                                    <span style={{ position: 'relative', zIndex: 2, width: '8px', height: '8px', borderRadius: '3px', background: sub.color, flexShrink: 0 }} />
-                                                    <span style={{ position: 'relative', zIndex: 2, whiteSpace: 'nowrap' }}>{sub.label}</span>
+                                                    <motion.div
+                                                        animate={{ scale: subHovered ? 1.3 : 1 }}
+                                                        transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                                                        style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center' }}
+                                                    >
+                                                        <span style={{
+                                                            width: '8px',
+                                                            height: '8px',
+                                                            borderRadius: '3px',
+                                                            background: sub.color,
+                                                            flexShrink: 0,
+                                                            boxShadow: subHovered ? `0 0 10px ${sub.color}` : 'none',
+                                                            transition: 'box-shadow 0.2s ease'
+                                                        }} />
+                                                    </motion.div>
+                                                    <motion.span
+                                                        animate={{
+                                                            scale: subHovered ? 1.04 : 1,
+                                                            x: subHovered ? 2 : 0
+                                                        }}
+                                                        transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                                                        style={{
+                                                            position: 'relative',
+                                                            zIndex: 2,
+                                                            whiteSpace: 'nowrap',
+                                                            color: subActive || subHovered ? '#ffffff' : 'rgba(255,255,255,0.75)'
+                                                        }}
+                                                    >
+                                                        {sub.label}
+                                                    </motion.span>
                                                 </NavLink>
                                             </div>
                                         );
