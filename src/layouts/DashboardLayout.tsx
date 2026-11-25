@@ -47,7 +47,7 @@ const HoverPill = () => (
     />
 );
 
-/* ── Pílula ativa com borda brilhante (efeito vidro) e indicador lateral ── */
+/* ── Pílula ativa com linhazinha azul no canto ── */
 const ActivePill = () => (
     <motion.div
         layoutId="sidebar-active-pill"
@@ -63,17 +63,17 @@ const ActivePill = () => (
             overflow: 'hidden'
         }}
     >
-        {/* Notch indicador lateral estilo referência */}
+        {/* Linhazinha azul no canto para identificar a aba ativa */}
         <div style={{
             position: 'absolute',
             right: 0,
             top: '50%',
             transform: 'translateY(-50%)',
-            width: '4px',
-            height: '18px',
-            borderRadius: '4px 0 0 4px',
+            width: '3.5px',
+            height: '20px',
+            borderRadius: '3px 0 0 3px',
             background: '#0066FF',
-            boxShadow: '0 0 8px rgba(0, 102, 255, 0.8)'
+            boxShadow: '0 0 10px rgba(0, 102, 255, 0.9), 0 0 4px #0066FF'
         }} />
     </motion.div>
 );
@@ -116,37 +116,24 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                     transformOrigin: collapsed ? 'center center' : 'left center'
                 }}
             >
-                {/* Ícone com efeito circular luminoso na aba selecionada (estilo referência) */}
                 <motion.div
                     animate={{
-                        scale: isHovered ? 1.2 : 1,
+                        scale: isHovered ? 1.22 : 1,
                     }}
                     transition={{ type: 'spring', stiffness: 500, damping: 22 }}
                     style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexShrink: 0,
-                        background: active
-                            ? '#ffffff'
-                            : (isHovered ? 'rgba(255, 255, 255, 0.08)' : 'transparent'),
-                        boxShadow: active
-                            ? '0 0 16px rgba(255, 255, 255, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35)'
-                            : 'none',
-                        transition: 'background 0.25s ease, box-shadow 0.25s ease'
+                        flexShrink: 0
                     }}
                 >
                     <Icon
-                        size={18}
-                        strokeWidth={active ? 2.4 : (isHovered ? 2.1 : 1.8)}
+                        size={19}
+                        strokeWidth={active || isHovered ? 2.1 : 1.8}
                         style={{
-                            color: active ? '#0066FF' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
-                            filter: active
-                                ? 'drop-shadow(0 1px 2px rgba(0, 102, 255, 0.3))'
-                                : (isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none'),
+                            color: active ? '#ffffff' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
+                            filter: isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none',
                             transition: 'color 0.2s ease, filter 0.2s ease'
                         }}
                     />
