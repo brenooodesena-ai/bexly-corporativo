@@ -85,53 +85,67 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
         <>
             {isHovered && !active && <HoverPill />}
             {active && <ActivePill />}
-            <motion.span
-                animate={{
-                    scale: isHovered ? 1.04 : 1,
-                    x: isHovered && !collapsed ? 2 : 0
-                }}
-                transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+            <span
                 style={{
                     position: 'relative',
                     zIndex: 2,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                    gap: '12px',
                     width: '100%',
-                    transformOrigin: collapsed ? 'center center' : 'left center'
+                    height: '100%',
+                    overflow: 'hidden'
                 }}
             >
-                <motion.div
-                    animate={{
-                        scale: isHovered ? 1.22 : 1,
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                {/* Slot fixo do ícone — sempre perfeitamente alinhado a x=42px no centro da barra recolhida */}
+                <div
                     style={{
+                        width: '56px',
+                        height: '100%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0
                     }}
                 >
-                    <Icon
-                        size={19}
-                        strokeWidth={active || isHovered ? 2.1 : 1.8}
-                        style={{
-                            color: active ? '#ffffff' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
-                            filter: isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none',
-                            transition: 'color 0.2s ease, filter 0.2s ease'
+                    <motion.div
+                        animate={{
+                            scale: isHovered ? 1.22 : 1,
                         }}
-                    />
-                </motion.div>
+                        transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Icon
+                            size={19}
+                            strokeWidth={active || isHovered ? 2.1 : 1.8}
+                            style={{
+                                color: active ? '#ffffff' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
+                                filter: isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none',
+                                transition: 'color 0.2s ease, filter 0.2s ease'
+                            }}
+                        />
+                    </motion.div>
+                </div>
                 <AnimatePresence initial={false}>
                     {!collapsed && (
                         <motion.span
-                            initial={{ opacity: 0, x: -6 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -6 }}
-                            transition={{ duration: 0.18 }}
-                            style={{ flex: 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: 'auto' }}
+                            exit={{ opacity: 0, width: 0 }}
+                            transition={{ duration: 0.18, ease: 'easeInOut' }}
+                            style={{
+                                flex: 1,
+                                whiteSpace: 'nowrap',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                                overflow: 'hidden',
+                                paddingRight: '12px'
+                            }}
                         >
                             <span style={{ color: active || isHovered ? '#ffffff' : 'rgba(255,255,255,0.85)', fontWeight: active ? 600 : 500 }}>{label}</span>
                             {badge}
@@ -139,7 +153,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                         </motion.span>
                     )}
                 </AnimatePresence>
-            </motion.span>
+            </span>
         </>
     );
 
@@ -147,9 +161,8 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: collapsed ? 'center' : 'flex-start',
         height: '42px',
-        padding: collapsed ? '0 12px' : '0 14px',
+        padding: 0,
         marginBottom: '3px',
         borderRadius: '14px',
         color: active ? '#ffffff' : 'rgba(255,255,255,0.82)',
@@ -162,6 +175,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
         border: 'none',
         width: '100%',
         textAlign: 'left',
+        overflow: 'hidden',
         transition: 'color 0.2s ease'
     };
 
@@ -336,44 +350,58 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 <Link to="/dashboard" style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
-                    padding: collapsed ? '20px 0 14px 0' : '20px 18px 14px 18px',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    height: '64px',
+                    padding: '0 14px',
                     textDecoration: 'none',
-                    color: '#fff'
+                    color: '#fff',
+                    overflow: 'hidden'
                 }}>
-                    <motion.div
-                        whileHover={{ scale: 1.1, rotate: 2 }}
-                        transition={{ type: 'spring', stiffness: 450, damping: 20 }}
-                        style={{
-                            width: '38px',
-                            height: '38px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                        }}
-                    >
-                        <img
-                            src={bexlyMark}
-                            alt="Bexly"
+                    <div style={{
+                        width: '56px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                    }}>
+                        <motion.div
+                            whileHover={{ scale: 1.1, rotate: 2 }}
+                            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
                             style={{
-                                height: '36px',
-                                width: 'auto',
-                                objectFit: 'contain',
-                                display: 'block',
-                                filter: 'drop-shadow(0 4px 12px rgba(0, 102, 255, 0.45))'
+                                width: '38px',
+                                height: '38px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                        />
-                    </motion.div>
+                        >
+                            <img
+                                src={bexlyMark}
+                                alt="Bexly"
+                                style={{
+                                    height: '36px',
+                                    width: 'auto',
+                                    objectFit: 'contain',
+                                    display: 'block',
+                                    filter: 'drop-shadow(0 4px 12px rgba(0, 102, 255, 0.45))'
+                                }}
+                            />
+                        </motion.div>
+                    </div>
                     <AnimatePresence initial={false}>
                         {!collapsed && (
                             <motion.div
-                                initial={{ opacity: 0, x: -6 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -6 }}
-                                transition={{ duration: 0.18 }}
-                                style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, whiteSpace: 'nowrap' }}
+                                initial={{ opacity: 0, width: 0 }}
+                                animate={{ opacity: 1, width: 'auto' }}
+                                exit={{ opacity: 0, width: 0 }}
+                                transition={{ duration: 0.18, ease: 'easeInOut' }}
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    lineHeight: 1.2,
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    marginLeft: '6px'
+                                }}
                             >
                                 <span style={{ fontWeight: 700, fontSize: '1.05rem', letterSpacing: '-0.3px', color: '#ffffff' }}>Bexly</span>
                                 <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)' }}>{displayRole}</span>
@@ -383,47 +411,68 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 </Link>
 
                 {/* Busca */}
-                <div style={{ padding: collapsed ? '4px 14px 6px 14px' : '4px 14px 6px 14px', position: 'relative' }}>
+                <div style={{ padding: '4px 14px 6px 14px', position: 'relative' }}>
                     <div
                         onClick={() => { if (collapsed) { setCollapsed(false); setTimeout(() => searchRef.current?.focus(), 80); } }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '10px',
                             height: '42px',
-                            padding: collapsed ? '0' : '0 12px',
-                            justifyContent: collapsed ? 'center' : 'flex-start',
                             borderRadius: '14px',
                             background: 'rgba(255,255,255,0.05)',
                             border: '1px solid rgba(255,255,255,0.08)',
-                            cursor: collapsed ? 'pointer' : 'text'
+                            cursor: collapsed ? 'pointer' : 'text',
+                            overflow: 'hidden'
                         }}
                     >
-                        <Search size={16} strokeWidth={1.9} style={{ color: 'rgba(255,255,255,0.6)', flexShrink: 0 }} />
-                        {!collapsed && (
-                            <>
-                                <input
-                                    ref={searchRef}
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && results[0]) { navigate(results[0].to); setSearch(''); }
-                                        if (e.key === 'Escape') setSearch('');
+                        <div style={{
+                            width: '56px',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}>
+                            <Search size={16} strokeWidth={1.9} style={{ color: 'rgba(255,255,255,0.6)' }} />
+                        </div>
+                        <AnimatePresence initial={false}>
+                            {!collapsed && (
+                                <motion.div
+                                    initial={{ opacity: 0, width: 0 }}
+                                    animate={{ opacity: 1, width: 'auto' }}
+                                    exit={{ opacity: 0, width: 0 }}
+                                    transition={{ duration: 0.18, ease: 'easeInOut' }}
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        overflow: 'hidden',
+                                        paddingRight: '12px'
                                     }}
-                                    placeholder="Buscar páginas"
-                                    style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '0.86rem' }}
-                                />
-                                <span style={{
-                                    fontSize: '0.68rem',
-                                    color: 'rgba(255,255,255,0.55)',
-                                    padding: '2px 7px',
-                                    borderRadius: '7px',
-                                    border: '1px solid rgba(255,255,255,0.12)',
-                                    background: 'rgba(255,255,255,0.04)',
-                                    whiteSpace: 'nowrap'
-                                }}>⌘K</span>
-                            </>
-                        )}
+                                >
+                                    <input
+                                        ref={searchRef}
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && results[0]) { navigate(results[0].to); setSearch(''); }
+                                            if (e.key === 'Escape') setSearch('');
+                                        }}
+                                        placeholder="Buscar páginas"
+                                        style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '0.86rem' }}
+                                    />
+                                    <span style={{
+                                        fontSize: '0.68rem',
+                                        color: 'rgba(255,255,255,0.55)',
+                                        padding: '2px 7px',
+                                        borderRadius: '7px',
+                                        border: '1px solid rgba(255,255,255,0.12)',
+                                        background: 'rgba(255,255,255,0.04)',
+                                        whiteSpace: 'nowrap'
+                                    }}>⌘K</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     <AnimatePresence>
@@ -593,120 +642,173 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 </LayoutGroup>
 
                 {/* Rodapé: modo noturno + usuário */}
-                <div style={{ padding: '8px 14px 14px 14px' }}>
+                <div style={{ padding: '8px 14px 14px 14px', overflow: 'hidden' }}>
+                    {/* Modo Noturno */}
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: collapsed ? 'center' : 'space-between',
                         height: '42px',
-                        padding: collapsed ? 0 : '0 14px',
                         color: 'rgba(255,255,255,0.82)',
                         fontSize: '0.9rem',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        overflow: 'hidden'
                     }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                            width: '56px',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}>
                             <Sun size={18} strokeWidth={1.8} />
-                            {!collapsed && <span>Modo noturno</span>}
-                        </span>
-                        {!collapsed && (
-                            <button
-                                type="button"
-                                onClick={() => setNightMode(n => !n)}
-                                aria-label="Alternar modo noturno"
-                                style={{
-                                    width: '38px',
-                                    height: '22px',
-                                    borderRadius: '999px',
-                                    border: '1px solid rgba(255,255,255,0.14)',
-                                    background: nightMode ? '#0066FF' : 'rgba(255,255,255,0.12)',
-                                    position: 'relative',
-                                    cursor: 'pointer',
-                                    padding: 0,
-                                    transition: 'background 0.25s ease',
-                                    display: 'flex',
-                                    justifyContent: nightMode ? 'flex-end' : 'flex-start',
-                                    alignItems: 'center'
-                                }}
-                            >
-                                <motion.span
-                                    layout
-                                    transition={spring}
-                                    style={{ width: '16px', height: '16px', margin: '0 2px', borderRadius: '50%', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}
-                                />
-                            </button>
-                        )}
+                        </div>
+                        <AnimatePresence initial={false}>
+                            {!collapsed && (
+                                <motion.div
+                                    initial={{ opacity: 0, width: 0 }}
+                                    animate={{ opacity: 1, width: 'auto' }}
+                                    exit={{ opacity: 0, width: 0 }}
+                                    transition={{ duration: 0.18, ease: 'easeInOut' }}
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                        paddingRight: '6px'
+                                    }}
+                                >
+                                    <span>Modo noturno</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setNightMode(n => !n)}
+                                        aria-label="Alternar modo noturno"
+                                        style={{
+                                            width: '38px',
+                                            height: '22px',
+                                            borderRadius: '999px',
+                                            border: '1px solid rgba(255,255,255,0.14)',
+                                            background: nightMode ? '#0066FF' : 'rgba(255,255,255,0.12)',
+                                            position: 'relative',
+                                            cursor: 'pointer',
+                                            padding: 0,
+                                            transition: 'background 0.25s ease',
+                                            display: 'flex',
+                                            justifyContent: nightMode ? 'flex-end' : 'flex-start',
+                                            alignItems: 'center'
+                                        }}
+                                    >
+                                        <motion.span
+                                            layout
+                                            transition={spring}
+                                            style={{ width: '16px', height: '16px', margin: '0 2px', borderRadius: '50%', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}
+                                        />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
-                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '8px 4px 10px 4px' }} />
+                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '6px 0' }} />
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? 0 : '0 6px' }}>
-                        <motion.div
-                            whileHover={{ scale: 1.08 }}
-                            whileTap={{ scale: 0.94 }}
-                            onClick={() => setIsAvatarModalOpen(true)}
-                            title="Clique para alterar sua foto de perfil"
-                            style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
-                            className="sidebar-avatar-trigger"
-                        >
-                            {avatarUrl ? (
-                                <img
-                                    src={avatarUrl}
-                                    alt={displayName}
-                                    referrerPolicy="no-referrer"
-                                    style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255, 255, 255, 0.15)' }}
-                                />
-                            ) : (
-                                <div style={{
-                                    width: '38px', height: '38px', borderRadius: '50%',
-                                    background: isAdmin ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontWeight: 700, fontSize: '0.8rem', color: '#fff'
-                                }}>{initials}</div>
-                            )}
-                            <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                borderRadius: '50%',
-                                background: 'rgba(0,0,0,0.45)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                opacity: 0,
-                                transition: 'opacity 0.2s ease',
-                                color: '#fff'
-                            }}
-                            className="sidebar-avatar-overlay"
+                    {/* Perfil do Usuário */}
+                    <div style={{ display: 'flex', alignItems: 'center', height: '44px', overflow: 'hidden' }}>
+                        <div style={{
+                            width: '56px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}>
+                            <motion.div
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.94 }}
+                                onClick={() => setIsAvatarModalOpen(true)}
+                                title="Clique para alterar sua foto de perfil"
+                                style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
+                                className="sidebar-avatar-trigger"
                             >
-                                <Camera size={14} />
-                            </div>
-                            <span style={{ position: 'absolute', right: '-1px', bottom: '-1px', width: '11px', height: '11px', borderRadius: '50%', background: '#22c55e', border: '2px solid #12151e' }} />
-                        </motion.div>
-                        {!collapsed && (
-                            <>
-                                <div
-                                    onClick={() => navigate('/settings')}
-                                    title="Ver configurações do perfil"
-                                    style={{ flex: 1, minWidth: 0, lineHeight: 1.25, cursor: 'pointer' }}
+                                {avatarUrl ? (
+                                    <img
+                                        src={avatarUrl}
+                                        alt={displayName}
+                                        referrerPolicy="no-referrer"
+                                        style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255, 255, 255, 0.15)' }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: '38px', height: '38px', borderRadius: '50%',
+                                        background: isAdmin ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontWeight: 700, fontSize: '0.8rem', color: '#fff'
+                                    }}>{initials}</div>
+                                )}
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    borderRadius: '50%',
+                                    background: 'rgba(0,0,0,0.45)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    opacity: 0,
+                                    transition: 'opacity 0.2s ease',
+                                    color: '#fff'
+                                }}
+                                className="sidebar-avatar-overlay"
                                 >
-                                    <div style={{ fontSize: '0.86rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        {displayName}
-                                        {isAdmin && <ShieldCheck size={12} color="#3b82f6" />}
-                                    </div>
-                                    <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayEmail}</div>
+                                    <Camera size={14} />
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={handleLogout}
-                                    title="Sair"
-                                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', padding: '6px', borderRadius: '8px', transition: 'color 0.2s, background 0.2s' }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'none'; }}
+                                <span style={{ position: 'absolute', right: '-1px', bottom: '-1px', width: '11px', height: '11px', borderRadius: '50%', background: '#22c55e', border: '2px solid #12151e' }} />
+                            </motion.div>
+                        </div>
+                        <AnimatePresence initial={false}>
+                            {!collapsed && (
+                                <motion.div
+                                    initial={{ opacity: 0, width: 0 }}
+                                    animate={{ opacity: 1, width: 'auto' }}
+                                    exit={{ opacity: 0, width: 0 }}
+                                    transition={{ duration: 0.18, ease: 'easeInOut' }}
+                                    style={{
+                                        flex: 1,
+                                        minWidth: 0,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                        paddingLeft: '4px'
+                                    }}
                                 >
-                                    <LogOut size={16} />
-                                </button>
-                                <ChevronsUpDown size={14} style={{ color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => navigate('/settings')} />
-                            </>
-                        )}
+                                    <div
+                                        onClick={() => navigate('/settings')}
+                                        title="Ver configurações do perfil"
+                                        style={{ flex: 1, minWidth: 0, lineHeight: 1.25, cursor: 'pointer', overflow: 'hidden' }}
+                                    >
+                                        <div style={{ fontSize: '0.86rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            {displayName}
+                                            {isAdmin && <ShieldCheck size={12} color="#3b82f6" />}
+                                        </div>
+                                        <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayEmail}</div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, marginLeft: '6px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={handleLogout}
+                                            title="Sair"
+                                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', padding: '6px', borderRadius: '8px', transition: 'color 0.2s, background 0.2s' }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'none'; }}
+                                        >
+                                            <LogOut size={16} />
+                                        </button>
+                                        <ChevronsUpDown size={14} style={{ color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => navigate('/settings')} />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             </motion.aside>
