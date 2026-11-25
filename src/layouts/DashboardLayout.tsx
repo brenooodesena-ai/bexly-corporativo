@@ -4,6 +4,7 @@ import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import bexlyMark from '../assets/bexly-mark.png';
 import { useAuth } from '../context/AuthContext';
+import { AvatarPickerModal } from '../components/AvatarPickerModal';
 import {
     LayoutDashboard,
     Layout as LayoutIcon,
@@ -21,7 +22,8 @@ import {
     ChevronDown,
     ChevronsUpDown,
     Layers,
-    Sun
+    Sun,
+    Camera
 } from 'lucide-react';
 
 const EXPANDED_W = 272;
@@ -206,6 +208,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const [builderOpen, setBuilderOpen] = useState<boolean>(true);
     const [nightMode, setNightMode] = useState<boolean>(true);
     const [search, setSearch] = useState('');
+    const [isAvatarModalOpen, setIsAvatarModalOpen] = useState<boolean>(false);
     const searchRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -626,9 +629,21 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '8px 4px 10px 4px' }} />
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? 0 : '0 6px' }}>
-                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <motion.div
+                            whileHover={{ scale: 1.08 }}
+                            whileTap={{ scale: 0.94 }}
+                            onClick={() => setIsAvatarModalOpen(true)}
+                            title="Clique para alterar sua foto de perfil"
+                            style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
+                            className="sidebar-avatar-trigger"
+                        >
                             {avatarUrl ? (
-                                <img src={avatarUrl} alt={displayName} referrerPolicy="no-referrer" style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }} />
+                                <img
+                                    src={avatarUrl}
+                                    alt={displayName}
+                                    referrerPolicy="no-referrer"
+                                    style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255, 255, 255, 0.15)' }}
+                                />
                             ) : (
                                 <div style={{
                                     width: '38px', height: '38px', borderRadius: '50%',
@@ -637,11 +652,31 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                     fontWeight: 700, fontSize: '0.8rem', color: '#fff'
                                 }}>{initials}</div>
                             )}
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                borderRadius: '50%',
+                                background: 'rgba(0,0,0,0.45)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                opacity: 0,
+                                transition: 'opacity 0.2s ease',
+                                color: '#fff'
+                            }}
+                            className="sidebar-avatar-overlay"
+                            >
+                                <Camera size={14} />
+                            </div>
                             <span style={{ position: 'absolute', right: '-1px', bottom: '-1px', width: '11px', height: '11px', borderRadius: '50%', background: '#22c55e', border: '2px solid #12151e' }} />
-                        </div>
+                        </motion.div>
                         {!collapsed && (
                             <>
-                                <div style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
+                                <div
+                                    onClick={() => navigate('/settings')}
+                                    title="Ver configurações do perfil"
+                                    style={{ flex: 1, minWidth: 0, lineHeight: 1.25, cursor: 'pointer' }}
+                                >
                                     <div style={{ fontSize: '0.86rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         {displayName}
                                         {isAdmin && <ShieldCheck size={12} color="#3b82f6" />}
@@ -658,12 +693,15 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 >
                                     <LogOut size={16} />
                                 </button>
-                                <ChevronsUpDown size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                                <ChevronsUpDown size={14} style={{ color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => navigate('/settings')} />
                             </>
                         )}
                     </div>
                 </div>
             </motion.aside>
+
+            {/* Modal de Troca de Avatar */}
+            <AvatarPickerModal isOpen={isAvatarModalOpen} onClose={() => setIsAvatarModalOpen(false)} />
 
             {/* Main Content Area — Full Screen Height */}
             <motion.main
@@ -688,6 +726,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             <style>{`
                 .bexly-sidebar-nav::-webkit-scrollbar { width: 0; height: 0; }
                 .bexly-sidebar-nav { scrollbar-width: none; }
+                .sidebar-avatar-trigger:hover .sidebar-avatar-overlay { opacity: 1 !important; }
             `}</style>
         </div>
     );

@@ -18,6 +18,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { InstagramAutomationProvider } from './context/InstagramAutomationContext';
 import InstagramCallback from './pages/InstagramCallback';
+import Settings from './pages/Settings';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 
@@ -98,10 +99,7 @@ function App() {
           <Route path="/settings" element={
             <ProtectedRoute>
               <DashboardLayout>
-                <div className="card">
-                  <h2>Configurações</h2>
-                  <p>Perfil do usuário e configurações da plataforma em breve.</p>
-                </div>
+                <Settings />
               </DashboardLayout>
             </ProtectedRoute>
           } />

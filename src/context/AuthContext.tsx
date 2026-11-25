@@ -26,6 +26,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<{ data?: any; error: any }>;
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<{ data?: any; error: any }>;
   syncDatabaseUser: (overrideUser?: any) => Promise<DbUser | null>;
+  updateAvatar: (avatarUrl: string) => Promise<{ success: boolean; error?: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -69,11 +70,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   };
 
+  const applyCustomAvatar = (u: User | null): User | null => {
+    if (!u) return null;
+    if (typeof window === 'undefined') return u;
+    const customAvatar = (u.id && localStorage.getItem(`bexly_avatar_${u.id}`)) || localStorage.getItem('bexly_custom_avatar');
+    if (!customAvatar) return u;
+    return {
+      ...u,
+      user_metadata: {
+        ...u.user_metadata,
+        avatar_url: customAvatar,
+        picture: customAvatar,
+      },
+    };
+  };
+
+  const updateAvatar = async (avatarUrl: string): Promise<{ success: boolean; error?: any }> => {
+    try {
+      if (typeof window !== 'undefined') {
+        if (user?.id) {
+          localStorage.setItem(`bexly_avatar_${user.id}`, avatarUrl);
+        }
+        localStorage.setItem('bexly_custom_avatar', avatarUrl);
+      }
+
+      // Atualiza metadados no Supabase Auth se estiver online/configurado
+      if (isSupabaseConfigured) {
+        supabase.auth.updateUser({
+          data: {
+            avatar_url: avatarUrl,
+            picture: avatarUrl,
+          },
+        }).catch((err) => console.warn('[AuthContext] Falha ao sincronizar avatar no Supabase:', err));
+      }
+
+      setUser((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          user_metadata: {
+            ...prev.user_metadata,
+            avatar_url: avatarUrl,
+            picture: avatarUrl,
+          },
+        };
+      });
+
+      return { success: true };
+    } catch (err: any) {
+      console.error('[AuthContext] Erro ao atualizar avatar:', err);
+      return { success: false, error: err };
+    }
+  };
+
   useEffect(() => {
     // 1. Obter sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      const currentUser = session?.user ?? null;
+      const currentUser = applyCustomAvatar(session?.user ?? null);
       setUser(currentUser);
       if (currentUser) {
         syncDatabaseUser(currentUser);
@@ -88,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 2. Ouvir mudanças no estado de autenticação (OAuth callback, refresh, logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      const currentUser = session?.user ?? null;
+      const currentUser = applyCustomAvatar(session?.user ?? null);
       setUser(currentUser);
       if (currentUser) {
         syncDatabaseUser(currentUser);
@@ -251,6 +305,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithEmail,
         signUpWithEmail,
         syncDatabaseUser,
+        updateAvatar,
         signOut,
       }}
     >
