@@ -398,6 +398,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 style={{
                                     display: 'flex',
                                     flexDirection: 'column',
+                                    alignItems: 'flex-start',
                                     justifyContent: 'center',
                                     lineHeight: 1.2,
                                     whiteSpace: 'nowrap',
@@ -412,10 +413,13 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         height: '18px',
                                         width: 'auto',
                                         objectFit: 'contain',
-                                        display: 'block'
+                                        objectPosition: 'left center',
+                                        display: 'block',
+                                        alignSelf: 'flex-start',
+                                        marginLeft: '-1px'
                                     }}
                                 />
-                                <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)', marginTop: '2px' }}>{displayRole}</span>
+                                <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)', marginTop: '2px', textAlign: 'left' }}>{displayRole}</span>
                             </motion.div>
                         )}
                     </AnimatePresence>
