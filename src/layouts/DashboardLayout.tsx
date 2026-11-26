@@ -414,7 +414,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         width: 'auto',
                                         objectFit: 'contain',
                                         display: 'block',
-                                        marginTop: '2px'
+                                        transform: 'translateY(2px)'
                                     }}
                                 />
                                 <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)', marginTop: '2px', textAlign: 'left' }}>{displayRole}</span>
