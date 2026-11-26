@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import bexlyMark from '../assets/bexly-mark.png';
+import bexlyWordmark from '../assets/bexly-wordmark.png';
 import { useAuth } from '../context/AuthContext';
 import { AvatarPickerModal } from '../components/AvatarPickerModal';
 import {
@@ -397,14 +398,24 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 style={{
                                     display: 'flex',
                                     flexDirection: 'column',
+                                    justifyContent: 'center',
                                     lineHeight: 1.2,
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     marginLeft: '6px'
                                 }}
                             >
-                                <span style={{ fontWeight: 700, fontSize: '1.05rem', letterSpacing: '-0.3px', color: '#ffffff' }}>Bexly</span>
-                                <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)' }}>{displayRole}</span>
+                                <img
+                                    src={bexlyWordmark}
+                                    alt="Bexly"
+                                    style={{
+                                        height: '18px',
+                                        width: 'auto',
+                                        objectFit: 'contain',
+                                        display: 'block'
+                                    }}
+                                />
+                                <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)', marginTop: '2px' }}>{displayRole}</span>
                             </motion.div>
                         )}
                     </AnimatePresence>
