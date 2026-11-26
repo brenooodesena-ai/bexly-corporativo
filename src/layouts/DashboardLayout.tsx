@@ -407,7 +407,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                     src={bexlyWordmark}
                                     alt="Bexly"
                                     style={{
-                                        height: '18px',
+                                        height: '21px',
                                         width: 'auto',
                                         objectFit: 'contain',
                                         display: 'block'
