@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -11,40 +11,18 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setThemeState] = useState<Theme>(() => {
-        const saved = localStorage.getItem('bexly-theme') as Theme | null;
-        if (saved === 'light' || saved === 'dark') {
-            return saved;
-        }
-        return 'dark';
-    });
-
-    const applyTheme = (t: Theme) => {
-        document.documentElement.setAttribute('data-theme', t);
-        if (t === 'light') {
-            document.documentElement.classList.add('light');
-            document.documentElement.classList.remove('dark');
-        } else {
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
-        }
-        localStorage.setItem('bexly-theme', t);
-    };
-
     useEffect(() => {
-        applyTheme(theme);
-    }, [theme]);
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        localStorage.setItem('bexly-theme', 'dark');
+    }, []);
 
-    const toggleTheme = () => {
-        setThemeState(prev => (prev === 'dark' ? 'light' : 'dark'));
-    };
-
-    const setTheme = (newTheme: Theme) => {
-        setThemeState(newTheme);
-    };
+    const toggleTheme = () => {};
+    const setTheme = () => {};
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+        <ThemeContext.Provider value={{ theme: 'dark', toggleTheme, setTheme }}>
             {children}
         </ThemeContext.Provider>
     );

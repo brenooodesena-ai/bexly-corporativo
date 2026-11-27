@@ -4,9 +4,7 @@ import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import bexlyMark from '../assets/bexly-mark.png';
 import bexlyWordmark from '../assets/bexly-wordmark.png';
-import bexlyWordmarkDark from '../assets/bexly-wordmark-dark.png';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { AvatarPickerModal } from '../components/AvatarPickerModal';
 import {
     LayoutDashboard,
@@ -25,8 +23,6 @@ import {
     ChevronDown,
     ChevronsUpDown,
     Layers,
-    Sun,
-    Moon,
     Camera,
     Bell,
     Calendar,
@@ -40,39 +36,6 @@ const GAP = 14;
 
 const spring = { type: 'spring' as const, stiffness: 520, damping: 40, mass: 0.8 };
 
-/* ── Pílula de hover que desliza entre os itens ── */
-const HoverPill = ({ isLight }: { isLight?: boolean }) => (
-    <motion.div
-        layoutId="sidebar-hover-pill"
-        transition={spring}
-        style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '16px',
-            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
-            zIndex: 0
-        }}
-    />
-);
-
-/* ── Pílula ativa estilo Apple VisionOS (luz sólida contrastante) ── */
-const ActivePill = ({ isLight }: { isLight?: boolean }) => (
-    <motion.div
-        layoutId="sidebar-active-pill"
-        transition={spring}
-        style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '16px',
-            background: isLight ? '#0f172a' : '#ffffff',
-            boxShadow: isLight
-                ? '0 4px 16px rgba(15, 23, 42, 0.25)'
-                : '0 4px 20px rgba(255, 255, 255, 0.45), 0 0 1px rgba(0,0,0,0.2)',
-            zIndex: 1
-        }}
-    />
-);
-
 interface ItemProps {
     id: string;
     to?: string;
@@ -85,23 +48,20 @@ interface ItemProps {
     badge?: ReactNode;
     trailing?: ReactNode;
     onClick?: () => void;
-    isLight?: boolean;
 }
 
-const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered, active, badge, trailing, onClick, isLight }: ItemProps) => {
+const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered, active, badge, trailing, onClick }: ItemProps) => {
     const isHovered = hovered === id;
 
     const iconColor = active
-        ? (isLight ? '#ffffff' : '#0f172a')
-        : (isHovered ? (isLight ? '#0f172a' : '#ffffff') : (isLight ? 'rgba(15, 23, 42, 0.72)' : 'rgba(255, 255, 255, 0.78)'));
+        ? '#ffffff'
+        : (isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.68)');
     const textColor = active
-        ? (isLight ? '#ffffff' : '#0f172a')
-        : (isHovered ? (isLight ? '#0f172a' : '#ffffff') : (isLight ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.78)'));
+        ? '#ffffff'
+        : (isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.68)');
 
     const content = (
         <>
-            {isHovered && !active && <HoverPill isLight={isLight} />}
-            {active && <ActivePill isLight={isLight} />}
             <span
                 style={{
                     position: 'relative',
@@ -113,7 +73,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                     overflow: 'hidden'
                 }}
             >
-                {/* Slot fixo do ícone */}
+                {/* Slot fixo do ícone — sem nenhuma marcação/pílula de fundo */}
                 <div
                     style={{
                         width: '56px',
@@ -126,7 +86,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                 >
                     <motion.div
                         animate={{
-                            scale: isHovered ? 1.18 : 1,
+                            scale: isHovered ? 1.15 : 1,
                         }}
                         transition={{ type: 'spring', stiffness: 500, damping: 22 }}
                         style={{
@@ -137,10 +97,10 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                     >
                         <Icon
                             size={19}
-                            strokeWidth={active ? 2.4 : (isHovered ? 2.1 : 1.8)}
+                            strokeWidth={active ? 2.2 : (isHovered ? 2.0 : 1.8)}
                             style={{
                                 color: iconColor,
-                                filter: active ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' : (isHovered ? (isLight ? 'none' : 'drop-shadow(0 0 8px rgba(255,255,255,0.45))') : 'none'),
+                                filter: active ? 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.7))' : (isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none'),
                                 transition: 'color 0.2s ease, filter 0.2s ease'
                             }}
                         />
@@ -187,13 +147,13 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                         left: '100%',
                         marginLeft: '14px',
                         padding: '6px 14px',
-                        background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(20, 22, 32, 0.94)',
+                        background: 'rgba(20, 22, 32, 0.94)',
                         backdropFilter: 'blur(24px)',
                         WebkitBackdropFilter: 'blur(24px)',
-                        border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.18)',
-                        boxShadow: isLight ? '0 8px 30px rgba(0, 0, 0, 0.12)' : '0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                        border: '1px solid rgba(255, 255, 255, 0.18)',
+                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                         borderRadius: '9999px',
-                        color: isLight ? '#0f172a' : '#ffffff',
+                        color: '#ffffff',
                         fontSize: '0.8rem',
                         fontWeight: 600,
                         whiteSpace: 'nowrap',
@@ -268,7 +228,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('bexly_sidebar_collapsed') === '1');
     const [hovered, setHovered] = useState<string | null>(null);
     const [builderOpen, setBuilderOpen] = useState<boolean>(true);
-    const [nightMode, setNightMode] = useState<boolean>(true);
     const [search, setSearch] = useState('');
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState<boolean>(false);
     const searchRef = useRef<HTMLInputElement>(null);
@@ -300,9 +259,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         const interval = setInterval(updateTime, 10000);
         return () => clearInterval(interval);
     }, []);
-
-    const { theme, toggleTheme } = useTheme();
-    const isLight = theme === 'light';
 
     const displayName = user?.user_metadata?.full_name || dbUser?.name || (isAdmin ? 'Breno Silva' : user?.email?.split('@')[0] || 'Usuário');
     const displayEmail = user?.email || '';
@@ -353,7 +309,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         : [];
 
     const sidebarW = collapsed ? COLLAPSED_W : EXPANDED_W;
-    const common = { collapsed, hovered, setHovered, isLight };
+    const common = { collapsed, hovered, setHovered };
 
     return (
         <div style={{
@@ -362,8 +318,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             minHeight: '100vh',
             background: 'var(--background)',
             color: 'var(--text-primary)',
-            overflowX: 'hidden',
-            transition: 'background 0.3s ease, color 0.3s ease'
+            overflowX: 'hidden'
         }}>
             {/* ── Sidebar flutuante em vidro fosco Apple VisionOS ── */}
             <motion.aside
@@ -379,14 +334,12 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: '28px',
-                    background: isLight ? 'rgba(255, 255, 255, 0.82)' : 'rgba(20, 22, 32, 0.62)',
-                    border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.12)',
-                    boxShadow: isLight
-                        ? '0 30px 60px -20px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.95)'
-                        : 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 30px 60px -20px rgba(0, 0, 0, 0.75)',
+                    background: 'rgba(20, 22, 32, 0.62)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 30px 60px -20px rgba(0, 0, 0, 0.75)',
                     backdropFilter: 'blur(36px) saturate(190%) contrast(105%)',
                     WebkitBackdropFilter: 'blur(36px) saturate(190%) contrast(105%)',
-                    color: isLight ? '#0f172a' : '#ffffff',
+                    color: '#ffffff',
                     overflow: 'visible'
                 }}
             >
@@ -406,7 +359,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         width: '32px',
                         height: '32px',
                         background: 'transparent',
-                        color: isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.75)',
+                        color: 'rgba(255, 255, 255, 0.75)',
                         border: 'none',
                         display: 'flex',
                         alignItems: 'center',
@@ -418,11 +371,11 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         transition: 'color 0.2s ease, filter 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.color = isLight ? '#0066FF' : '#ffffff';
+                        e.currentTarget.style.color = '#ffffff';
                         e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.8))';
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.color = isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.75)';
+                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)';
                         e.currentTarget.style.filter = 'none';
                     }}
                 >
@@ -436,7 +389,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     height: '64px',
                     padding: '0 14px',
                     textDecoration: 'none',
-                    color: isLight ? '#0f172a' : '#fff',
+                    color: '#fff',
                     overflow: 'hidden'
                 }}>
                     <div style={{
@@ -489,7 +442,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 }}
                             >
                                 <img
-                                    src={isLight ? bexlyWordmarkDark : bexlyWordmark}
+                                    src={bexlyWordmark}
                                     alt="Bexly"
                                     style={{
                                         height: '21px',
@@ -501,7 +454,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 />
                                 <span style={{
                                     fontSize: '0.76rem',
-                                    color: isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.55)',
+                                    color: 'rgba(255, 255, 255, 0.55)',
                                     marginTop: '2px',
                                     textAlign: 'left'
                                 }}>
@@ -633,7 +586,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                             icon={Megaphone}
                             label="Automação"
                             active={isActive('/marketing')}
-                            badge={<span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px rgba(34,197,94,0.7)' }} />}
                             {...common}
                         />
                         <SidebarItem
@@ -642,7 +594,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                             icon={MessageSquare}
                             label="Mentor IA"
                             active={isActive('/ai-mentor')}
-                            badge={<span style={{ fontSize: '0.66rem', fontWeight: 700, padding: '2px 7px', borderRadius: '999px', background: '#0066FF', color: '#fff' }}>IA</span>}
                             {...common}
                         />
 
@@ -698,8 +649,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                                         color: subActive ? '#fff' : 'rgba(255,255,255,0.75)'
                                                     }}
                                                 >
-                                                    {subHovered && !subActive && <HoverPill />}
-                                                    {subActive && <ActivePill />}
                                                     <motion.div
                                                         animate={{ scale: subHovered ? 1.3 : 1 }}
                                                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
@@ -743,79 +692,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     </nav>
                 </LayoutGroup>
 
-                {/* Rodapé: modo noturno + usuário */}
+                {/* Rodapé: usuário */}
                 <div style={{ padding: '8px 14px 14px 14px', overflow: 'hidden' }}>
-                    {/* Modo Noturno */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        height: '42px',
-                        color: 'rgba(255,255,255,0.82)',
-                        fontSize: '0.9rem',
-                        fontWeight: 500,
-                        overflow: 'hidden'
-                    }}>
-                        <div style={{
-                            width: '56px',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                        }}>
-                            <Sun size={18} strokeWidth={1.8} />
-                        </div>
-                        <AnimatePresence initial={false}>
-                            {!collapsed && (
-                                <motion.div
-                                    initial={{ opacity: 0, width: 0 }}
-                                    animate={{ opacity: 1, width: 'auto' }}
-                                    exit={{ opacity: 0, width: 0 }}
-                                    transition={{ duration: 0.18, ease: 'easeInOut' }}
-                                    style={{
-                                        flex: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        overflow: 'hidden',
-                                        whiteSpace: 'nowrap',
-                                        paddingRight: '6px'
-                                    }}
-                                >
-                                    <span>Modo noturno</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setNightMode(n => !n)}
-                                        aria-label="Alternar modo noturno"
-                                        style={{
-                                            width: '38px',
-                                            height: '22px',
-                                            borderRadius: '999px',
-                                            border: '1px solid rgba(255,255,255,0.14)',
-                                            background: nightMode ? '#0066FF' : 'rgba(255,255,255,0.12)',
-                                            position: 'relative',
-                                            cursor: 'pointer',
-                                            padding: 0,
-                                            transition: 'background 0.25s ease',
-                                            display: 'flex',
-                                            justifyContent: nightMode ? 'flex-end' : 'flex-start',
-                                            alignItems: 'center'
-                                        }}
-                                    >
-                                        <motion.span
-                                            layout
-                                            transition={spring}
-                                            style={{ width: '16px', height: '16px', margin: '0 2px', borderRadius: '50%', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}
-                                        />
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '6px 0' }} />
-
-                    {/* Perfil do Usuário */}
                     <div style={{ display: 'flex', alignItems: 'center', height: '44px', overflow: 'hidden' }}>
                         <div style={{
                             width: '56px',
@@ -989,7 +867,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {/* Live Clock Pill */}
                         <div className="apple-glass-pill" style={{ height: '40px', padding: '0 14px', gap: '7px' }}>
-                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
                             <Clock size={13} style={{ color: 'rgba(255,255,255,0.6)' }} />
                             <span style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em' }}>{timeStr || '01:04 PM'}</span>
                         </div>
@@ -1014,32 +891,11 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         {/* Notifications Pill */}
                         <div
                             className="apple-glass-button"
-                            style={{ width: '40px', height: '40px', padding: 0, position: 'relative' }}
+                            style={{ width: '40px', height: '40px', padding: 0 }}
                             title="Notificações"
                         >
                             <Bell size={16} />
-                            <span style={{
-                                position: 'absolute',
-                                top: '8px',
-                                right: '9px',
-                                width: '7px',
-                                height: '7px',
-                                borderRadius: '50%',
-                                background: '#f97316',
-                                boxShadow: '0 0 6px #f97316'
-                            }} />
                         </div>
-
-                        {/* Theme Toggle Button (Claro / Escuro) */}
-                        <button
-                            type="button"
-                            onClick={toggleTheme}
-                            className="apple-glass-button"
-                            style={{ width: '40px', height: '40px', padding: 0 }}
-                            title={isLight ? 'Mudar para tema escuro' : 'Mudar para tema claro'}
-                        >
-                            {isLight ? <Moon size={16} /> : <Sun size={16} />}
-                        </button>
                     </div>
                 </header>
 
