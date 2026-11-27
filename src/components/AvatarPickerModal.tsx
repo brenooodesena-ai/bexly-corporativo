@@ -10,6 +10,7 @@ import avatar4 from '../assets/avatars/avatar-4.jpg';
 import avatar5 from '../assets/avatars/avatar-5.jpg';
 import avatar6 from '../assets/avatars/avatar-6.jpg';
 import avatar7 from '../assets/avatars/avatar-7.jpg';
+import avatar8 from '../assets/avatars/avatar-8.jpg';
 
 export const BEXLY_AVATARS = [
     { id: 'av1', label: 'Cacheada', src: avatar1 },
@@ -19,6 +20,7 @@ export const BEXLY_AVATARS = [
     { id: 'av5', label: 'Ondulado', src: avatar5 },
     { id: 'av6', label: 'Barba Estilo', src: avatar6 },
     { id: 'av7', label: 'Careca', src: avatar7 },
+    { id: 'av8', label: 'Crespo', src: avatar8 },
 ];
 
 interface AvatarPickerModalProps {
