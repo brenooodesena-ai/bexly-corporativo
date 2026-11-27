@@ -4,6 +4,7 @@ import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import bexlyMark from '../assets/bexly-mark.png';
 import bexlyWordmark from '../assets/bexly-wordmark.png';
+import spatialBg from '../assets/spatial-bg.jpg';
 import { useAuth } from '../context/AuthContext';
 import { AvatarPickerModal } from '../components/AvatarPickerModal';
 import {
@@ -24,7 +25,11 @@ import {
     ChevronsUpDown,
     Layers,
     Sun,
-    Camera
+    Camera,
+    Bell,
+    Calendar,
+    Plus,
+    Clock
 } from 'lucide-react';
 
 const EXPANDED_W = 272;
@@ -41,14 +46,14 @@ const HoverPill = () => (
         style={{
             position: 'absolute',
             inset: 0,
-            borderRadius: '14px',
-            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '16px',
+            background: 'rgba(255, 255, 255, 0.08)',
             zIndex: 0
         }}
     />
 );
 
-/* ── Pílula ativa com borda brilhante (efeito vidro) ── */
+/* ── Pílula ativa estilo Apple VisionOS (luz branca fosca e sólida) ── */
 const ActivePill = () => (
     <motion.div
         layoutId="sidebar-active-pill"
@@ -56,10 +61,9 @@ const ActivePill = () => (
         style={{
             position: 'absolute',
             inset: 0,
-            borderRadius: '14px',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.22)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px -6px rgba(0,0,0,0.6)',
+            borderRadius: '16px',
+            background: '#ffffff',
+            boxShadow: '0 4px 20px rgba(255, 255, 255, 0.45), 0 0 1px rgba(0,0,0,0.2)',
             zIndex: 1
         }}
     />
@@ -97,7 +101,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                     overflow: 'hidden'
                 }}
             >
-                {/* Slot fixo do ícone — sempre perfeitamente alinhado a x=42px no centro da barra recolhida */}
+                {/* Slot fixo do ícone */}
                 <div
                     style={{
                         width: '56px',
@@ -110,7 +114,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                 >
                     <motion.div
                         animate={{
-                            scale: isHovered ? 1.22 : 1,
+                            scale: isHovered ? 1.18 : 1,
                         }}
                         transition={{ type: 'spring', stiffness: 500, damping: 22 }}
                         style={{
@@ -121,10 +125,10 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                     >
                         <Icon
                             size={19}
-                            strokeWidth={active || isHovered ? 2.1 : 1.8}
+                            strokeWidth={active ? 2.4 : (isHovered ? 2.1 : 1.8)}
                             style={{
-                                color: active ? '#ffffff' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
-                                filter: isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none',
+                                color: active ? '#0f172a' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
+                                filter: active ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' : (isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none'),
                                 transition: 'color 0.2s ease, filter 0.2s ease'
                             }}
                         />
@@ -138,64 +142,93 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                             exit={{ opacity: 0, width: 0 }}
                             transition={{ duration: 0.18, ease: 'easeInOut' }}
                             style={{
-                                flex: 1,
-                                whiteSpace: 'nowrap',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
-                                gap: '8px',
+                                flex: 1,
+                                minWidth: 0,
+                                whiteSpace: 'nowrap',
                                 overflow: 'hidden',
-                                paddingRight: '12px'
+                                paddingRight: '14px'
                             }}
                         >
-                            <span style={{ color: active || isHovered ? '#ffffff' : 'rgba(255,255,255,0.85)', fontWeight: active ? 600 : 500 }}>{label}</span>
-                            {badge}
-                            {trailing}
+                            <span style={{
+                                fontWeight: active ? 600 : 500,
+                                fontSize: '0.88rem',
+                                color: active ? '#0f172a' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
+                                transition: 'color 0.2s ease'
+                            }}>
+                                {label}
+                            </span>
+                            {badge && <span style={{ marginLeft: '8px' }}>{badge}</span>}
+                            {trailing && <span style={{ marginLeft: 'auto', display: 'flex' }}>{trailing}</span>}
                         </motion.span>
                     )}
                 </AnimatePresence>
             </span>
+
+            {/* Tooltip flutuante estilo Apple VisionOS quando a barra está recolhida */}
+            {collapsed && isHovered && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        left: '100%',
+                        marginLeft: '14px',
+                        padding: '6px 14px',
+                        background: 'rgba(20, 22, 32, 0.94)',
+                        backdropFilter: 'blur(24px)',
+                        WebkitBackdropFilter: 'blur(24px)',
+                        border: '1px solid rgba(255, 255, 255, 0.18)',
+                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                        borderRadius: '9999px',
+                        color: '#ffffff',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        zIndex: 9999,
+                        pointerEvents: 'none'
+                    }}
+                >
+                    {label}
+                </div>
+            )}
         </>
     );
 
-    const style: React.CSSProperties = {
-        position: 'relative',
+    const style = {
+        position: 'relative' as const,
         display: 'flex',
         alignItems: 'center',
-        height: '42px',
-        padding: 0,
-        marginBottom: '3px',
-        borderRadius: '14px',
-        color: active ? '#ffffff' : 'rgba(255,255,255,0.82)',
-        fontSize: '0.9rem',
-        fontWeight: active ? 600 : 500,
-        letterSpacing: '-0.1px',
+        height: '46px',
+        margin: '2px 0',
+        borderRadius: '16px',
         textDecoration: 'none',
+        color: 'inherit',
         cursor: 'pointer',
-        background: 'none',
-        border: 'none',
-        width: '100%',
-        textAlign: 'left',
-        overflow: 'hidden',
-        transition: 'color 0.2s ease'
-    };
-
-    const handlers = {
-        onMouseEnter: () => setHovered(id),
-        title: collapsed ? label : undefined
+        userSelect: 'none' as const
     };
 
     if (to) {
         return (
-            <NavLink to={to} style={style} {...handlers}>
+            <NavLink
+                to={to}
+                onClick={onClick}
+                onMouseEnter={() => setHovered(id)}
+                style={style}
+            >
                 {content}
             </NavLink>
         );
     }
+
     return (
-        <button type="button" onClick={onClick} style={style} {...handlers}>
+        <div
+            onClick={onClick}
+            onMouseEnter={() => setHovered(id)}
+            style={style}
+        >
             {content}
-        </button>
+        </div>
     );
 };
 
@@ -245,6 +278,17 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         return () => window.removeEventListener('keydown', onKey);
     }, []);
 
+    const [timeStr, setTimeStr] = useState('');
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            setTimeStr(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }));
+        };
+        updateTime();
+        const interval = setInterval(updateTime, 10000);
+        return () => clearInterval(interval);
+    }, []);
+
     const displayName = user?.user_metadata?.full_name || dbUser?.name || (isAdmin ? 'Breno Silva' : user?.email?.split('@')[0] || 'Usuário');
     const displayEmail = user?.email || '';
     const displayRole = isAdmin ? 'Administrador' : 'Workspace Individual';
@@ -265,6 +309,19 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const isActive = (to: string) => path === to || path.startsWith(to + '/') || (to === '/dashboard' && (path === '/' || path === ''));
     const builderActive = isActive('/pages') || isActive('/funnels');
 
+    const sectionNames: Record<string, string> = {
+        '/dashboard': 'Visão Geral',
+        '/leads': 'Leads & CRM',
+        '/clients': 'Clientes',
+        '/marketing': 'Marketing & Automações',
+        '/products': 'Produtos',
+        '/pages': 'Minhas Páginas',
+        '/funnels': 'Funis de Venda',
+        '/ai-mentor': 'Mentor IA',
+        '/settings': 'Configurações'
+    };
+    const currentSection = sectionNames[path] || 'Visão Geral';
+
     const allItems = [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/leads', label: 'Leads' },
@@ -284,8 +341,29 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const common = { collapsed, hovered, setHovered };
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
-            {/* ── Sidebar flutuante em vidro ── */}
+        <div style={{ position: 'relative', display: 'flex', minHeight: '100vh', background: '#090b10', overflowX: 'hidden' }}>
+            {/* ── Realistic Spatial Room / Passthrough Ambient Background ── */}
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundImage: `url(${spatialBg})`,
+                backgroundPosition: 'center',
+                backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+                filter: 'saturate(1.15) brightness(0.68) contrast(1.05)',
+                zIndex: 0,
+                pointerEvents: 'none'
+            }} />
+            {/* Ambient luxury glass tint overlay with soft vignette */}
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'radial-gradient(ellipse at 50% 25%, rgba(14, 16, 26, 0.42) 0%, rgba(8, 10, 15, 0.76) 100%)',
+                zIndex: 0,
+                pointerEvents: 'none'
+            }} />
+
+            {/* ── Sidebar flutuante em vidro fosco Apple VisionOS ── */}
             <motion.aside
                 initial={false}
                 animate={{ width: sidebarW }}
@@ -299,11 +377,11 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: '28px',
-                    background: 'linear-gradient(180deg, rgba(28, 32, 44, 0.78) 0%, rgba(14, 17, 26, 0.82) 100%)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 30px 60px -20px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.08)',
-                    backdropFilter: 'blur(28px) saturate(160%)',
-                    WebkitBackdropFilter: 'blur(28px) saturate(160%)',
+                    background: 'rgba(20, 22, 32, 0.62)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 30px 60px -20px rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(36px) saturate(190%) contrast(105%)',
+                    WebkitBackdropFilter: 'blur(36px) saturate(190%) contrast(105%)',
                     color: '#ffffff',
                     overflow: 'visible'
                 }}
@@ -829,24 +907,133 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             {/* Modal de Troca de Avatar */}
             <AvatarPickerModal isOpen={isAvatarModalOpen} onClose={() => setIsAvatarModalOpen(false)} />
 
-            {/* Main Content Area — Full Screen Height */}
+            {/* Main Content Area — Full Screen with Apple VisionOS Glass & Floating Header */}
             <motion.main
                 initial={false}
                 animate={{ marginLeft: sidebarW + GAP * 2 }}
                 transition={spring}
                 style={{
                     flex: 1,
-                    background: 'var(--background)',
+                    position: 'relative',
+                    zIndex: 1,
+                    background: 'transparent',
                     minHeight: '100vh',
                     display: 'flex',
                     flexDirection: 'column',
                     minWidth: 0
                 }}
             >
-                {/* Dynamic Content */}
-                <div style={{ padding: '24px 32px' }}>
-                    {children}
-                </div>
+                {/* ── Floating Apple Liquid Glass Top Bar (VisionOS Style) ── */}
+                <header style={{
+                    padding: '16px 32px 0 32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    flexWrap: 'wrap'
+                }}>
+                    {/* Left: Section Indicator Pill */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="apple-glass-pill" style={{ padding: '8px 16px', fontSize: '0.84rem' }}>
+                            <span style={{ color: 'rgba(255,255,255,0.5)' }}>Bexly CRM</span>
+                            <span style={{ color: 'rgba(255,255,255,0.3)' }}>/</span>
+                            <span style={{ fontWeight: 600, color: '#ffffff' }}>{currentSection}</span>
+                        </div>
+                    </div>
+
+                    {/* Center: Long Frosted Glass Search Pill */}
+                    <div
+                        onClick={() => {
+                            if (collapsed) setCollapsed(false);
+                            setTimeout(() => searchRef.current?.focus(), 50);
+                        }}
+                        className="apple-glass-card"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            height: '42px',
+                            padding: '0 16px',
+                            borderRadius: '9999px',
+                            minWidth: '260px',
+                            maxWidth: '440px',
+                            flex: 1,
+                            cursor: 'text'
+                        }}
+                    >
+                        <Search size={15} style={{ color: 'rgba(255,255,255,0.5)', marginRight: '10px', flexShrink: 0 }} />
+                        <span style={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.45)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            Buscar métricas, clientes, automações...
+                        </span>
+                        <span style={{
+                            fontSize: '0.68rem',
+                            color: 'rgba(255,255,255,0.55)',
+                            padding: '2px 7px',
+                            borderRadius: '9999px',
+                            border: '1px solid rgba(255,255,255,0.14)',
+                            background: 'rgba(255,255,255,0.06)'
+                        }}>⌘K</span>
+                    </div>
+
+                    {/* Right: Apple Glass Action Pills */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {/* Live Clock Pill */}
+                        <div className="apple-glass-pill" style={{ height: '40px', padding: '0 14px', gap: '7px' }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
+                            <Clock size={13} style={{ color: 'rgba(255,255,255,0.6)' }} />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em' }}>{timeStr || '01:04 PM'}</span>
+                        </div>
+
+                        {/* Date Pill */}
+                        <div className="apple-glass-pill" style={{ height: '40px', padding: '0 14px', cursor: 'pointer' }}>
+                            <Calendar size={13} style={{ color: 'rgba(255,255,255,0.6)' }} />
+                            <span style={{ fontSize: '0.8rem' }}>Este mês</span>
+                        </div>
+
+                        {/* Primary Radiant Amber Glass Button (like + New in video) */}
+                        <button
+                            type="button"
+                            onClick={() => navigate('/leads')}
+                            className="apple-glass-button apple-glass-primary"
+                            style={{ height: '40px', padding: '0 18px', fontSize: '0.84rem', fontWeight: 600 }}
+                        >
+                            <Plus size={15} strokeWidth={2.4} />
+                            <span>Novo</span>
+                        </button>
+
+                        {/* Notifications Pill */}
+                        <div
+                            className="apple-glass-button"
+                            style={{ width: '40px', height: '40px', padding: 0, position: 'relative' }}
+                            title="Notificações"
+                        >
+                            <Bell size={16} />
+                            <span style={{
+                                position: 'absolute',
+                                top: '8px',
+                                right: '9px',
+                                width: '7px',
+                                height: '7px',
+                                borderRadius: '50%',
+                                background: '#f97316',
+                                boxShadow: '0 0 6px #f97316'
+                            }} />
+                        </div>
+                    </div>
+                </header>
+
+                {/* Staggered Animated Tab Entrance (Exactly like the video) */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={location.pathname}
+                        initial={{ opacity: 0, y: 22, filter: 'blur(16px)', scale: 0.985 }}
+                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
+                        exit={{ opacity: 0, y: -16, filter: 'blur(12px)', scale: 0.985 }}
+                        transition={{ type: 'spring', stiffness: 280, damping: 26, mass: 0.8 }}
+                        style={{ padding: '20px 32px 48px 32px' }}
+                    >
+                        {children}
+                    </motion.div>
+                </AnimatePresence>
             </motion.main>
 
             <style>{`

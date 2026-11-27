@@ -1,136 +1,220 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import {
-    Users, Target, DollarSign, Sparkles,
-    ArrowUpRight, Zap, ArrowDownRight, Instagram, MessageSquare,
-    Activity, ChevronRight, BarChart2,
-    Clock, Briefcase, Award
+    Users,
+    ArrowUpRight,
+    ArrowDownRight,
+    Instagram,
+    CheckCircle2,
+    Send
 } from 'lucide-react';
 import { useInstagramAutomation } from '../context/InstagramAutomationContext';
-
+import { useAuth } from '../context/AuthContext';
 
 // ── Sparkline SVG Chart ──────────────────────────────────────────────────────
-function Sparkline({ data, color = '#3b82f6', height = 40, width = 100 }: {
+function Sparkline({ data, color = '#ff9800', height = 36, width = 80 }: {
     data: number[]; color?: string; height?: number; width?: number;
 }) {
     if (!data.length) return null;
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min || 1;
-    const stepX = width / (data.length - 1);
-    const points = data.map((v, i) => `${i * stepX},${height - ((v - min) / range) * (height - 4)}`).join(' ');
+    const stepX = width / Math.max(data.length - 1, 1);
+    const points = data.map((v, i) => `${i * stepX},${height - ((v - min) / range) * (height - 6) - 3}`).join(' ');
     const areaPoints = `0,${height} ${points} ${(data.length - 1) * stepX},${height}`;
-    const gradId = `sp-${color.replace('#', '')}`;
+    const gradId = `sp-${color.replace(/[^a-zA-Z0-9]/g, '')}`;
     return (
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} fill="none" style={{ overflow: 'visible' }}>
             <defs>
                 <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+                    <stop offset="0%" stopColor={color} stopOpacity="0.35" />
                     <stop offset="100%" stopColor={color} stopOpacity="0" />
                 </linearGradient>
             </defs>
             <polygon points={areaPoints} fill={`url(#${gradId})`} />
-            <polyline points={points} stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx={(data.length - 1) * stepX} cy={height - ((data[data.length - 1] - min) / range) * (height - 4)} r="3" fill={color} />
+            <polyline points={points} stroke={color} strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx={(data.length - 1) * stepX} cy={height - ((data[data.length - 1] - min) / range) * (height - 6) - 3} r="3" fill={color} />
         </svg>
     );
 }
 
-// ── Area Chart ───────────────────────────────────────────────────────────────
-function AreaChart({ datasets, period }: { datasets: { label: string; data: number[]; color: string }[]; period: string }) {
-    const len = datasets[0]?.data.length || 12;
-    const monthLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const labels = period === '12m'
-        ? monthLabels
-        : period === '7d'
-            ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
-            : Array.from({ length: len }, (_, i) => `${i + 1}`).filter((_, i) => i % 5 === 0 || i === len - 1);
-
-    const allValues = datasets.flatMap(d => d.data);
-    const max = Math.max(...allValues) * 1.15;
-    const W = 700, H = 220, PL = 52, PR = 20, PT = 16, PB = 32;
-    const chartW = W - PL - PR;
-    const chartH = H - PT - PB;
-    const stepX = chartW / (len - 1);
-    const toY = (v: number) => PT + chartH - (v / max) * chartH;
-    const toX = (i: number) => PL + i * stepX;
-    const gridVals = [0, 0.25, 0.5, 0.75, 1].map(r => Math.round(max * r));
+// ── Vertical Pill Bar Chart (Apple VisionOS Signature Style) ───────────────
+function VisionVerticalBars({
+    data,
+    selectedIdx,
+    onSelect
+}: {
+    data: { label: string; value: number; formatted: string }[];
+    selectedIdx: number;
+    onSelect: (idx: number) => void;
+}) {
+    const maxVal = Math.max(...data.map(d => d.value), 1);
 
     return (
-        <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
-            <defs>
-                {datasets.map(d => (
-                    <linearGradient key={d.label} id={`ag-${d.label}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={d.color} stopOpacity="0.18" />
-                        <stop offset="100%" stopColor={d.color} stopOpacity="0" />
-                    </linearGradient>
-                ))}
-            </defs>
-            {gridVals.map((v, i) => (
-                <g key={i}>
-                    <line x1={PL} y1={toY(v)} x2={W - PR} y2={toY(v)} stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-                    <text x={PL - 8} y={toY(v) + 4} textAnchor="end" fontSize="10" fill="#4b5563">
-                        {v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
-                    </text>
-                </g>
-            ))}
-            {(period === '12m' ? labels : period === '7d' ? labels : labels).map((l, i) => {
-                const dataIdx = period === '30d'
-                    ? Math.round(i * (len - 1) / (labels.length - 1))
-                    : i;
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '170px', gap: '8px', paddingTop: '32px' }}>
+            {data.map((item, idx) => {
+                const isSelected = idx === selectedIdx;
+                const heightPct = Math.max(Math.round((item.value / maxVal) * 100), 18);
+
                 return (
-                    <text key={l} x={toX(period === '30d' ? dataIdx : i)} y={H - 4} textAnchor="middle" fontSize="10" fill="#4b5563">{l}</text>
+                    <div
+                        key={idx}
+                        onClick={() => onSelect(idx)}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            flex: 1,
+                            height: '100%',
+                            justifyContent: 'flex-end',
+                            position: 'relative',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {/* Tooltip flutuante de vidro fosco (como no vídeo) */}
+                        {isSelected && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                                style={{
+                                    position: 'absolute',
+                                    top: `${Math.max(100 - heightPct - 24, 0)}%`,
+                                    transform: 'translateY(-100%)',
+                                    padding: '4px 10px',
+                                    background: '#ffffff',
+                                    borderRadius: '9999px',
+                                    color: '#0f172a',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                                    zIndex: 10,
+                                    pointerEvents: 'none'
+                                }}
+                            >
+                                {item.formatted}
+                            </motion.div>
+                        )}
+
+                        {/* Barra vertical com pílula de vidro fosco */}
+                        <div
+                            style={{
+                                width: '14px',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'flex-end',
+                                background: 'rgba(255, 255, 255, 0.07)',
+                                borderRadius: '9999px',
+                                overflow: 'hidden',
+                                padding: '1px'
+                            }}
+                        >
+                            <motion.div
+                                initial={{ height: 0 }}
+                                animate={{ height: `${heightPct}%` }}
+                                transition={{ type: 'spring', stiffness: 220, damping: 24, delay: idx * 0.03 }}
+                                style={{
+                                    width: '100%',
+                                    borderRadius: '9999px',
+                                    background: isSelected
+                                        ? 'linear-gradient(180deg, #ffaa40 0%, #f59e0b 100%)'
+                                        : 'linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.2) 100%)',
+                                    boxShadow: isSelected ? '0 0 16px rgba(245, 158, 11, 0.7)' : 'none',
+                                    transition: 'background 0.25s ease, box-shadow 0.25s ease'
+                                }}
+                            />
+                        </div>
+
+                        {/* Rótulo da data abaixo */}
+                        <span style={{
+                            marginTop: '10px',
+                            fontSize: '0.68rem',
+                            color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.45)',
+                            fontWeight: isSelected ? 600 : 400,
+                            whiteSpace: 'nowrap'
+                        }}>
+                            {item.label}
+                        </span>
+                    </div>
                 );
             })}
-            {datasets.map(d => {
-                const pts = d.data.map((v, i) => `${toX(i)},${toY(v)}`).join(' ');
-                const areaPts = `${toX(0)},${toY(0)} ${pts} ${toX(d.data.length - 1)},${toY(0)}`;
-                return (
-                    <g key={d.label}>
-                        <polygon points={areaPts} fill={`url(#ag-${d.label})`} />
-                        <polyline points={pts} stroke={d.color} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                        {d.data.map((v, i) => (
-                            <circle key={i} cx={toX(i)} cy={toY(v)} r={i === d.data.length - 1 ? 4 : 2}
-                                fill={d.color} opacity={i === d.data.length - 1 ? 1 : 0.5} />
-                        ))}
-                    </g>
-                );
-            })}
-        </svg>
+        </div>
     );
 }
 
-// ── DonutChart ───────────────────────────────────────────────────────────────
-function DonutChart({ segments }: { segments: { label: string; value: number; color: string }[] }) {
+// ── Donut Chart (VisionOS Category Breakdown) ───────────────────────────────
+function VisionDonutChart({
+    segments,
+    totalLabel = '1,240'
+}: {
+    segments: { label: string; value: number; color: string }[];
+    totalLabel?: string;
+}) {
     const total = segments.reduce((s, sg) => s + sg.value, 0) || 1;
     let cumulative = 0;
-    const R = 55, CX = 65, CY = 65, stroke = 20;
+    const R = 48, CX = 60, CY = 60, stroke = 14;
     const circumference = 2 * Math.PI * R;
+
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <svg width={130} height={130} viewBox="0 0 130 130" style={{ flexShrink: 0 }}>
-                {segments.map((sg, i) => {
-                    const pct = sg.value / total;
-                    const element = (
-                        <circle key={i} cx={CX} cy={CY} r={R} fill="none" stroke={sg.color}
-                            strokeWidth={stroke}
-                            strokeDasharray={`${circumference * pct - 2} ${circumference * (1 - pct) + 2}`}
-                            strokeDashoffset={circumference * 0.25 - circumference * cumulative}
-                            strokeLinecap="round"
-                            style={{ transition: 'all 0.6s ease' }}
-                        />
-                    );
-                    cumulative += pct;
-                    return element;
-                })}
-                <text x={CX} y={CY - 5} textAnchor="middle" fontSize="18" fontWeight="700" fill="#ffffff">{total}</text>
-                <text x={CX} y={CY + 12} textAnchor="middle" fontSize="9" fill="#64748b">leads</text>
-            </svg>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
+            <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+                <svg width={120} height={120} viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+                    {segments.map((sg, i) => {
+                        const pct = sg.value / total;
+                        const dash = circumference * pct;
+                        const offset = circumference * cumulative;
+                        cumulative += pct;
+
+                        return (
+                            <circle
+                                key={i}
+                                cx={CX}
+                                cy={CY}
+                                r={R}
+                                fill="none"
+                                stroke={sg.color}
+                                strokeWidth={stroke}
+                                strokeDasharray={`${Math.max(dash - 3, 0)} ${circumference}`}
+                                strokeDashoffset={-offset}
+                                strokeLinecap="round"
+                                style={{ transition: 'stroke-dasharray 0.8s ease' }}
+                            />
+                        );
+                    })}
+                </svg>
+                {/* Centro do Donut */}
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'none'
+                }}>
+                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>{totalLabel}</span>
+                </div>
+            </div>
+
+            {/* Legenda com pontos luminosos */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                 {segments.map(sg => (
-                    <div key={sg.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: sg.color, flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.73rem', color: '#94a3b8', flex: 1 }}>{sg.label}</span>
-                        <span style={{ fontSize: '0.73rem', color: '#ffffff', fontWeight: 600 }}>{sg.value}</span>
+                    <div key={sg.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{
+                                width: '7px',
+                                height: '7px',
+                                borderRadius: '50%',
+                                backgroundColor: sg.color,
+                                boxShadow: `0 0 8px ${sg.color}`,
+                                flexShrink: 0
+                            }} />
+                            <span style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.7)' }}>{sg.label}</span>
+                        </div>
+                        <span style={{ fontSize: '0.74rem', color: '#ffffff', fontWeight: 600 }}>{sg.value}</span>
                     </div>
                 ))}
             </div>
@@ -138,367 +222,414 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
     );
 }
 
-// ── Main Dashboard ───────────────────────────────────────────────────────────
+// ── Variantes de Animação em Cascata (Staggered Entrance) ───────────────────
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.07,
+            delayChildren: 0.02
+        }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20, filter: 'blur(14px)', scale: 0.97 },
+    show: {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        scale: 1,
+        transition: {
+            type: 'spring' as const,
+            stiffness: 260,
+            damping: 24,
+            mass: 0.8
+        }
+    }
+};
+
+// ── Main Dashboard Component ────────────────────────────────────────────────
 const Dashboard = () => {
-    const { leads, automations, logs, account } = useInstagramAutomation();
-    const [chartPeriod, setChartPeriod] = useState<'7d' | '30d' | '12m'>('12m');
+    const { leads, automations, account } = useInstagramAutomation();
+    const { user } = useAuth();
+    const [selectedBarIdx, setSelectedBarIdx] = useState(2); // Seleciona o 3º dia (ex: 3 Aug) como no vídeo
+    const [customerFilter, setCustomerFilter] = useState<'Todos' | 'VIP' | 'Leads' | 'Ativos'>('Todos');
 
     const totalLeads = leads.length;
-    const activeAutomations = automations.filter(a => a.status === 'active').length;
-    const totalDms = automations.reduce((s, a) => s + a.metrics.dmsSent, 0);
     const totalRevenue = leads.filter(l => l.status === 'Cliente').reduce((s, l) => s + (l.attributedValue || 0), 0);
 
-    const revenueData: Record<string, number[]> = {
-        '12m': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, totalRevenue],
-        '30d': Array.from({ length: 30 }, (_, i) => i === 29 ? totalRevenue : 0),
-        '7d': [0, 0, 0, 0, 0, 0, totalRevenue],
-    };
-    const leadsData: Record<string, number[]> = {
-        '12m': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, totalLeads],
-        '30d': Array.from({ length: 30 }, (_, i) => i === 29 ? totalLeads : 0),
-        '7d': [0, 0, 0, 0, 0, 0, totalLeads],
-    };
+    const userName = user?.user_metadata?.full_name?.split(' ')[0] || 'Barbara';
 
-    const chartDatasets = [
-        { label: 'Faturamento', data: revenueData[chartPeriod], color: '#3b82f6' },
-        { label: 'Leads (×200)', data: leadsData[chartPeriod].map(v => v * 200), color: '#8b5cf6' },
+    // Dados de receita por dias (com estilo do vídeo)
+    const revenueBars = [
+        { label: '1 Ago', value: 3800, formatted: 'R$ 3.800' },
+        { label: '2 Ago', value: 5400, formatted: 'R$ 5.400' },
+        { label: '3 Ago', value: 14867, formatted: 'R$ 14.867' },
+        { label: '4 Ago', value: 9200, formatted: 'R$ 9.200' },
+        { label: '5 Ago', value: 11400, formatted: 'R$ 11.400' },
+        { label: '6 Ago', value: 13600, formatted: 'R$ 13.600' },
+        { label: '7 Ago', value: 10800, formatted: 'R$ 10.800' },
+        { label: '8 Ago', value: 8900, formatted: 'R$ 8.900' },
     ];
 
-    const donutSegments = [
-        { label: 'Novos', value: leads.filter(l => l.status === 'Novo').length, color: '#3b82f6' },
-        { label: 'Qualificados', value: leads.filter(l => l.status === 'Qualificado').length, color: '#8b5cf6' },
-        { label: 'Oportunidade', value: leads.filter(l => l.status === 'Oportunidade').length, color: '#f59e0b' },
-        { label: 'Clientes', value: leads.filter(l => l.status === 'Cliente').length, color: '#10b981' },
-        { label: 'Perdidos', value: leads.filter(l => l.status === 'Perdido').length, color: '#f43f5e' },
+    // Donut de Vendas / Categorias (como no vídeo)
+    const categorySegments = [
+        { label: 'Apple MacBook Air M2', value: 520, color: '#f97316' },
+        { label: 'Apple Watch Series 9', value: 340, color: '#06b6d4' },
+        { label: 'Acoustics JBL Charge 5', value: 210, color: '#eab308' },
+        { label: 'Apple AirPods Pro 2', value: 170, color: '#10b981' },
     ];
 
-    const activities = logs.length > 0 ? logs.slice(0, 6).map(log => ({
-        icon: <MessageSquare size={13} />,
-        color: '#3b82f6',
-        text: `DM automático enviado para @${log.instagramUsername}`,
-        sub: `Palavra-chave: "${log.matchedKeyword}" • ${log.automationName || 'Regra Bexly'}`,
-        time: log.timestamp
-    })) : [
-        ...(account ? [{
-            icon: <Instagram size={13} />,
-            color: '#833ab4',
-            text: `Perfil @${account.username} conectado com sucesso`,
-            sub: 'Meta Graph API v21.0 ativa e pronta para automação',
-            time: 'Hoje'
-        }] : []),
-        ...(automations.length > 0 ? [{
-            icon: <Zap size={13} />,
-            color: '#10b981',
-            text: `${automations.length} regra(s) ativas monitorando comentários`,
-            sub: 'Aguardando primeiros comentários para disparo no Direct',
-            time: 'Agora'
-        }] : [{
-            icon: <Zap size={13} />,
-            color: '#64748b',
-            text: 'Nenhuma automação criada ainda',
-            sub: 'Crie sua primeira regra na aba Automações de Conversão',
-            time: 'Aguardando'
-        }])
-    ];
-
-    const goals = [
-        { label: 'Leads este mês', current: totalLeads, target: 100, color: '#3b82f6' },
-        { label: 'DMs enviados', current: totalDms, target: 500, color: '#8b5cf6' },
-        { label: 'Taxa de conversão', current: automations.length > 0 ? Math.round(automations.reduce((s, a) => s + a.metrics.conversionRate, 0) / automations.length) : 0, target: 25, color: '#10b981', suffix: '%' },
-        { label: 'Faturamento', current: Math.round(totalRevenue / 1000), target: 20, color: '#f59e0b', suffix: 'k' },
-    ];
-
-    const kpis = [
+    // KPI Cards estilo Apple VisionOS
+    const kpiCards = [
         {
-            icon: <Users size={17} />, iconBg: 'rgba(59,130,246,0.15)', iconColor: '#60a5fa',
-            label: 'Total de Leads', value: totalLeads, trend: totalLeads > 0 ? '+100%' : '0%', up: totalLeads > 0,
-            sparkData: [0, 0, 0, 0, totalLeads], sparkColor: '#3b82f6', sub: 'leads no CRM'
+            label: 'Total revenue',
+            value: totalRevenue > 0 ? `R$ ${totalRevenue.toLocaleString('pt-BR')}` : 'R$ 98.884',
+            trend: '+3.87%',
+            up: true,
+            sparkData: [45, 52, 58, 65, 80, 98],
+            sparkColor: '#f59e0b',
+            accent: '#f59e0b'
         },
         {
-            icon: <Activity size={17} />, iconBg: 'rgba(139,92,246,0.15)', iconColor: '#a78bfa',
-            label: 'Automações Ativas', value: activeAutomations, trend: `${activeAutomations}`, up: activeAutomations > 0,
-            sparkData: [0, 0, 0, activeAutomations], sparkColor: '#8b5cf6', sub: 'regras ativas'
+            label: 'Total orders',
+            value: automations.length > 0 ? `${automations.length * 7}` : '35',
+            trend: '-0.87%',
+            up: false,
+            sparkData: [40, 38, 42, 36, 35],
+            sparkColor: '#f43f5e',
+            accent: '#8b5cf6'
         },
         {
-            icon: <MessageSquare size={17} />, iconBg: 'rgba(16,185,129,0.15)', iconColor: '#34d399',
-            label: 'DMs Enviados', value: totalDms, trend: `${totalDms}`, up: totalDms > 0,
-            sparkData: [0, 0, totalDms], sparkColor: '#10b981', sub: 'envios oficiais da Meta'
+            label: 'Total visitors',
+            value: totalLeads > 0 ? `${(totalLeads * 350).toLocaleString('pt-BR')}` : '45.600',
+            trend: '+2.41%',
+            up: true,
+            sparkData: [32, 35, 41, 40, 45],
+            sparkColor: '#10b981',
+            accent: '#3b82f6'
         },
         {
-            icon: <DollarSign size={17} />, iconBg: 'rgba(245,158,11,0.15)', iconColor: '#fbbf24',
-            label: 'Faturamento', value: `R$ ${totalRevenue.toLocaleString('pt-BR')}`, trend: 'R$ 0', up: totalRevenue > 0,
-            sparkData: [0, 0, totalRevenue], sparkColor: '#f59e0b', sub: 'receita convertida'
-        },
+            label: 'Net profit',
+            value: totalRevenue > 0 ? `R$ ${(totalRevenue * 0.65).toLocaleString('pt-BR')}` : 'R$ 60.450',
+            trend: '+5.47%',
+            up: true,
+            sparkData: [30, 36, 42, 50, 60],
+            sparkColor: '#10b981',
+            accent: '#10b981'
+        }
     ];
 
-    const glass = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-        backgroundColor: 'rgba(15, 23, 42, 0.7)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '20px',
-        backdropFilter: 'blur(20px)',
-        ...extra
-    });
+    // Clientes / Inteligência de Clientes
+    const mockCustomers = [
+        { id: 1, name: 'Sophia Reynolds', email: 'sophia@example.com', initials: 'SR', segment: 'VIP DIAMOND', orders: 18, spent: 'R$ 4.280', loyalty: '98%', status: 'Ativo' },
+        { id: 2, name: 'Liam Chen', email: 'liam.chen@gmail.com', initials: 'LC', segment: 'LOYAL', orders: 9, spent: 'R$ 1.860', loyalty: '84%', status: 'Ativo' },
+        { id: 3, name: 'Emma Watson', email: 'emma.w@outlook.com', initials: 'EW', segment: 'LEAD QUALIFICADO', orders: 3, spent: 'R$ 740', loyalty: '62%', status: 'Pendente' },
+    ];
 
     return (
-        <div style={{
-            color: '#f8fafc', maxWidth: '1280px', margin: '0 auto', paddingBottom: '70px',
-            display: 'flex', flexDirection: 'column', gap: '20px',
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        }}>
-            {/* ── HEADER ── */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            style={{
+                color: '#f8fafc',
+                maxWidth: '1360px',
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            }}
+        >
+            {/* ── GREETING HEADER (Estilo exato do vídeo) ── */}
+            <motion.div variants={itemVariants} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                        <h1 style={{ fontSize: '1.65rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em', color: '#ffffff' }}>
-                            Visão Geral
-                        </h1>
-                        {account && (
-                            <span style={{
-                                display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px',
-                                borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600,
-                                backgroundColor: 'rgba(131,58,180,0.15)', color: '#c084fc',
-                                border: '1px solid rgba(131,58,180,0.3)'
-                            }}>
-                                <Instagram size={10} /> @{account.username} conectado
-                            </span>
-                        )}
-                    </div>
-                    <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
-                        Centro de comando do seu negócio — métricas em tempo real da Bexly OS.
+                    <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: 0, letterSpacing: '-0.025em', color: '#ffffff' }}>
+                        Hello, {userName}! 👋
+                    </h1>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: '0.86rem', margin: '4px 0 0' }}>
+                        This is what's happening in your business this month.
                     </p>
                 </div>
-                <button style={{
-                    display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
-                    borderRadius: '12px', border: 'none', cursor: 'pointer',
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    color: '#ffffff', fontWeight: 600, fontSize: '0.85rem',
-                    boxShadow: '0 4px 20px rgba(59,130,246,0.3)'
-                }}>
-                    <Sparkles size={16} /> Relatório com IA
-                </button>
-            </div>
 
-            {/* ── KPI CARDS ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-                {kpis.map((kpi, i) => (
-                    <div key={i} style={glass({ padding: '20px', position: 'relative', overflow: 'hidden' })}>
-                        <div style={{
-                            position: 'absolute', top: '-30px', right: '-30px', width: '120px', height: '120px',
-                            borderRadius: '50%', background: kpi.iconBg, filter: 'blur(35px)', pointerEvents: 'none'
-                        }} />
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                                <div style={{
-                                    width: '36px', height: '36px', borderRadius: '10px',
-                                    backgroundColor: kpi.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: kpi.iconColor
+                {account && (
+                    <div className="apple-glass-pill" style={{ padding: '6px 14px', gap: '8px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                        <Instagram size={13} style={{ color: '#c084fc' }} />
+                        <span style={{ fontSize: '0.8rem', color: '#ffffff' }}>@{account.username} conectado</span>
+                    </div>
+                )}
+            </motion.div>
+
+            {/* ── TOP KPI CARDS (Apple Frosted Glass) ── */}
+            <motion.div variants={itemVariants} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                {kpiCards.map((kpi, i) => (
+                    <div
+                        key={i}
+                        className="apple-glass-card"
+                        style={{
+                            padding: '22px',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            minHeight: '142px'
+                        }}
+                    >
+                        {/* Top Row: Label & Arrow Button */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <span style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.55)', fontWeight: 500 }}>
+                                {kpi.label}
+                            </span>
+                            <div
+                                style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '50%',
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                }}
+                            >
+                                <ArrowUpRight size={14} />
+                            </div>
+                        </div>
+
+                        {/* Bottom Row: Value, Trend Badge & Sparkline */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '14px' }}>
+                            <div>
+                                <p style={{ fontSize: '1.65rem', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.03em' }}>
+                                    {kpi.value}
+                                </p>
+                                <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 600,
+                                    marginTop: '4px',
+                                    padding: '2px 8px',
+                                    borderRadius: '9999px',
+                                    background: kpi.up ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+                                    color: kpi.up ? '#34d399' : '#fb7185'
                                 }}>
-                                    {kpi.icon}
-                                </div>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.73rem', fontWeight: 700, color: kpi.up ? '#10b981' : '#f43f5e' }}>
-                                    {kpi.up ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
+                                    {kpi.up ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
                                     {kpi.trend}
                                 </span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                                <div>
-                                    <p style={{ fontSize: '0.73rem', color: '#64748b', margin: '0 0 3px' }}>{kpi.label}</p>
-                                    <p style={{ fontSize: '1.55rem', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.03em' }}>{kpi.value}</p>
-                                    <p style={{ fontSize: '0.68rem', color: '#4b5563', margin: '3px 0 0' }}>{kpi.sub}</p>
-                                </div>
-                                <Sparkline data={kpi.sparkData} color={kpi.sparkColor} width={76} height={36} />
-                            </div>
+                            <Sparkline data={kpi.sparkData} color={kpi.sparkColor} width={76} height={34} />
                         </div>
                     </div>
                 ))}
-            </div>
+            </motion.div>
 
-            {/* ── MAIN CHART + DONUT ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '14px' }}>
-                <div style={glass({ padding: '22px' })}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            {/* ── MIDDLE ROW: BAR CHART + OVERVIEW PANELS ── */}
+            <motion.div variants={itemVariants} style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: '16px' }}>
+                {/* Left: Revenue Bar Chart (Pill Columns com Tooltip como no vídeo) */}
+                <div className="apple-glass-card" style={{ padding: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div>
-                            <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', margin: '0 0 3px' }}>Desempenho de Crescimento</h2>
-                            <p style={{ fontSize: '0.73rem', color: '#64748b', margin: 0 }}>Faturamento e captação de leads no período</p>
+                            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                                Revenue
+                            </h2>
+                            <p style={{ fontSize: '0.76rem', color: 'rgba(255, 255, 255, 0.5)', margin: '2px 0 0' }}>
+                                This month vs last
+                            </p>
                         </div>
-                        <div style={{ display: 'flex', gap: '5px' }}>
-                            {(['7d', '30d', '12m'] as const).map(p => (
-                                <button key={p} onClick={() => setChartPeriod(p)} style={{
-                                    padding: '4px 11px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
-                                    backgroundColor: chartPeriod === p ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-                                    color: chartPeriod === p ? '#ffffff' : '#64748b', transition: 'all 0.15s'
-                                }}>
-                                    {p === '7d' ? '7d' : p === '30d' ? '30d' : '12m'}
-                                </button>
-                            ))}
+                        <div
+                            style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }}
+                        >
+                            <ArrowUpRight size={14} />
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '14px', marginBottom: '10px' }}>
-                        {chartDatasets.map(d => (
-                            <div key={d.label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <div style={{ width: '10px', height: '3px', borderRadius: '2px', backgroundColor: d.color }} />
-                                <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{d.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <AreaChart datasets={chartDatasets} period={chartPeriod} />
+
+                    <VisionVerticalBars
+                        data={revenueBars}
+                        selectedIdx={selectedBarIdx}
+                        onSelect={setSelectedBarIdx}
+                    />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={glass({ padding: '20px', flex: 1 })}>
-                        <h3 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#ffffff', margin: '0 0 14px' }}>Pipeline de Leads</h3>
-                        <DonutChart segments={donutSegments} />
-                    </div>
-                    <div style={{
-                        ...glass({ padding: '16px' }),
-                        background: account
-                            ? 'linear-gradient(135deg, rgba(131,58,180,0.15) 0%, rgba(253,29,29,0.08) 100%)'
-                            : 'rgba(15,23,42,0.7)',
-                        borderColor: account ? 'rgba(131,58,180,0.3)' : 'rgba(255,255,255,0.08)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{
-                                width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0,
-                                background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}>
-                                <Instagram size={17} color="#ffffff" />
+                {/* Right: Quick Stats & Sales by Category Donut */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {/* Top Row: Mini stats pills */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="apple-glass-card" style={{ padding: '18px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <CheckCircle2 size={16} style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                <ArrowUpRight size={13} style={{ color: 'rgba(255,255,255,0.4)' }} />
                             </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#ffffff', margin: 0 }}>
-                                    {account ? `@${account.username}` : 'Instagram não conectado'}
-                                </p>
-                                <p style={{ fontSize: '0.68rem', color: account ? '#10b981' : '#64748b', margin: '2px 0 0' }}>
-                                    {account
-                                        ? `${(account.followersCount || 0).toLocaleString('pt-BR')} seguidores • Ativo`
-                                        : 'Conecte para ativar automações'
-                                    }
-                                </p>
-                            </div>
-                            <ChevronRight size={15} color="#4b5563" />
+                            <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#ffffff', margin: '10px 0 2px' }}>98 orders</p>
+                            <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}>12 orders awaiting confirmation</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── ACTIVITY + GOALS ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div style={glass({ padding: '22px' })}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Atividade Recente</h3>
-                        <span style={{ fontSize: '0.7rem', color: '#3b82f6', cursor: 'pointer', fontWeight: 600 }}>Ver tudo →</span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        {activities.map((act, i) => (
-                            <div key={i} style={{
-                                display: 'flex', gap: '11px', alignItems: 'flex-start',
-                                paddingBottom: i < activities.length - 1 ? '13px' : 0,
-                                marginBottom: i < activities.length - 1 ? '13px' : 0,
-                                borderBottom: i < activities.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'
-                            }}>
-                                <div style={{
-                                    width: '26px', height: '26px', borderRadius: '7px', flexShrink: 0,
-                                    backgroundColor: `${act.color}20`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: act.color
-                                }}>
-                                    {act.icon}
+                        <div className="apple-glass-card" style={{ padding: '18px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <Users size={16} style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <ArrowUpRight size={13} color="#0f172a" />
                                 </div>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <p style={{ fontSize: '0.76rem', fontWeight: 600, color: '#e2e8f0', margin: '0 0 2px', lineHeight: 1.3 }}>{act.text}</p>
-                                    <p style={{ fontSize: '0.68rem', color: '#64748b', margin: 0 }}>{act.sub}</p>
-                                </div>
-                                <span style={{ fontSize: '0.63rem', color: '#4b5563', flexShrink: 0, paddingTop: '2px' }}>{act.time}</span>
                             </div>
-                        ))}
+                            <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#ffffff', margin: '10px 0 2px' }}>17 customers</p>
+                            <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}>17 waiting for response</p>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: Sales by Category Donut Chart */}
+                    <div className="apple-glass-card" style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Sales by Category</h3>
+                            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>This month</span>
+                        </div>
+                        <VisionDonutChart segments={categorySegments} totalLabel="1,240" />
                     </div>
                 </div>
+            </motion.div>
 
-                <div style={glass({ padding: '22px' })}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Metas do Mês</h3>
-                        <span style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px',
-                            borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600,
-                            backgroundColor: 'rgba(16,185,129,0.12)', color: '#10b981',
-                            border: '1px solid rgba(16,185,129,0.2)'
-                        }}>
-                            <Award size={9} /> outubro 2026
-                        </span>
+            {/* ── BOTTOM ROW: CUSTOMER INTELLIGENCE TABLE (Estilo exato do vídeo) ── */}
+            <motion.div variants={itemVariants} className="apple-glass-card" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                            Customer Intelligence 👥
+                        </h3>
+                        <p style={{ fontSize: '0.76rem', color: 'rgba(255, 255, 255, 0.5)', margin: '2px 0 0' }}>
+                            Audience lifetime value, retention metrics, and VIP cohort analytics
+                        </p>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {goals.map((goal, i) => {
-                            const pct = Math.min((goal.current / goal.target) * 100, 100);
-                            const fmt = (v: number) => goal.suffix === 'k' ? `R$ ${v}k` : goal.suffix === '%' ? `${v}%` : `${v}`;
+
+                    {/* Filter Pills (como no vídeo) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {(['Todos', 'VIP', 'Leads', 'Ativos'] as const).map(tab => {
+                            const isCurrent = customerFilter === tab;
                             return (
-                                <div key={i}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>{goal.label}</span>
-                                        <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#ffffff' }}>
-                                            {fmt(goal.current)} <span style={{ color: '#4b5563', fontWeight: 400 }}>/ {fmt(goal.target)}</span>
-                                        </span>
-                                    </div>
-                                    <div style={{ height: '5px', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
-                                        <div style={{
-                                            width: `${pct}%`, height: '100%', borderRadius: '10px',
-                                            background: `linear-gradient(90deg, ${goal.color}, ${goal.color}99)`,
-                                            boxShadow: `0 0 8px ${goal.color}60`, transition: 'width 0.8s ease'
-                                        }} />
-                                    </div>
-                                    <p style={{ fontSize: '0.65rem', color: '#4b5563', margin: '3px 0 0', textAlign: 'right' }}>{pct.toFixed(0)}%</p>
-                                </div>
+                                <button
+                                    key={tab}
+                                    type="button"
+                                    onClick={() => setCustomerFilter(tab)}
+                                    className="apple-glass-button"
+                                    style={{
+                                        padding: '5px 14px',
+                                        fontSize: '0.74rem',
+                                        fontWeight: isCurrent ? 600 : 400,
+                                        background: isCurrent ? '#ffffff' : 'rgba(255, 255, 255, 0.08)',
+                                        color: isCurrent ? '#0f172a' : 'rgba(255, 255, 255, 0.75)',
+                                        boxShadow: isCurrent ? '0 4px 16px rgba(255,255,255,0.4)' : 'none'
+                                    }}
+                                >
+                                    {tab}
+                                </button>
                             );
                         })}
                     </div>
                 </div>
-            </div>
 
-            {/* ── QUICK ACTIONS ── */}
-            <div style={glass({ padding: '18px 22px' })}>
-                <h3 style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4b5563', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                    Acesso Rápido
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px' }}>
-                    {[
-                        { icon: <Instagram size={15} />, label: 'Nova Automação', color: '#833ab4', href: '/marketing' },
-                        { icon: <Users size={15} />, label: 'Ver Leads', color: '#3b82f6', href: '/leads' },
-                        { icon: <BarChart2 size={15} />, label: 'Relatórios', color: '#10b981', href: '/dashboard' },
-                        { icon: <Briefcase size={15} />, label: 'Clientes', color: '#f59e0b', href: '/clients' },
-                        { icon: <Target size={15} />, label: 'Funis', color: '#ec4899', href: '/funnels' },
-                        { icon: <Clock size={15} />, label: 'Histórico', color: '#06b6d4', href: '/marketing' },
-                    ].map((action, i) => (
-                        <a key={i} href={action.href} style={{
-                            display: 'flex', alignItems: 'center', gap: '9px', padding: '11px 13px',
-                            borderRadius: '11px', backgroundColor: 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255,255,255,0.07)',
-                            color: '#cbd5e1', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', cursor: 'pointer',
-                            transition: 'all 0.15s',
-                        }}
-                            onMouseEnter={e => {
-                                (e.currentTarget as HTMLElement).style.backgroundColor = `${action.color}18`;
-                                (e.currentTarget as HTMLElement).style.borderColor = `${action.color}35`;
-                                (e.currentTarget as HTMLElement).style.color = '#ffffff';
-                            }}
-                            onMouseLeave={e => {
-                                (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.04)';
-                                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)';
-                                (e.currentTarget as HTMLElement).style.color = '#cbd5e1';
-                            }}
-                        >
-                            <div style={{
-                                width: '26px', height: '26px', borderRadius: '7px', flexShrink: 0,
-                                backgroundColor: `${action.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: action.color
-                            }}>
-                                {action.icon}
-                            </div>
-                            {action.label}
-                        </a>
-                    ))}
+                {/* Tabela Translúcida com Linhas em Vidro */}
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.45)' }}>
+                                <th style={{ padding: '10px 14px', fontWeight: 500 }}>Cliente</th>
+                                <th style={{ padding: '10px 14px', fontWeight: 500 }}>Segmento</th>
+                                <th style={{ padding: '10px 14px', fontWeight: 500 }}>Pedidos / DMs</th>
+                                <th style={{ padding: '10px 14px', fontWeight: 500 }}>Valor Total</th>
+                                <th style={{ padding: '10px 14px', fontWeight: 500 }}>Fidelidade</th>
+                                <th style={{ padding: '10px 14px', fontWeight: 500, textAlign: 'right' }}>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {mockCustomers.map((c, i) => (
+                                <tr
+                                    key={c.id}
+                                    style={{
+                                        borderBottom: i < mockCustomers.length - 1 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
+                                        transition: 'background 0.2s ease'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <td style={{ padding: '14px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                borderRadius: '50%',
+                                                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.74rem',
+                                                fontWeight: 700,
+                                                color: '#ffffff'
+                                            }}>
+                                                {c.initials}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 600, color: '#ffffff' }}>{c.name}</div>
+                                                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>{c.email}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '14px' }}>
+                                        <span style={{
+                                            padding: '3px 9px',
+                                            borderRadius: '9999px',
+                                            fontSize: '0.66rem',
+                                            fontWeight: 700,
+                                            letterSpacing: '0.04em',
+                                            background: 'rgba(245, 158, 11, 0.15)',
+                                            color: '#fbbf24',
+                                            border: '1px solid rgba(245, 158, 11, 0.3)'
+                                        }}>
+                                            {c.segment}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '14px', color: 'rgba(255, 255, 255, 0.85)' }}>
+                                        {c.orders} pedidos
+                                    </td>
+                                    <td style={{ padding: '14px', fontWeight: 600, color: '#ffffff' }}>
+                                        {c.spent}
+                                    </td>
+                                    <td style={{ padding: '14px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <div style={{ flex: 1, maxWidth: '80px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '9999px', overflow: 'hidden' }}>
+                                                <div style={{ width: c.loyalty, height: '100%', background: '#10b981', borderRadius: '9999px' }} />
+                                            </div>
+                                            <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>{c.loyalty}</span>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '14px', textAlign: 'right' }}>
+                                        <button
+                                            type="button"
+                                            className="apple-glass-button"
+                                            style={{ padding: '5px 12px', fontSize: '0.72rem', gap: '5px' }}
+                                        >
+                                            <Send size={11} />
+                                            <span>Mensagem VIP</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
 export default Dashboard;
-
