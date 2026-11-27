@@ -4,8 +4,9 @@ import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import bexlyMark from '../assets/bexly-mark.png';
 import bexlyWordmark from '../assets/bexly-wordmark.png';
-import spatialBg from '../assets/spatial-bg.jpg';
+import bexlyWordmarkDark from '../assets/bexly-wordmark-dark.png';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { AvatarPickerModal } from '../components/AvatarPickerModal';
 import {
     LayoutDashboard,
@@ -25,6 +26,7 @@ import {
     ChevronsUpDown,
     Layers,
     Sun,
+    Moon,
     Camera,
     Bell,
     Calendar,
@@ -39,7 +41,7 @@ const GAP = 14;
 const spring = { type: 'spring' as const, stiffness: 520, damping: 40, mass: 0.8 };
 
 /* ── Pílula de hover que desliza entre os itens ── */
-const HoverPill = () => (
+const HoverPill = ({ isLight }: { isLight?: boolean }) => (
     <motion.div
         layoutId="sidebar-hover-pill"
         transition={spring}
@@ -47,14 +49,14 @@ const HoverPill = () => (
             position: 'absolute',
             inset: 0,
             borderRadius: '16px',
-            background: 'rgba(255, 255, 255, 0.08)',
+            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
             zIndex: 0
         }}
     />
 );
 
-/* ── Pílula ativa estilo Apple VisionOS (luz branca fosca e sólida) ── */
-const ActivePill = () => (
+/* ── Pílula ativa estilo Apple VisionOS (luz sólida contrastante) ── */
+const ActivePill = ({ isLight }: { isLight?: boolean }) => (
     <motion.div
         layoutId="sidebar-active-pill"
         transition={spring}
@@ -62,8 +64,10 @@ const ActivePill = () => (
             position: 'absolute',
             inset: 0,
             borderRadius: '16px',
-            background: '#ffffff',
-            boxShadow: '0 4px 20px rgba(255, 255, 255, 0.45), 0 0 1px rgba(0,0,0,0.2)',
+            background: isLight ? '#0f172a' : '#ffffff',
+            boxShadow: isLight
+                ? '0 4px 16px rgba(15, 23, 42, 0.25)'
+                : '0 4px 20px rgba(255, 255, 255, 0.45), 0 0 1px rgba(0,0,0,0.2)',
             zIndex: 1
         }}
     />
@@ -81,15 +85,23 @@ interface ItemProps {
     badge?: ReactNode;
     trailing?: ReactNode;
     onClick?: () => void;
+    isLight?: boolean;
 }
 
-const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered, active, badge, trailing, onClick }: ItemProps) => {
+const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered, active, badge, trailing, onClick, isLight }: ItemProps) => {
     const isHovered = hovered === id;
+
+    const iconColor = active
+        ? (isLight ? '#ffffff' : '#0f172a')
+        : (isHovered ? (isLight ? '#0f172a' : '#ffffff') : (isLight ? 'rgba(15, 23, 42, 0.72)' : 'rgba(255, 255, 255, 0.78)'));
+    const textColor = active
+        ? (isLight ? '#ffffff' : '#0f172a')
+        : (isHovered ? (isLight ? '#0f172a' : '#ffffff') : (isLight ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.78)'));
 
     const content = (
         <>
-            {isHovered && !active && <HoverPill />}
-            {active && <ActivePill />}
+            {isHovered && !active && <HoverPill isLight={isLight} />}
+            {active && <ActivePill isLight={isLight} />}
             <span
                 style={{
                     position: 'relative',
@@ -127,8 +139,8 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                             size={19}
                             strokeWidth={active ? 2.4 : (isHovered ? 2.1 : 1.8)}
                             style={{
-                                color: active ? '#0f172a' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
-                                filter: active ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' : (isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none'),
+                                color: iconColor,
+                                filter: active ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' : (isHovered ? (isLight ? 'none' : 'drop-shadow(0 0 8px rgba(255,255,255,0.45))') : 'none'),
                                 transition: 'color 0.2s ease, filter 0.2s ease'
                             }}
                         />
@@ -155,7 +167,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                             <span style={{
                                 fontWeight: active ? 600 : 500,
                                 fontSize: '0.88rem',
-                                color: active ? '#0f172a' : (isHovered ? '#ffffff' : 'rgba(255,255,255,0.78)'),
+                                color: textColor,
                                 transition: 'color 0.2s ease'
                             }}>
                                 {label}
@@ -175,13 +187,13 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                         left: '100%',
                         marginLeft: '14px',
                         padding: '6px 14px',
-                        background: 'rgba(20, 22, 32, 0.94)',
+                        background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(20, 22, 32, 0.94)',
                         backdropFilter: 'blur(24px)',
                         WebkitBackdropFilter: 'blur(24px)',
-                        border: '1px solid rgba(255, 255, 255, 0.18)',
-                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                        border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.18)',
+                        boxShadow: isLight ? '0 8px 30px rgba(0, 0, 0, 0.12)' : '0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                         borderRadius: '9999px',
-                        color: '#ffffff',
+                        color: isLight ? '#0f172a' : '#ffffff',
                         fontSize: '0.8rem',
                         fontWeight: 600,
                         whiteSpace: 'nowrap',
@@ -289,6 +301,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         return () => clearInterval(interval);
     }, []);
 
+    const { theme, toggleTheme } = useTheme();
+    const isLight = theme === 'light';
+
     const displayName = user?.user_metadata?.full_name || dbUser?.name || (isAdmin ? 'Breno Silva' : user?.email?.split('@')[0] || 'Usuário');
     const displayEmail = user?.email || '';
     const displayRole = isAdmin ? 'Administrador' : 'Workspace Individual';
@@ -338,31 +353,18 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         : [];
 
     const sidebarW = collapsed ? COLLAPSED_W : EXPANDED_W;
-    const common = { collapsed, hovered, setHovered };
+    const common = { collapsed, hovered, setHovered, isLight };
 
     return (
-        <div style={{ position: 'relative', display: 'flex', minHeight: '100vh', background: '#090b10', overflowX: 'hidden' }}>
-            {/* ── Realistic Spatial Room / Passthrough Ambient Background ── */}
-            <div style={{
-                position: 'fixed',
-                inset: 0,
-                backgroundImage: `url(${spatialBg})`,
-                backgroundPosition: 'center',
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-                filter: 'saturate(1.15) brightness(0.68) contrast(1.05)',
-                zIndex: 0,
-                pointerEvents: 'none'
-            }} />
-            {/* Ambient luxury glass tint overlay with soft vignette */}
-            <div style={{
-                position: 'fixed',
-                inset: 0,
-                background: 'radial-gradient(ellipse at 50% 25%, rgba(14, 16, 26, 0.42) 0%, rgba(8, 10, 15, 0.76) 100%)',
-                zIndex: 0,
-                pointerEvents: 'none'
-            }} />
-
+        <div style={{
+            position: 'relative',
+            display: 'flex',
+            minHeight: '100vh',
+            background: 'var(--background)',
+            color: 'var(--text-primary)',
+            overflowX: 'hidden',
+            transition: 'background 0.3s ease, color 0.3s ease'
+        }}>
             {/* ── Sidebar flutuante em vidro fosco Apple VisionOS ── */}
             <motion.aside
                 initial={false}
@@ -377,12 +379,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: '28px',
-                    background: 'rgba(20, 22, 32, 0.62)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    boxShadow: 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 30px 60px -20px rgba(0, 0, 0, 0.75)',
+                    background: isLight ? 'rgba(255, 255, 255, 0.82)' : 'rgba(20, 22, 32, 0.62)',
+                    border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: isLight
+                        ? '0 30px 60px -20px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.95)'
+                        : 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 30px 60px -20px rgba(0, 0, 0, 0.75)',
                     backdropFilter: 'blur(36px) saturate(190%) contrast(105%)',
                     WebkitBackdropFilter: 'blur(36px) saturate(190%) contrast(105%)',
-                    color: '#ffffff',
+                    color: isLight ? '#0f172a' : '#ffffff',
                     overflow: 'visible'
                 }}
             >
@@ -402,7 +406,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         width: '32px',
                         height: '32px',
                         background: 'transparent',
-                        color: 'rgba(255, 255, 255, 0.75)',
+                        color: isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.75)',
                         border: 'none',
                         display: 'flex',
                         alignItems: 'center',
@@ -414,11 +418,11 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         transition: 'color 0.2s ease, filter 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.color = isLight ? '#0066FF' : '#ffffff';
                         e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.8))';
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)';
+                        e.currentTarget.style.color = isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.75)';
                         e.currentTarget.style.filter = 'none';
                     }}
                 >
@@ -432,7 +436,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     height: '64px',
                     padding: '0 14px',
                     textDecoration: 'none',
-                    color: '#fff',
+                    color: isLight ? '#0f172a' : '#fff',
                     overflow: 'hidden'
                 }}>
                     <div style={{
@@ -485,7 +489,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 }}
                             >
                                 <img
-                                    src={bexlyWordmark}
+                                    src={isLight ? bexlyWordmarkDark : bexlyWordmark}
                                     alt="Bexly"
                                     style={{
                                         height: '21px',
@@ -495,7 +499,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         transform: 'translateY(4px)'
                                     }}
                                 />
-                                <span style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.55)', marginTop: '2px', textAlign: 'left' }}>{displayRole}</span>
+                                <span style={{
+                                    fontSize: '0.76rem',
+                                    color: isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.55)',
+                                    marginTop: '2px',
+                                    textAlign: 'left'
+                                }}>
+                                    {displayRole}
+                                </span>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -1018,6 +1029,17 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 boxShadow: '0 0 6px #f97316'
                             }} />
                         </div>
+
+                        {/* Theme Toggle Button (Claro / Escuro) */}
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            className="apple-glass-button"
+                            style={{ width: '40px', height: '40px', padding: 0 }}
+                            title={isLight ? 'Mudar para tema escuro' : 'Mudar para tema claro'}
+                        >
+                            {isLight ? <Moon size={16} /> : <Sun size={16} />}
+                        </button>
                     </div>
                 </header>
 

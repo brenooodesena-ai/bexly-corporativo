@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useInstagramAutomation } from '../context/InstagramAutomationContext';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 // ── Sparkline SVG Chart ──────────────────────────────────────────────────────
 function Sparkline({ data, color = '#ff9800', height = 36, width = 80 }: {
@@ -43,11 +44,13 @@ function Sparkline({ data, color = '#ff9800', height = 36, width = 80 }: {
 function VisionVerticalBars({
     data,
     selectedIdx,
-    onSelect
+    onSelect,
+    isLight
 }: {
     data: { label: string; value: number; formatted: string }[];
     selectedIdx: number;
     onSelect: (idx: number) => void;
+    isLight: boolean;
 }) {
     const maxVal = Math.max(...data.map(d => d.value), 1);
 
@@ -83,13 +86,13 @@ function VisionVerticalBars({
                                     top: `${Math.max(100 - heightPct - 24, 0)}%`,
                                     transform: 'translateY(-100%)',
                                     padding: '4px 10px',
-                                    background: '#ffffff',
+                                    background: isLight ? '#0f172a' : '#ffffff',
                                     borderRadius: '9999px',
-                                    color: '#0f172a',
+                                    color: isLight ? '#ffffff' : '#0f172a',
                                     fontSize: '0.72rem',
                                     fontWeight: 700,
                                     whiteSpace: 'nowrap',
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
                                     zIndex: 10,
                                     pointerEvents: 'none'
                                 }}
@@ -105,7 +108,7 @@ function VisionVerticalBars({
                                 height: '100%',
                                 display: 'flex',
                                 alignItems: 'flex-end',
-                                background: 'rgba(255, 255, 255, 0.07)',
+                                background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.07)',
                                 borderRadius: '9999px',
                                 overflow: 'hidden',
                                 padding: '1px'
@@ -120,7 +123,9 @@ function VisionVerticalBars({
                                     borderRadius: '9999px',
                                     background: isSelected
                                         ? 'linear-gradient(180deg, #ffaa40 0%, #f59e0b 100%)'
-                                        : 'linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.2) 100%)',
+                                        : isLight
+                                            ? 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.25) 100%)'
+                                            : 'linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.2) 100%)',
                                     boxShadow: isSelected ? '0 0 16px rgba(245, 158, 11, 0.7)' : 'none',
                                     transition: 'background 0.25s ease, box-shadow 0.25s ease'
                                 }}
@@ -131,7 +136,9 @@ function VisionVerticalBars({
                         <span style={{
                             marginTop: '10px',
                             fontSize: '0.68rem',
-                            color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.45)',
+                            color: isSelected
+                                ? (isLight ? '#0f172a' : '#ffffff')
+                                : (isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(255, 255, 255, 0.45)'),
                             fontWeight: isSelected ? 600 : 400,
                             whiteSpace: 'nowrap'
                         }}>
@@ -147,10 +154,12 @@ function VisionVerticalBars({
 // ── Donut Chart (VisionOS Category Breakdown) ───────────────────────────────
 function VisionDonutChart({
     segments,
-    totalLabel = '1,240'
+    totalLabel = '1,240',
+    isLight
 }: {
     segments: { label: string; value: number; color: string }[];
     totalLabel?: string;
+    isLight: boolean;
 }) {
     const total = segments.reduce((s, sg) => s + sg.value, 0) || 1;
     let cumulative = 0;
@@ -194,8 +203,8 @@ function VisionDonutChart({
                     justifyContent: 'center',
                     pointerEvents: 'none'
                 }}>
-                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>{totalLabel}</span>
+                    <span style={{ fontSize: '0.62rem', color: isLight ? 'rgba(15,23,42,0.45)' : 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: isLight ? '#0f172a' : '#ffffff', letterSpacing: '-0.02em' }}>{totalLabel}</span>
                 </div>
             </div>
 
@@ -212,9 +221,9 @@ function VisionDonutChart({
                                 boxShadow: `0 0 8px ${sg.color}`,
                                 flexShrink: 0
                             }} />
-                            <span style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.7)' }}>{sg.label}</span>
+                            <span style={{ fontSize: '0.74rem', color: isLight ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.7)' }}>{sg.label}</span>
                         </div>
-                        <span style={{ fontSize: '0.74rem', color: '#ffffff', fontWeight: 600 }}>{sg.value}</span>
+                        <span style={{ fontSize: '0.74rem', color: isLight ? '#0f172a' : '#ffffff', fontWeight: 600 }}>{sg.value}</span>
                     </div>
                 ))}
             </div>
@@ -254,12 +263,14 @@ const itemVariants: Variants = {
 const Dashboard = () => {
     const { leads, automations, account } = useInstagramAutomation();
     const { user } = useAuth();
-    const [selectedBarIdx, setSelectedBarIdx] = useState(2); // Seleciona o 3º dia (ex: 3 Aug) como no vídeo
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
+
+    const [selectedBarIdx, setSelectedBarIdx] = useState(2);
     const [customerFilter, setCustomerFilter] = useState<'Todos' | 'VIP' | 'Leads' | 'Ativos'>('Todos');
 
     const totalLeads = leads.length;
     const totalRevenue = leads.filter(l => l.status === 'Cliente').reduce((s, l) => s + (l.attributedValue || 0), 0);
-
     const userName = user?.user_metadata?.full_name?.split(' ')[0] || 'Barbara';
 
     // Dados de receita por dias (com estilo do vídeo)
@@ -290,8 +301,7 @@ const Dashboard = () => {
             trend: '+3.87%',
             up: true,
             sparkData: [45, 52, 58, 65, 80, 98],
-            sparkColor: '#f59e0b',
-            accent: '#f59e0b'
+            sparkColor: '#f59e0b'
         },
         {
             label: 'Total orders',
@@ -299,8 +309,7 @@ const Dashboard = () => {
             trend: '-0.87%',
             up: false,
             sparkData: [40, 38, 42, 36, 35],
-            sparkColor: '#f43f5e',
-            accent: '#8b5cf6'
+            sparkColor: '#f43f5e'
         },
         {
             label: 'Total visitors',
@@ -308,8 +317,7 @@ const Dashboard = () => {
             trend: '+2.41%',
             up: true,
             sparkData: [32, 35, 41, 40, 45],
-            sparkColor: '#10b981',
-            accent: '#3b82f6'
+            sparkColor: '#10b981'
         },
         {
             label: 'Net profit',
@@ -317,8 +325,7 @@ const Dashboard = () => {
             trend: '+5.47%',
             up: true,
             sparkData: [30, 36, 42, 50, 60],
-            sparkColor: '#10b981',
-            accent: '#10b981'
+            sparkColor: '#10b981'
         }
     ];
 
@@ -329,13 +336,15 @@ const Dashboard = () => {
         { id: 3, name: 'Emma Watson', email: 'emma.w@outlook.com', initials: 'EW', segment: 'LEAD QUALIFICADO', orders: 3, spent: 'R$ 740', loyalty: '62%', status: 'Pendente' },
     ];
 
+    const textColor = isLight ? '#0f172a' : '#ffffff';
+    const subColor = isLight ? 'rgba(15, 23, 42, 0.55)' : 'rgba(255, 255, 255, 0.55)';
+
     return (
         <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="show"
             style={{
-                color: '#f8fafc',
                 maxWidth: '1360px',
                 margin: '0 auto',
                 display: 'flex',
@@ -347,10 +356,10 @@ const Dashboard = () => {
             {/* ── GREETING HEADER (Estilo exato do vídeo) ── */}
             <motion.div variants={itemVariants} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: 0, letterSpacing: '-0.025em', color: '#ffffff' }}>
+                    <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: 0, letterSpacing: '-0.025em', color: textColor }}>
                         Hello, {userName}! 👋
                     </h1>
-                    <p style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: '0.86rem', margin: '4px 0 0' }}>
+                    <p style={{ color: subColor, fontSize: '0.86rem', margin: '4px 0 0' }}>
                         This is what's happening in your business this month.
                     </p>
                 </div>
@@ -359,7 +368,7 @@ const Dashboard = () => {
                     <div className="apple-glass-pill" style={{ padding: '6px 14px', gap: '8px' }}>
                         <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
                         <Instagram size={13} style={{ color: '#c084fc' }} />
-                        <span style={{ fontSize: '0.8rem', color: '#ffffff' }}>@{account.username} conectado</span>
+                        <span style={{ fontSize: '0.8rem', color: textColor }}>@{account.username} conectado</span>
                     </div>
                 )}
             </motion.div>
@@ -382,7 +391,7 @@ const Dashboard = () => {
                     >
                         {/* Top Row: Label & Arrow Button */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <span style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.55)', fontWeight: 500 }}>
+                            <span style={{ fontSize: '0.82rem', color: subColor, fontWeight: 500 }}>
                                 {kpi.label}
                             </span>
                             <div
@@ -390,11 +399,11 @@ const Dashboard = () => {
                                     width: '28px',
                                     height: '28px',
                                     borderRadius: '50%',
-                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: 'rgba(255, 255, 255, 0.7)'
+                                    color: isLight ? '#0f172a' : 'rgba(255, 255, 255, 0.7)'
                                 }}
                             >
                                 <ArrowUpRight size={14} />
@@ -404,7 +413,7 @@ const Dashboard = () => {
                         {/* Bottom Row: Value, Trend Badge & Sparkline */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '14px' }}>
                             <div>
-                                <p style={{ fontSize: '1.65rem', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.03em' }}>
+                                <p style={{ fontSize: '1.65rem', fontWeight: 700, color: textColor, margin: 0, letterSpacing: '-0.03em' }}>
                                     {kpi.value}
                                 </p>
                                 <span style={{
@@ -417,7 +426,7 @@ const Dashboard = () => {
                                     padding: '2px 8px',
                                     borderRadius: '9999px',
                                     background: kpi.up ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-                                    color: kpi.up ? '#34d399' : '#fb7185'
+                                    color: kpi.up ? '#10b981' : '#f43f5e'
                                 }}>
                                     {kpi.up ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
                                     {kpi.trend}
@@ -435,10 +444,10 @@ const Dashboard = () => {
                 <div className="apple-glass-card" style={{ padding: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div>
-                            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: textColor, margin: 0 }}>
                                 Revenue
                             </h2>
-                            <p style={{ fontSize: '0.76rem', color: 'rgba(255, 255, 255, 0.5)', margin: '2px 0 0' }}>
+                            <p style={{ fontSize: '0.76rem', color: subColor, margin: '2px 0 0' }}>
                                 This month vs last
                             </p>
                         </div>
@@ -447,11 +456,11 @@ const Dashboard = () => {
                                 width: '28px',
                                 height: '28px',
                                 borderRadius: '50%',
-                                background: 'rgba(255, 255, 255, 0.08)',
+                                background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: 'rgba(255, 255, 255, 0.7)'
+                                color: isLight ? '#0f172a' : 'rgba(255, 255, 255, 0.7)'
                             }}
                         >
                             <ArrowUpRight size={14} />
@@ -462,6 +471,7 @@ const Dashboard = () => {
                         data={revenueBars}
                         selectedIdx={selectedBarIdx}
                         onSelect={setSelectedBarIdx}
+                        isLight={isLight}
                     />
                 </div>
 
@@ -471,31 +481,31 @@ const Dashboard = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div className="apple-glass-card" style={{ padding: '18px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <CheckCircle2 size={16} style={{ color: 'rgba(255,255,255,0.7)' }} />
-                                <ArrowUpRight size={13} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                                <CheckCircle2 size={16} style={{ color: isLight ? '#0f172a' : 'rgba(255,255,255,0.7)' }} />
+                                <ArrowUpRight size={13} style={{ color: subColor }} />
                             </div>
-                            <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#ffffff', margin: '10px 0 2px' }}>98 orders</p>
-                            <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}>12 orders awaiting confirmation</p>
+                            <p style={{ fontSize: '1.4rem', fontWeight: 700, color: textColor, margin: '10px 0 2px' }}>98 orders</p>
+                            <p style={{ fontSize: '0.68rem', color: subColor, margin: 0 }}>12 orders awaiting confirmation</p>
                         </div>
                         <div className="apple-glass-card" style={{ padding: '18px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <Users size={16} style={{ color: 'rgba(255,255,255,0.7)' }} />
-                                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <ArrowUpRight size={13} color="#0f172a" />
+                                <Users size={16} style={{ color: isLight ? '#0f172a' : 'rgba(255,255,255,0.7)' }} />
+                                <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: isLight ? '#0f172a' : '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <ArrowUpRight size={13} color={isLight ? '#ffffff' : '#0f172a'} />
                                 </div>
                             </div>
-                            <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#ffffff', margin: '10px 0 2px' }}>17 customers</p>
-                            <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}>17 waiting for response</p>
+                            <p style={{ fontSize: '1.4rem', fontWeight: 700, color: textColor, margin: '10px 0 2px' }}>17 customers</p>
+                            <p style={{ fontSize: '0.68rem', color: subColor, margin: 0 }}>17 waiting for response</p>
                         </div>
                     </div>
 
                     {/* Bottom Row: Sales by Category Donut Chart */}
                     <div className="apple-glass-card" style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Sales by Category</h3>
-                            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>This month</span>
+                            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: textColor, margin: 0 }}>Sales by Category</h3>
+                            <span style={{ fontSize: '0.7rem', color: subColor }}>This month</span>
                         </div>
-                        <VisionDonutChart segments={categorySegments} totalLabel="1,240" />
+                        <VisionDonutChart segments={categorySegments} totalLabel="1,240" isLight={isLight} />
                     </div>
                 </div>
             </motion.div>
@@ -504,10 +514,10 @@ const Dashboard = () => {
             <motion.div variants={itemVariants} className="apple-glass-card" style={{ padding: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: textColor, margin: 0 }}>
                             Customer Intelligence 👥
                         </h3>
-                        <p style={{ fontSize: '0.76rem', color: 'rgba(255, 255, 255, 0.5)', margin: '2px 0 0' }}>
+                        <p style={{ fontSize: '0.76rem', color: subColor, margin: '2px 0 0' }}>
                             Audience lifetime value, retention metrics, and VIP cohort analytics
                         </p>
                     </div>
@@ -526,9 +536,13 @@ const Dashboard = () => {
                                         padding: '5px 14px',
                                         fontSize: '0.74rem',
                                         fontWeight: isCurrent ? 600 : 400,
-                                        background: isCurrent ? '#ffffff' : 'rgba(255, 255, 255, 0.08)',
-                                        color: isCurrent ? '#0f172a' : 'rgba(255, 255, 255, 0.75)',
-                                        boxShadow: isCurrent ? '0 4px 16px rgba(255,255,255,0.4)' : 'none'
+                                        background: isCurrent
+                                            ? (isLight ? '#0f172a' : '#ffffff')
+                                            : (isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)'),
+                                        color: isCurrent
+                                            ? (isLight ? '#ffffff' : '#0f172a')
+                                            : (isLight ? '#475569' : 'rgba(255, 255, 255, 0.75)'),
+                                        boxShadow: isCurrent ? (isLight ? '0 4px 16px rgba(15,23,42,0.2)' : '0 4px 16px rgba(255,255,255,0.4)') : 'none'
                                     }}
                                 >
                                     {tab}
@@ -542,7 +556,7 @@ const Dashboard = () => {
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
                         <thead>
-                            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.45)' }}>
+                            <tr style={{ borderBottom: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.1)', color: subColor }}>
                                 <th style={{ padding: '10px 14px', fontWeight: 500 }}>Cliente</th>
                                 <th style={{ padding: '10px 14px', fontWeight: 500 }}>Segmento</th>
                                 <th style={{ padding: '10px 14px', fontWeight: 500 }}>Pedidos / DMs</th>
@@ -556,10 +570,10 @@ const Dashboard = () => {
                                 <tr
                                     key={c.id}
                                     style={{
-                                        borderBottom: i < mockCustomers.length - 1 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
+                                        borderBottom: i < mockCustomers.length - 1 ? (isLight ? '1px solid rgba(0, 0, 0, 0.05)' : '1px solid rgba(255, 255, 255, 0.06)') : 'none',
                                         transition: 'background 0.2s ease'
                                     }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'}
+                                    onMouseEnter={e => e.currentTarget.style.background = isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)'}
                                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                 >
                                     <td style={{ padding: '14px' }}>
@@ -579,8 +593,8 @@ const Dashboard = () => {
                                                 {c.initials}
                                             </div>
                                             <div>
-                                                <div style={{ fontWeight: 600, color: '#ffffff' }}>{c.name}</div>
-                                                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)' }}>{c.email}</div>
+                                                <div style={{ fontWeight: 600, color: textColor }}>{c.name}</div>
+                                                <div style={{ fontSize: '0.7rem', color: subColor }}>{c.email}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -592,21 +606,21 @@ const Dashboard = () => {
                                             fontWeight: 700,
                                             letterSpacing: '0.04em',
                                             background: 'rgba(245, 158, 11, 0.15)',
-                                            color: '#fbbf24',
+                                            color: '#f59e0b',
                                             border: '1px solid rgba(245, 158, 11, 0.3)'
                                         }}>
                                             {c.segment}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '14px', color: 'rgba(255, 255, 255, 0.85)' }}>
+                                    <td style={{ padding: '14px', color: textColor }}>
                                         {c.orders} pedidos
                                     </td>
-                                    <td style={{ padding: '14px', fontWeight: 600, color: '#ffffff' }}>
+                                    <td style={{ padding: '14px', fontWeight: 600, color: textColor }}>
                                         {c.spent}
                                     </td>
                                     <td style={{ padding: '14px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <div style={{ flex: 1, maxWidth: '80px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '9999px', overflow: 'hidden' }}>
+                                            <div style={{ flex: 1, maxWidth: '80px', height: '4px', background: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255,255,255,0.1)', borderRadius: '9999px', overflow: 'hidden' }}>
                                                 <div style={{ width: c.loyalty, height: '100%', background: '#10b981', borderRadius: '9999px' }} />
                                             </div>
                                             <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>{c.loyalty}</span>
