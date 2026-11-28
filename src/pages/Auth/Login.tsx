@@ -8,13 +8,19 @@ import { useAuth, ADMIN_EMAIL } from '../../context/AuthContext';
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { signInWithGoogle, signInWithGoogleIdToken, signInWithFacebook, signInWithEmail, syncDatabaseUser, signOut, isConfigured } = useAuth();
+    const { signInWithGoogle, signInWithGoogleIdToken, signInWithFacebook, signInWithEmail, loginAsLocalAdmin, syncDatabaseUser, signOut, isConfigured } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const isLocalhost = typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.endsWith('.local')
+    );
 
     const googleBtnRef = useRef<HTMLDivElement>(null);
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '791461827731-l4q5jasa0tg3ra7mtlk3t1a2gnkb0tfl.apps.googleusercontent.com';
@@ -122,6 +128,11 @@ const Login = () => {
         setErrorMessage(null);
 
         if (!isConfigured) {
+            if (isLocalhost) {
+                loginAsLocalAdmin();
+                navigate('/dashboard');
+                return;
+            }
             setErrorMessage('Supabase ainda não configurado no arquivo .env. Configure VITE_SUPABASE_ANON_KEY.');
             setIsLoading(false);
             return;
@@ -130,6 +141,12 @@ const Login = () => {
         try {
             const { data, error } = await signInWithEmail(email, password);
             if (error) {
+                if (isLocalhost) {
+                    console.warn('[Login] Autenticação remota falhou no localhost. Acessando como Administrador Local:', error);
+                    loginAsLocalAdmin();
+                    navigate('/dashboard');
+                    return;
+                }
                 const msg = error.message || '';
                 if (msg.includes('Invalid login credentials') || msg.includes('invalid_grant')) {
                     setErrorMessage('Conta não encontrada ou senha incorreta. Se você ainda não tem cadastro, crie sua conta primeiro.');
@@ -143,6 +160,11 @@ const Login = () => {
             }
 
             if (!data?.user && !data?.session) {
+                if (isLocalhost) {
+                    loginAsLocalAdmin();
+                    navigate('/dashboard');
+                    return;
+                }
                 setErrorMessage('Não foi possível entrar. Verifique os dados informados.');
                 setIsLoading(false);
                 return;
@@ -150,6 +172,11 @@ const Login = () => {
 
             navigate('/dashboard');
         } catch (err: any) {
+            if (isLocalhost) {
+                loginAsLocalAdmin();
+                navigate('/dashboard');
+                return;
+            }
             setErrorMessage(err.message || 'Erro inesperado.');
             setIsLoading(false);
         }
@@ -772,6 +799,47 @@ const Login = () => {
                                     Esqueceu a senha?
                                 </button>
                             </div>
+
+                            {/* Botão de Acesso Direto Especial no Localhost */}
+                            {isLocalhost && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        loginAsLocalAdmin();
+                                        navigate('/dashboard');
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        height: '46px',
+                                        background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.22) 0%, rgba(59, 130, 246, 0.12) 100%)',
+                                        color: '#60a5fa',
+                                        fontWeight: 600,
+                                        fontSize: '0.88rem',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(0, 102, 255, 0.45)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        marginBottom: '12px',
+                                        boxShadow: '0 4px 14px rgba(0, 102, 255, 0.2)'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.35) 0%, rgba(59, 130, 246, 0.25) 100%)';
+                                        e.currentTarget.style.borderColor = '#0066FF';
+                                        e.currentTarget.style.color = '#ffffff';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.22) 0%, rgba(59, 130, 246, 0.12) 100%)';
+                                        e.currentTarget.style.borderColor = 'rgba(0, 102, 255, 0.45)';
+                                        e.currentTarget.style.color = '#60a5fa';
+                                    }}
+                                >
+                                    <span>⚡ Acessar Painel (Admin Local)</span>
+                                </button>
+                            )}
 
                             {/* Botão Branco Sólido "Entrar" (Estilo Exato da Imagem) */}
                             <button

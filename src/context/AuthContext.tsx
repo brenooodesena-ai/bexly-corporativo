@@ -27,6 +27,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<{ data?: any; error: any }>;
   syncDatabaseUser: (overrideUser?: any) => Promise<DbUser | null>;
   updateAvatar: (avatarUrl: string) => Promise<{ success: boolean; error?: any }>;
+  loginAsLocalAdmin: () => void;
   signOut: () => Promise<void>;
 }
 
@@ -47,6 +48,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   });
   const [loading, setLoading] = useState(true);
+
+  const createLocalAdminUser = (): { user: User; dbUser: DbUser } => {
+    const adminUser: User = {
+      id: 'usr_admin_breno',
+      app_metadata: { provider: 'email' },
+      user_metadata: {
+        full_name: 'Breno Silva',
+        name: 'Breno Silva',
+        bexly_account_created: true,
+      },
+      aud: 'authenticated',
+      confirmation_sent_at: '',
+      recovery_sent_at: '',
+      email_change_sent_at: '',
+      new_email: '',
+      invited_at: '',
+      action_link: '',
+      email: ADMIN_EMAIL,
+      phone: '',
+      created_at: new Date().toISOString(),
+      confirmed_at: new Date().toISOString(),
+      email_confirmed_at: new Date().toISOString(),
+      phone_confirmed_at: '',
+      last_sign_in_at: new Date().toISOString(),
+      role: 'authenticated',
+      updated_at: new Date().toISOString(),
+    };
+
+    const adminDbUser: DbUser = {
+      id: 'usr_admin_breno',
+      email: ADMIN_EMAIL,
+      name: 'Breno Silva',
+      role: 'admin',
+      organization_id: 'org_breno_default',
+    };
+
+    return { user: adminUser, dbUser: adminDbUser };
+  };
+
+  const loginAsLocalAdmin = () => {
+    const { user: adminUser, dbUser: adminDbUser } = createLocalAdminUser();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bexly_local_user', JSON.stringify(adminUser));
+      localStorage.setItem('bexly_current_user', JSON.stringify(adminDbUser));
+    }
+    setDbUser(adminDbUser);
+    setUser(applyCustomAvatar(adminUser));
+  };
 
   const syncDatabaseUser = async (u?: User | null): Promise<DbUser | null> => {
     const targetUser = u || user;
@@ -127,7 +176,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 1. Obter sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      const currentUser = applyCustomAvatar(session?.user ?? null);
+      let currentUser = applyCustomAvatar(session?.user ?? null);
+      if (!currentUser && typeof window !== 'undefined') {
+        const localUserStr = localStorage.getItem('bexly_local_user');
+        if (localUserStr) {
+          try {
+            currentUser = applyCustomAvatar(JSON.parse(localUserStr));
+          } catch {}
+        }
+      }
       setUser(currentUser);
       if (currentUser) {
         syncDatabaseUser(currentUser);
@@ -136,13 +193,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }).catch((err) => {
       console.error('[AuthContext] Erro ao recuperar sessão:', err);
+      if (typeof window !== 'undefined') {
+        const localUserStr = localStorage.getItem('bexly_local_user');
+        if (localUserStr) {
+          try {
+            setUser(applyCustomAvatar(JSON.parse(localUserStr)));
+          } catch {}
+        }
+      }
       setLoading(false);
     });
 
     // 2. Ouvir mudanças no estado de autenticação (OAuth callback, refresh, logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      const currentUser = applyCustomAvatar(session?.user ?? null);
+      let currentUser = applyCustomAvatar(session?.user ?? null);
+      if (!currentUser && typeof window !== 'undefined') {
+        const localUserStr = localStorage.getItem('bexly_local_user');
+        if (localUserStr) {
+          try {
+            currentUser = applyCustomAvatar(JSON.parse(localUserStr));
+          } catch {}
+        }
+      }
       setUser(currentUser);
       if (currentUser) {
         syncDatabaseUser(currentUser);
@@ -151,6 +224,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setDbUser(null);
         if (typeof window !== 'undefined') {
           localStorage.removeItem('bexly_current_user');
+          localStorage.removeItem('bexly_local_user');
         }
       }
       setLoading(false);
@@ -225,7 +299,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithEmail = async (email: string, password: string) => {
+    const isLocalhost = typeof window !== 'undefined' && (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.endsWith('.local')
+    );
+
     if (!isSupabaseConfigured) {
+      if (isLocalhost) {
+        loginAsLocalAdmin();
+        const { user: u } = createLocalAdminUser();
+        return { data: { user: u, session: null }, error: null };
+      }
       return {
         error: new Error(
           'Supabase ainda não configurado. Por favor, adicione sua VITE_SUPABASE_ANON_KEY no arquivo .env.'
@@ -233,16 +318,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (data?.user) {
-      await syncDatabaseUser(data.user);
+      if (data?.user) {
+        await syncDatabaseUser(data.user);
+        return { data, error: null };
+      }
+
+      // Se falhar e estiver em ambiente local, concede acesso como administrador local
+      if (error && isLocalhost) {
+        console.warn('[AuthContext] Login Supabase falhou no localhost. Ativando sessão de administrador local:', error);
+        loginAsLocalAdmin();
+        const { user: u } = createLocalAdminUser();
+        return { data: { user: u, session: null }, error: null };
+      }
+
+      return { data, error };
+    } catch (err: any) {
+      if (isLocalhost) {
+        loginAsLocalAdmin();
+        const { user: u } = createLocalAdminUser();
+        return { data: { user: u, session: null }, error: null };
+      }
+      return { data: null, error: err };
     }
-
-    return { data, error };
   };
 
   const signUpWithEmail = async (email: string, password: string, fullName?: string) => {
@@ -276,12 +379,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await pauseCloudAutomations();
     } catch {}
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {}
     setUser(null);
     setSession(null);
     setDbUser(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('bexly_current_user');
+      localStorage.removeItem('bexly_local_user');
     }
   };
 
@@ -306,6 +412,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUpWithEmail,
         syncDatabaseUser,
         updateAvatar,
+        loginAsLocalAdmin,
         signOut,
       }}
     >
