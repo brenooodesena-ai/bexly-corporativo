@@ -29,9 +29,9 @@ import {
     Clock
 } from 'lucide-react';
 
-const EXPANDED_W = 272;
-const COLLAPSED_W = 84;
-const GAP = 14;
+const EXPANDED_W = 244;
+const COLLAPSED_W = 68;
+const GAP = 12;
 
 const spring = { type: 'spring' as const, stiffness: 520, damping: 40, mass: 0.8 };
 
@@ -71,10 +71,10 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                 overflow: 'hidden'
             }}
         >
-            {/* Slot fixo do ícone — sempre perfeitamente alinhado */}
+            {/* Slot fixo do ícone — perfeitamente centralizado no rail colapsado */}
             <div
                 style={{
-                    width: '56px',
+                    width: '48px',
                     height: '100%',
                     display: 'flex',
                     alignItems: 'center',
@@ -94,7 +94,7 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                     }}
                 >
                     <Icon
-                        size={19}
+                        size={18}
                         strokeWidth={active ? 2.2 : (isHovered ? 2.0 : 1.8)}
                         style={{
                             color: iconColor,
@@ -119,18 +119,18 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
                             minWidth: 0,
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
-                            paddingRight: '14px'
+                            paddingRight: '12px'
                         }}
                     >
                         <span style={{
                             fontWeight: active ? 600 : 500,
-                            fontSize: '0.88rem',
+                            fontSize: '0.84rem',
                             color: textColor,
                             transition: 'color 0.2s ease'
                         }}>
                             {label}
                         </span>
-                        {badge && <span style={{ marginLeft: '8px' }}>{badge}</span>}
+                        {badge && <span style={{ marginLeft: '6px' }}>{badge}</span>}
                         {trailing && <span style={{ marginLeft: 'auto', display: 'flex' }}>{trailing}</span>}
                     </motion.span>
                 )}
@@ -142,9 +142,9 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
         position: 'relative' as const,
         display: 'flex',
         alignItems: 'center',
-        height: '46px',
+        height: '40px',
         margin: '2px 0',
-        borderRadius: '14px',
+        borderRadius: '12px',
         background: active ? 'rgba(255, 255, 255, 0.1)' : (isHovered ? 'rgba(255, 255, 255, 0.05)' : 'transparent'),
         transition: 'background 0.2s ease, color 0.2s ease',
         textDecoration: 'none',
@@ -179,12 +179,12 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
 
 const SectionLabel = ({ children, collapsed }: { children: ReactNode; collapsed: boolean }) => (
     <div style={{
-        fontSize: '0.66rem',
+        fontSize: '0.62rem',
         fontWeight: 600,
         letterSpacing: '1.2px',
         textTransform: 'uppercase',
         color: 'rgba(255,255,255,0.4)',
-        padding: collapsed ? '16px 0 8px 0' : '16px 14px 8px 14px',
+        padding: collapsed ? '10px 0 4px 0' : '12px 10px 4px 10px',
         textAlign: collapsed ? 'center' : 'left',
         height: '14px',
         boxSizing: 'content-box'
@@ -311,7 +311,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     zIndex: 50,
                     display: 'flex',
                     flexDirection: 'column',
-                    borderRadius: '28px',
+                    borderRadius: '24px',
                     background: 'rgba(20, 22, 32, 0.62)',
                     border: '1px solid rgba(255, 255, 255, 0.12)',
                     boxShadow: 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 30px 60px -20px rgba(0, 0, 0, 0.75)',
@@ -325,14 +325,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 <Link to="/dashboard" style={{
                     display: 'flex',
                     alignItems: 'center',
-                    height: '64px',
-                    padding: '0 14px',
+                    height: '56px',
+                    padding: '0 10px',
                     textDecoration: 'none',
                     color: '#fff',
                     overflow: 'hidden'
                 }}>
                     <div style={{
-                        width: '56px',
+                        width: '48px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -342,8 +342,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                             whileHover={{ scale: 1.1, rotate: 2 }}
                             transition={{ type: 'spring', stiffness: 450, damping: 20 }}
                             style={{
-                                width: '38px',
-                                height: '38px',
+                                width: '32px',
+                                height: '32px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
@@ -353,7 +353,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 src={bexlyMark}
                                 alt="Bexly"
                                 style={{
-                                    height: '36px',
+                                    height: '30px',
                                     width: 'auto',
                                     objectFit: 'contain',
                                     display: 'block',
@@ -384,15 +384,15 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                     src={bexlyWordmark}
                                     alt="Bexly"
                                     style={{
-                                        height: '21px',
+                                        height: '18px',
                                         width: 'auto',
                                         objectFit: 'contain',
                                         display: 'block',
-                                        transform: 'translateY(4px)'
+                                        transform: 'translateY(3px)'
                                     }}
                                 />
                                 <span style={{
-                                    fontSize: '0.76rem',
+                                    fontSize: '0.72rem',
                                     color: 'rgba(255, 255, 255, 0.55)',
                                     marginTop: '2px',
                                     textAlign: 'left'
@@ -405,14 +405,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 </Link>
 
                 {/* Busca */}
-                <div style={{ padding: '4px 14px 6px 14px', position: 'relative' }}>
+                <div style={{ padding: '4px 10px 6px 10px', position: 'relative' }}>
                     <div
                         onClick={() => { searchRef.current?.focus(); }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            height: '42px',
-                            borderRadius: '14px',
+                            height: '38px',
+                            borderRadius: '12px',
                             background: 'rgba(255,255,255,0.05)',
                             border: '1px solid rgba(255,255,255,0.08)',
                             cursor: collapsed ? 'pointer' : 'text',
@@ -420,14 +420,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                         }}
                     >
                         <div style={{
-                            width: '56px',
+                            width: '48px',
                             height: '100%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0
                         }}>
-                            <Search size={16} strokeWidth={1.9} style={{ color: 'rgba(255,255,255,0.6)' }} />
+                            <Search size={15} strokeWidth={1.9} style={{ color: 'rgba(255,255,255,0.6)' }} />
                         </div>
                         <AnimatePresence initial={false}>
                             {!collapsed && (
@@ -441,7 +441,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         overflow: 'hidden',
-                                        paddingRight: '12px'
+                                        paddingRight: '10px'
                                     }}
                                 >
                                     <input
@@ -455,13 +455,13 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                             if (e.key === 'Escape') setSearch('');
                                         }}
                                         placeholder="Buscar páginas"
-                                        style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '0.86rem' }}
+                                        style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '0.82rem' }}
                                     />
                                     <span style={{
-                                        fontSize: '0.68rem',
+                                        fontSize: '0.64rem',
                                         color: 'rgba(255,255,255,0.55)',
-                                        padding: '2px 7px',
-                                        borderRadius: '7px',
+                                        padding: '1px 5px',
+                                        borderRadius: '6px',
                                         border: '1px solid rgba(255,255,255,0.12)',
                                         background: 'rgba(255,255,255,0.04)',
                                         whiteSpace: 'nowrap'
@@ -480,13 +480,13 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 transition={{ duration: 0.15 }}
                                 style={{
                                     position: 'absolute',
-                                    left: '14px',
-                                    right: '14px',
-                                    top: '52px',
+                                    left: '10px',
+                                    right: '10px',
+                                    top: '48px',
                                     background: 'rgba(20, 24, 34, 0.98)',
                                     border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '14px',
-                                    padding: '6px',
+                                    borderRadius: '12px',
+                                    padding: '5px',
                                     zIndex: 10,
                                     boxShadow: '0 20px 40px -10px rgba(0,0,0,0.7)'
                                 }}
@@ -495,7 +495,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                     <div
                                         key={r.to}
                                         onMouseDown={() => { navigate(r.to); setSearch(''); }}
-                                        style={{ padding: '9px 10px', borderRadius: '10px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)', cursor: 'pointer' }}
+                                        style={{ padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)', cursor: 'pointer' }}
                                         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                                     >
@@ -511,7 +511,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 <LayoutGroup>
                     <nav
                         onMouseLeave={() => setHovered(null)}
-                        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 14px' }}
+                        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 10px' }}
                         className="bexly-sidebar-nav"
                     >
                         <SectionLabel collapsed={collapsed}>Principal</SectionLabel>
@@ -559,10 +559,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
                                     transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-                                    style={{ overflow: 'hidden', position: 'relative', marginLeft: '22px' }}
+                                    style={{ overflow: 'hidden', position: 'relative', marginLeft: '16px' }}
                                 >
                                     {/* Linha vertical da árvore */}
-                                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: '21px', width: '1px', background: 'rgba(255,255,255,0.14)' }} />
+                                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: '18px', width: '1px', background: 'rgba(255,255,255,0.14)' }} />
                                     {[
                                         { id: 'pages', to: '/pages', label: 'Minhas Páginas', color: '#22c55e', icon: LayoutIcon },
                                         { id: 'funnels', to: '/funnels', label: 'Funis de Venda', color: '#f97316', icon: GitMerge }
@@ -570,8 +570,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         const subActive = isActive(sub.to);
                                         const subHovered = hovered === sub.id;
                                         return (
-                                            <div key={sub.id} style={{ position: 'relative', paddingLeft: '14px' }}>
-                                                <div style={{ position: 'absolute', left: 0, top: '20px', width: '12px', height: '1px', background: 'rgba(255,255,255,0.14)' }} />
+                                            <div key={sub.id} style={{ position: 'relative', paddingLeft: '12px' }}>
+                                                <div style={{ position: 'absolute', left: 0, top: '18px', width: '10px', height: '1px', background: 'rgba(255,255,255,0.14)' }} />
                                                 <NavLink
                                                     to={sub.to}
                                                     onMouseEnter={() => setHovered(sub.id)}
@@ -579,13 +579,13 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                                         position: 'relative',
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '10px',
-                                                        height: '40px',
-                                                        padding: '0 12px',
+                                                        gap: '8px',
+                                                        height: '34px',
+                                                        padding: '0 10px',
                                                         marginBottom: '2px',
-                                                        borderRadius: '12px',
+                                                        borderRadius: '10px',
                                                         textDecoration: 'none',
-                                                        fontSize: '0.86rem',
+                                                        fontSize: '0.82rem',
                                                         fontWeight: subActive ? 600 : 500,
                                                         color: subActive ? '#fff' : 'rgba(255,255,255,0.75)'
                                                     }}
@@ -596,9 +596,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                                         style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center' }}
                                                     >
                                                         <span style={{
-                                                            width: '8px',
-                                                            height: '8px',
-                                                            borderRadius: '3px',
+                                                            width: '7px',
+                                                            height: '7px',
+                                                            borderRadius: '2.5px',
                                                             background: sub.color,
                                                             flexShrink: 0,
                                                             boxShadow: subHovered ? `0 0 10px ${sub.color}` : 'none',
@@ -628,16 +628,16 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                             )}
                         </AnimatePresence>
 
-                        <div style={{ height: '10px' }} />
+                        <div style={{ height: '8px' }} />
                         <SidebarItem id="settings" to="/settings" icon={Settings} label="Configurações" active={isActive('/settings')} {...common} />
                     </nav>
                 </LayoutGroup>
 
                 {/* Rodapé: usuário */}
-                <div style={{ padding: '8px 14px 14px 14px', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', height: '44px', overflow: 'hidden' }}>
+                <div style={{ padding: '6px 10px 12px 10px', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '40px', overflow: 'hidden' }}>
                         <div style={{
-                            width: '56px',
+                            width: '48px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -656,14 +656,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         src={avatarUrl}
                                         alt={displayName}
                                         referrerPolicy="no-referrer"
-                                        style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255, 255, 255, 0.15)' }}
+                                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255, 255, 255, 0.15)' }}
                                     />
                                 ) : (
                                     <div style={{
-                                        width: '38px', height: '38px', borderRadius: '50%',
+                                        width: '32px', height: '32px', borderRadius: '50%',
                                         background: isAdmin ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontWeight: 700, fontSize: '0.8rem', color: '#fff'
+                                        fontWeight: 700, fontSize: '0.76rem', color: '#fff'
                                     }}>{initials}</div>
                                 )}
                                 <div style={{
@@ -680,9 +680,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                 }}
                                 className="sidebar-avatar-overlay"
                                 >
-                                    <Camera size={14} />
+                                    <Camera size={13} />
                                 </div>
-                                <span style={{ position: 'absolute', right: '-1px', bottom: '-1px', width: '11px', height: '11px', borderRadius: '50%', background: '#22c55e', border: '2px solid #12151e' }} />
+                                <span style={{ position: 'absolute', right: '-1px', bottom: '-1px', width: '9px', height: '9px', borderRadius: '50%', background: '#22c55e', border: '2px solid #12151e' }} />
                             </motion.div>
                         </div>
                         <AnimatePresence initial={false}>
@@ -708,24 +708,24 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         title="Ver configurações do perfil"
                                         style={{ flex: 1, minWidth: 0, lineHeight: 1.25, cursor: 'pointer', overflow: 'hidden' }}
                                     >
-                                        <div style={{ fontSize: '0.86rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <div style={{ fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             {displayName}
-                                            {isAdmin && <ShieldCheck size={12} color="#3b82f6" />}
+                                            {isAdmin && <ShieldCheck size={11} color="#3b82f6" />}
                                         </div>
-                                        <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayEmail}</div>
+                                        <div style={{ fontSize: '0.70rem', color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayEmail}</div>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, marginLeft: '6px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, marginLeft: '6px' }}>
                                         <button
                                             type="button"
                                             onClick={handleLogout}
                                             title="Sair"
-                                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', padding: '6px', borderRadius: '8px', transition: 'color 0.2s, background 0.2s' }}
+                                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', padding: '4px', borderRadius: '6px', transition: 'color 0.2s, background 0.2s' }}
                                             onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
                                             onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'none'; }}
                                         >
-                                            <LogOut size={16} />
+                                            <LogOut size={15} />
                                         </button>
-                                        <ChevronsUpDown size={14} style={{ color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => navigate('/settings')} />
+                                        <ChevronsUpDown size={13} style={{ color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => navigate('/settings')} />
                                     </div>
                                 </motion.div>
                             )}
