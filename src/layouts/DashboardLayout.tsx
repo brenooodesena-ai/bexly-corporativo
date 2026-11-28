@@ -19,7 +19,6 @@ import {
     LogOut,
     Search,
     ShieldCheck,
-    ChevronLeft,
     ChevronDown,
     ChevronsUpDown,
     Layers,
@@ -61,110 +60,82 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
         : (isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.68)');
 
     const content = (
-        <>
-            <span
+        <span
+            style={{
+                position: 'relative',
+                zIndex: 2,
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden'
+            }}
+        >
+            {/* Slot fixo do ícone — sempre perfeitamente alinhado */}
+            <div
                 style={{
-                    position: 'relative',
-                    zIndex: 2,
+                    width: '56px',
+                    height: '100%',
                     display: 'flex',
                     alignItems: 'center',
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden'
+                    justifyContent: 'center',
+                    flexShrink: 0
                 }}
             >
-                {/* Slot fixo do ícone — sem nenhuma marcação/pílula de fundo */}
-                <div
+                <motion.div
+                    animate={{
+                        scale: isHovered ? 1.15 : 1,
+                    }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 22 }}
                     style={{
-                        width: '56px',
-                        height: '100%',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
+                        justifyContent: 'center'
                     }}
                 >
-                    <motion.div
-                        animate={{
-                            scale: isHovered ? 1.15 : 1,
+                    <Icon
+                        size={19}
+                        strokeWidth={active ? 2.2 : (isHovered ? 2.0 : 1.8)}
+                        style={{
+                            color: iconColor,
+                            filter: active ? 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.7))' : (isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none'),
+                            transition: 'color 0.2s ease, filter 0.2s ease'
                         }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                    />
+                </motion.div>
+            </div>
+            <AnimatePresence initial={false}>
+                {!collapsed && (
+                    <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.18, ease: 'easeInOut' }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'space-between',
+                            flex: 1,
+                            minWidth: 0,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            paddingRight: '14px'
                         }}
                     >
-                        <Icon
-                            size={19}
-                            strokeWidth={active ? 2.2 : (isHovered ? 2.0 : 1.8)}
-                            style={{
-                                color: iconColor,
-                                filter: active ? 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.7))' : (isHovered ? 'drop-shadow(0 0 8px rgba(255,255,255,0.45))' : 'none'),
-                                transition: 'color 0.2s ease, filter 0.2s ease'
-                            }}
-                        />
-                    </motion.div>
-                </div>
-                <AnimatePresence initial={false}>
-                    {!collapsed && (
-                        <motion.span
-                            initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: 'auto' }}
-                            exit={{ opacity: 0, width: 0 }}
-                            transition={{ duration: 0.18, ease: 'easeInOut' }}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                flex: 1,
-                                minWidth: 0,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                paddingRight: '14px'
-                            }}
-                        >
-                            <span style={{
-                                fontWeight: active ? 600 : 500,
-                                fontSize: '0.88rem',
-                                color: textColor,
-                                transition: 'color 0.2s ease'
-                            }}>
-                                {label}
-                            </span>
-                            {badge && <span style={{ marginLeft: '8px' }}>{badge}</span>}
-                            {trailing && <span style={{ marginLeft: 'auto', display: 'flex' }}>{trailing}</span>}
-                        </motion.span>
-                    )}
-                </AnimatePresence>
-            </span>
-
-            {/* Tooltip flutuante estilo Apple VisionOS quando a barra está recolhida */}
-            {collapsed && isHovered && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: '100%',
-                        marginLeft: '14px',
-                        padding: '6px 14px',
-                        background: 'rgba(20, 22, 32, 0.94)',
-                        backdropFilter: 'blur(24px)',
-                        WebkitBackdropFilter: 'blur(24px)',
-                        border: '1px solid rgba(255, 255, 255, 0.18)',
-                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                        borderRadius: '9999px',
-                        color: '#ffffff',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        whiteSpace: 'nowrap',
-                        zIndex: 9999,
-                        pointerEvents: 'none'
-                    }}
-                >
-                    {label}
-                </div>
-            )}
-        </>
+                        <span style={{
+                            fontWeight: active ? 600 : 500,
+                            fontSize: '0.88rem',
+                            color: textColor,
+                            transition: 'color 0.2s ease'
+                        }}>
+                            {label}
+                        </span>
+                        {badge && <span style={{ marginLeft: '8px' }}>{badge}</span>}
+                        {trailing && <span style={{ marginLeft: 'auto', display: 'flex' }}>{trailing}</span>}
+                    </motion.span>
+                )}
+            </AnimatePresence>
+        </span>
     );
 
     const style = {
@@ -173,7 +144,9 @@ const SidebarItem = ({ id, to, icon: Icon, label, collapsed, hovered, setHovered
         alignItems: 'center',
         height: '46px',
         margin: '2px 0',
-        borderRadius: '16px',
+        borderRadius: '14px',
+        background: active ? 'rgba(255, 255, 255, 0.1)' : (isHovered ? 'rgba(255, 255, 255, 0.05)' : 'transparent'),
+        transition: 'background 0.2s ease, color 0.2s ease',
         textDecoration: 'none',
         color: 'inherit',
         cursor: 'pointer',
@@ -225,23 +198,23 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
     const location = useLocation();
     const { user, dbUser, isAdmin, signOut } = useAuth();
 
-    const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('bexly_sidebar_collapsed') === '1');
+    const [isSidebarHovered, setIsSidebarHovered] = useState<boolean>(false);
+    const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
     const [hovered, setHovered] = useState<string | null>(null);
     const [builderOpen, setBuilderOpen] = useState<boolean>(true);
     const [search, setSearch] = useState('');
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState<boolean>(false);
     const searchRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        localStorage.setItem('bexly_sidebar_collapsed', collapsed ? '1' : '0');
-    }, [collapsed]);
+    const isExpanded = isSidebarHovered || isSearchFocused || search.length > 0;
+    const collapsed = !isExpanded;
 
     // Atalho ⌘K / Ctrl+K para focar a busca
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault();
-                setCollapsed(false);
+                setIsSearchFocused(true);
                 setTimeout(() => searchRef.current?.focus(), 50);
             }
         };
@@ -325,6 +298,11 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 initial={false}
                 animate={{ width: sidebarW }}
                 transition={spring}
+                onMouseEnter={() => setIsSidebarHovered(true)}
+                onMouseLeave={() => {
+                    setIsSidebarHovered(false);
+                    setHovered(null);
+                }}
                 style={{
                     position: 'fixed',
                     top: GAP,
@@ -343,45 +321,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     overflow: 'visible'
                 }}
             >
-                {/* Botão recolher/expandir — apenas a seta, sem círculo branco, posicionada mais à direita */}
-                <motion.button
-                    type="button"
-                    onClick={() => setCollapsed(c => !c)}
-                    whileHover={{ scale: 1.25, x: 2 }}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{ rotate: collapsed ? 180 : 0 }}
-                    transition={spring}
-                    aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-                    style={{
-                        position: 'absolute',
-                        top: '26px',
-                        right: '-28px',
-                        width: '32px',
-                        height: '32px',
-                        background: 'transparent',
-                        color: 'rgba(255, 255, 255, 0.75)',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        padding: 0,
-                        zIndex: 5,
-                        outline: 'none',
-                        transition: 'color 0.2s ease, filter 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#ffffff';
-                        e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.8))';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)';
-                        e.currentTarget.style.filter = 'none';
-                    }}
-                >
-                    <ChevronLeft size={20} strokeWidth={2.4} />
-                </motion.button>
-
                 {/* Cabeçalho: logo transparente + workspace */}
                 <Link to="/dashboard" style={{
                     display: 'flex',
@@ -468,7 +407,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 {/* Busca */}
                 <div style={{ padding: '4px 14px 6px 14px', position: 'relative' }}>
                     <div
-                        onClick={() => { if (collapsed) { setCollapsed(false); setTimeout(() => searchRef.current?.focus(), 80); } }}
+                        onClick={() => { searchRef.current?.focus(); }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -509,6 +448,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                                         ref={searchRef}
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
+                                        onFocus={() => setIsSearchFocused(true)}
+                                        onBlur={() => setIsSearchFocused(false)}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && results[0]) { navigate(results[0].to); setSearch(''); }
                                             if (e.key === 'Escape') setSearch('');
@@ -603,7 +544,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                             icon={Layers}
                             label="Construtor"
                             active={collapsed && builderActive}
-                            onClick={() => { if (collapsed) { setCollapsed(false); setBuilderOpen(true); } else setBuilderOpen(o => !o); }}
+                            onClick={() => setBuilderOpen(o => !o)}
                             trailing={
                                 <motion.span animate={{ rotate: builderOpen ? 180 : 0 }} transition={spring} style={{ display: 'flex', color: 'rgba(255,255,255,0.55)' }}>
                                     <ChevronDown size={15} />
@@ -833,7 +774,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     {/* Center: Long Frosted Glass Search Pill */}
                     <div
                         onClick={() => {
-                            if (collapsed) setCollapsed(false);
+                            setIsSearchFocused(true);
                             setTimeout(() => searchRef.current?.focus(), 50);
                         }}
                         className="apple-glass-card"
